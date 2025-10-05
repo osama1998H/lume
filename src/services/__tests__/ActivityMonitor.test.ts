@@ -337,14 +337,32 @@ describe('ActivityMonitor', () => {
 
     it('should continue running after capture error', async () => {
       (execAsync as unknown as jest.Mock).mockRejectedValue(new Error('Test error'));
-      
+
       monitor.start();
       expect(monitor.isTracking()).toBe(true);
-      
+
       jest.advanceTimersByTime(100);
       await Promise.resolve();
-      
+
       expect(monitor.isTracking()).toBe(true);
+    });
+
+    it('should cleanup and stop tracking when stop() is called during capture', async () => {
+      // Simulate a long-running capture by making execAsync return a promise that never resolves
+      const neverResolvingPromise = new Promise(() => {});
+      (execAsync as unknown as jest.Mock).mockReturnValue(neverResolvingPromise);
+
+      monitor.start();
+      expect(monitor.isTracking()).toBe(true);
+
+      // Call stop while capture is in progress
+      monitor.stop();
+
+      expect(monitor.isTracking()).toBe(false);
+
+      // Optionally, check that no further captures are scheduled
+      jest.advanceTimersByTime(1000);
+      expect(monitor.isTracking()).toBe(false);
     });
   });
 
