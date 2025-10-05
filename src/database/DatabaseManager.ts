@@ -212,7 +212,7 @@ export class DatabaseManager {
       session.end_time || null,
       session.duration || null,
       session.is_browser ? 1 : 0,
-      false
+      0  // is_idle: false = 0
     );
 
     console.log(`✅ DB: Session saved with ID: ${result.lastInsertRowid}`);
