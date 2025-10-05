@@ -118,8 +118,8 @@ class LumeApp {
       if (settings.activityTracking?.enabled) {
         console.log('🚀 Auto-starting activity tracking (enabled in settings)');
         if (this.activityTracker) {
+          // updateSettings will automatically start tracking if enabled and not already running
           this.activityTracker.updateSettings(settings.activityTracking);
-          this.activityTracker.start();
           console.log('✅ Activity tracking auto-started successfully');
         }
       } else {

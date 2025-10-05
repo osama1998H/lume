@@ -85,14 +85,20 @@ const Settings: React.FC = () => {
     try {
       if (window.electronAPI) {
         const newTrackingState = !isTracking;
+        let apiSuccess = false;
 
+        // First, try to start/stop tracking via API
         if (newTrackingState) {
-          await window.electronAPI.startActivityTracking();
+          apiSuccess = await window.electronAPI.startActivityTracking();
         } else {
-          await window.electronAPI.stopActivityTracking();
+          apiSuccess = await window.electronAPI.stopActivityTracking();
         }
 
-        setIsTracking(newTrackingState);
+        // Only update state if API call succeeded
+        if (!apiSuccess) {
+          console.error('❌ Failed to toggle tracking state');
+          return;
+        }
 
         // Update and save the enabled state in settings
         const updatedSettings = {
@@ -103,13 +109,21 @@ const Settings: React.FC = () => {
           }
         };
 
-        setSettings(updatedSettings);
-        const success = await window.electronAPI.saveSettings(updatedSettings);
+        const saveSuccess = await window.electronAPI.saveSettings(updatedSettings);
 
-        if (success) {
+        if (saveSuccess) {
+          // Only update UI state after both API and save succeed
+          setIsTracking(newTrackingState);
+          setSettings(updatedSettings);
           console.log(`✅ Activity tracking ${newTrackingState ? 'enabled' : 'disabled'} and saved to settings`);
         } else {
           console.error('❌ Failed to save tracking state to settings');
+          // Rollback the tracking state since save failed
+          if (newTrackingState) {
+            await window.electronAPI.stopActivityTracking();
+          } else {
+            await window.electronAPI.startActivityTracking();
+          }
         }
       }
     } catch (error) {
