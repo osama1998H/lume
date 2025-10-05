@@ -7,6 +7,8 @@
 [![React](https://img.shields.io/badge/React-19+-blue.svg)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue.svg)](https://www.typescriptlang.org/)
 
+[![CI](https://github.com/osama1998H/lume/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/osama1998H/lume/actions/workflows/ci.yml)
+
 Lume helps you understand your productivity patterns by automatically tracking time spent on different applications and websites. Get clear insights to improve focus, productivity, and time management.
 
 <img width="1747" height="1147" alt="Screenshot 2025-10-05 at 9 48 09 PM" src="https://github.com/user-attachments/assets/f2b84f07-1ede-4590-a6d0-76f8ccd3d4c4" />
