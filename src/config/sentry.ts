@@ -1,0 +1,122 @@
+import * as Sentry from "@sentry/electron/main";
+import { app } from 'electron';
+import type { ErrorEvent, EventHint } from '@sentry/electron/main';
+
+/**
+ * Initialize Sentry for crash reporting and error tracking
+ * Should only be called once in the main process
+ */
+export function initializeSentry(): void {
+  const dsn = process.env.SENTRY_DSN;
+  const environment = process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV || 'development';
+
+  // Don't initialize Sentry if DSN is not configured
+  if (!dsn || dsn === 'your_sentry_dsn_here') {
+    console.log('Sentry DSN not configured, skipping initialization');
+    return;
+  }
+
+  // Skip Sentry in development unless explicitly enabled
+  if (environment === 'development' && !process.env.SENTRY_ENABLE_DEV) {
+    console.log('Sentry disabled in development environment');
+    return;
+  }
+
+  try {
+    Sentry.init({
+      dsn,
+      environment,
+      release: `lume@${app.getVersion()}`,
+
+      // Capture 100% of transactions in production, 10% in other environments
+      tracesSampleRate: environment === 'production' ? 1.0 : 0.1,
+
+      // Privacy: Filter sensitive data before sending to Sentry
+      beforeSend(event: ErrorEvent, hint: EventHint): ErrorEvent | null {
+        // Remove or redact sensitive information
+        if (event.user) {
+          delete event.user.ip_address;
+          delete event.user.email;
+        }
+
+        // Sanitize URLs that might contain sensitive data
+        if (event.request?.url) {
+          try {
+            const url = new URL(event.request.url);
+            // Remove query parameters that might contain tokens or sensitive data
+            const sensitiveParams = ['token', 'key', 'password', 'secret', 'api_key'];
+            sensitiveParams.forEach(param => {
+              if (url.searchParams.has(param)) {
+                url.searchParams.set(param, '[REDACTED]');
+              }
+            });
+            event.request.url = url.toString();
+          } catch (e) {
+            // If URL parsing fails, keep original
+          }
+        }
+
+        // Sanitize breadcrumbs
+        if (event.breadcrumbs) {
+          event.breadcrumbs = event.breadcrumbs.map((breadcrumb: any) => {
+            if (breadcrumb.data) {
+              const sensitiveKeys = ['password', 'token', 'secret', 'key', 'api_key', 'apiKey'];
+              sensitiveKeys.forEach(key => {
+                if (breadcrumb.data && key in breadcrumb.data) {
+                  breadcrumb.data[key] = '[REDACTED]';
+                }
+              });
+            }
+            return breadcrumb;
+          });
+        }
+
+        return event;
+      },
+
+      // Don't send default PII
+      sendDefaultPii: false,
+
+      // Ignore common non-critical errors
+      ignoreErrors: [
+        'ResizeObserver loop limit exceeded',
+        'Non-Error promise rejection captured',
+        'Network request failed',
+      ],
+    });
+
+    console.log(`Sentry initialized successfully in ${environment} mode`);
+  } catch (error) {
+    console.error('Failed to initialize Sentry:', error);
+  }
+}
+
+/**
+ * Manually capture an exception with Sentry
+ */
+export function captureException(error: Error, context?: Record<string, any>): void {
+  if (context) {
+    Sentry.withScope((scope) => {
+      Object.entries(context).forEach(([key, value]) => {
+        scope.setContext(key, value);
+      });
+      Sentry.captureException(error);
+    });
+  } else {
+    Sentry.captureException(error);
+  }
+}
+
+/**
+ * Set user context for error tracking (use anonymous IDs only)
+ */
+export function setUserContext(userId: string): void {
+  Sentry.setUser({ id: userId });
+}
+
+/**
+ * Clear user context
+ */
+export function clearUserContext(): void {
+  Sentry.setUser(null);
+}
