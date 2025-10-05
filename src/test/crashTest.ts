@@ -32,7 +32,7 @@ export function testJavaScriptError(): void {
  * Test async error handling
  */
 export async function testAsyncError(): Promise<void> {
-  return new Promise((resolve, reject) => {
+  return new Promise((_resolve, reject) => {
     setTimeout(() => {
       const error = new Error('Test Async Error - This is a test crash report');
       captureException(error, {
@@ -153,7 +153,7 @@ export async function runAllCrashTests(): Promise<void> {
   console.log('2. Testing async error...');
   try {
     await testAsyncError();
-  } catch (e) {
+  } catch (_e) {
     console.log('   Async error captured');
   }
 

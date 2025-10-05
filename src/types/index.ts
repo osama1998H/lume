@@ -23,6 +23,14 @@ export interface ElectronAPI {
   addTimeEntry: (entry: TimeEntry) => Promise<number>;
   getAppUsage: () => Promise<AppUsage[]>;
   addAppUsage: (usage: AppUsage) => Promise<number>;
+  getSettings: () => Promise<any>;
+  saveSettings: (settings: any) => Promise<boolean>;
+  getActivityTrackingStatus: () => Promise<boolean>;
+  startActivityTracking: () => Promise<boolean>;
+  stopActivityTracking: () => Promise<boolean>;
+  getRecentActivitySessions: (limit?: number) => Promise<any[]>;
+  getTopApplications: (limit?: number) => Promise<any[]>;
+  getTopWebsites: (limit?: number) => Promise<any[]>;
 }
 
 declare global {

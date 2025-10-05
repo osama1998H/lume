@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Settings from '../Settings';
@@ -275,7 +274,7 @@ describe('Settings Component', () => {
       fireEvent.click(saveButton);
       
       await waitFor(() => {
-        expect(screen.getByText('Settings saved successfully\!')).toBeInTheDocument();
+        expect(screen.getByText('Settings saved successfully!')).toBeInTheDocument();
       });
     });
 
@@ -293,13 +292,13 @@ describe('Settings Component', () => {
       fireEvent.click(saveButton);
       
       await waitFor(() => {
-        expect(screen.getByText('Settings saved successfully\!')).toBeInTheDocument();
+        expect(screen.getByText('Settings saved successfully!')).toBeInTheDocument();
       });
       
       jest.advanceTimersByTime(3000);
       
       await waitFor(() => {
-        expect(screen.queryByText('Settings saved successfully\!')).not.toBeInTheDocument();
+        expect(screen.queryByText('Settings saved successfully!')).not.toBeInTheDocument();
       });
       
       jest.useRealTimers();

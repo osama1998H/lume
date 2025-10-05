@@ -32,7 +32,7 @@ export function initializeSentry(): void {
       tracesSampleRate: environment === 'production' ? 1.0 : 0.1,
 
       // Privacy: Filter sensitive data before sending to Sentry
-      beforeSend(event: ErrorEvent, hint: EventHint): ErrorEvent | null {
+      beforeSend(event: ErrorEvent, _hint: EventHint): ErrorEvent | null {
         // Remove or redact sensitive information
         if (event.user) {
           delete event.user.ip_address;
@@ -51,7 +51,7 @@ export function initializeSentry(): void {
               }
             });
             event.request.url = url.toString();
-          } catch (e) {
+          } catch (_e) {
             // If URL parsing fails, keep original
           }
         }

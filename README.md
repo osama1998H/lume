@@ -230,4 +230,4 @@ If you find Lume helpful, please consider giving it a star ⭐ on GitHub!
 
 ---
 
-<p align="center">Made with ❤️ for productivity enthusiasts</p>
+<p align="center">Made with ❤️ in Iraq for productivity enthusiasts</p>

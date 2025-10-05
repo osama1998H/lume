@@ -77,31 +77,31 @@ export class DatabaseManager {
     // Add missing columns to existing table if they don't exist
     try {
       this.db.exec(`ALTER TABLE app_usage ADD COLUMN category TEXT DEFAULT 'application'`);
-    } catch (error) {
+    } catch (_error) {
       // Column already exists, ignore
     }
 
     try {
       this.db.exec(`ALTER TABLE app_usage ADD COLUMN domain TEXT`);
-    } catch (error) {
+    } catch (_error) {
       // Column already exists, ignore
     }
 
     try {
       this.db.exec(`ALTER TABLE app_usage ADD COLUMN url TEXT`);
-    } catch (error) {
+    } catch (_error) {
       // Column already exists, ignore
     }
 
     try {
       this.db.exec(`ALTER TABLE app_usage ADD COLUMN is_browser BOOLEAN DEFAULT 0`);
-    } catch (error) {
+    } catch (_error) {
       // Column already exists, ignore
     }
 
     try {
       this.db.exec(`ALTER TABLE app_usage ADD COLUMN is_idle BOOLEAN DEFAULT 0`);
-    } catch (error) {
+    } catch (_error) {
       // Column already exists, ignore
     }
 

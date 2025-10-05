@@ -46,7 +46,7 @@ describe('Dashboard i18n Integration', () => {
       renderWithI18n(<Dashboard />);
       
       await waitFor(() => {
-        expect(screen.getByText("Welcome back\! Here's your productivity overview.")).toBeInTheDocument();
+        expect(screen.getByText("Welcome back! Here's your productivity overview.")).toBeInTheDocument();
       });
     });
 
@@ -118,7 +118,7 @@ describe('Dashboard i18n Integration', () => {
       renderWithI18n(<Dashboard />, 'ar');
       
       await waitFor(() => {
-        expect(screen.getByText('مرحباً بعودتك\! إليك نظرة عامة على إنتاجيتك.')).toBeInTheDocument();
+        expect(screen.getByText('مرحباً بعودتك! إليك نظرة عامة على إنتاجيتك.')).toBeInTheDocument();
       });
     });
 

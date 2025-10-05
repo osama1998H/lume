@@ -316,7 +316,7 @@ export class ActivityMonitor implements ActivityTracker {
     );
   }
 
-  private async extractBrowserInfo(appName: string, windowTitle: string): Promise<{domain: string, url?: string} | null> {
+  private async extractBrowserInfo(_appName: string, windowTitle: string): Promise<{domain: string, url?: string} | null> {
     if (!windowTitle) return null;
 
     try {
@@ -349,7 +349,7 @@ export class ActivityMonitor implements ActivityTracker {
       }
 
       // Fallback: look for URLs anywhere in the title
-      const urlMatch = windowTitle.match(/https?:\/\/(www\.)?([^\/\s]+)/);
+      const urlMatch = windowTitle.match(/https?:\/\/(www\.)?([^/\s]+)/);
       if (urlMatch) {
         return {
           domain: urlMatch[2],

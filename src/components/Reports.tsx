@@ -194,7 +194,7 @@ const Reports: React.FC = () => {
         <div className="card">
           <h3 className="text-xl font-semibold mb-4">Time by Category</h3>
           <div className="space-y-4">
-            {categoryData.map(([category, time], index) => {
+            {categoryData.map(([category, time], _index) => {
               const maxTime = categoryData[0]?.[1] || 1;
               const percentage = (time / maxTime) * 100;
 
@@ -224,7 +224,7 @@ const Reports: React.FC = () => {
         <div className="card">
           <h3 className="text-xl font-semibold mb-4">Top Applications</h3>
           <div className="space-y-4">
-            {appData.map(([appName, time], index) => {
+            {appData.map(([appName, time], _index) => {
               const maxTime = appData[0]?.[1] || 1;
               const percentage = (time / maxTime) * 100;
 
@@ -256,7 +256,7 @@ const Reports: React.FC = () => {
         <div className="card">
           <h3 className="text-xl font-semibold mb-4">Activity Tracking - Top Applications</h3>
           <div className="space-y-4">
-            {topApplications.map((app, index) => {
+            {topApplications.map((app, _index) => {
               const maxTime = topApplications[0]?.totalDuration || 1;
               const percentage = (app.totalDuration / maxTime) * 100;
 
@@ -286,7 +286,7 @@ const Reports: React.FC = () => {
         <div className="card">
           <h3 className="text-xl font-semibold mb-4">Activity Tracking - Top Websites</h3>
           <div className="space-y-4">
-            {topWebsites.map((site, index) => {
+            {topWebsites.map((site, _index) => {
               const maxTime = topWebsites[0]?.totalDuration || 1;
               const percentage = (site.totalDuration / maxTime) * 100;
 

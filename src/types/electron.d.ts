@@ -7,6 +7,12 @@ declare global {
       addAppUsage: (usage: any) => Promise<number>;
       getSettings: () => Promise<any>;
       saveSettings: (settings: any) => Promise<boolean>;
+      getActivityTrackingStatus: () => Promise<boolean>;
+      startActivityTracking: () => Promise<boolean>;
+      stopActivityTracking: () => Promise<boolean>;
+      getRecentActivitySessions: (limit?: number) => Promise<any[]>;
+      getTopApplications: (limit?: number) => Promise<any[]>;
+      getTopWebsites: (limit?: number) => Promise<any[]>;
     };
   }
 }

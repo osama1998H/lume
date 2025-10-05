@@ -233,7 +233,6 @@ describe('ErrorBoundary i18n Integration', () => {
 
     it('should handle errors during translation rendering', () => {
       // This tests robustness even if i18n fails
-      const mockT = jest.fn().mockReturnValue('Fallback text');
       
       renderWithI18n(
         <ErrorBoundary>

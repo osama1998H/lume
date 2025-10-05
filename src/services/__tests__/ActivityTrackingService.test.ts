@@ -438,9 +438,9 @@ describe('ActivityTrackingService', () => {
     });
 
     it('should clear previous idle timer when resetting', () => {
-      const firstTimer = (service as any).resetIdleTimer();
-      const secondTimer = (service as any).resetIdleTimer();
-      
+      (service as any).resetIdleTimer();
+      (service as any).resetIdleTimer();
+
       expect((service as any).idleTimer).not.toBeNull();
     });
 
