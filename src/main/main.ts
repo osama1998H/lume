@@ -1,15 +1,21 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as dotenv from 'dotenv';
 import { isDev } from './utils';
 import { DatabaseManager } from '../database/DatabaseManager';
 import { ActivityTrackingService } from '../services/ActivityTrackingService';
+import { initializeSentry } from '../config/sentry';
+import { initializeCrashReporter, getLastCrashReport, getUploadedReports } from '../config/crashReporter';
 
-import * as Sentry from "@sentry/electron";
+// Load environment variables
+dotenv.config();
 
-Sentry.init({
-  dsn: "https://e54520cf320b22f34f68ff237ed902d1@o4510136801034240.ingest.de.sentry.io/4510136803590224",
-});
+// Initialize crash reporting (must be done early, before app is ready)
+initializeCrashReporter();
+
+// Initialize Sentry for error tracking
+initializeSentry();
 
 class LumeApp {
   private mainWindow: BrowserWindow | null = null;
@@ -256,6 +262,37 @@ class LumeApp {
       } catch (error) {
         console.error('Failed to get top websites:', error);
         return [];
+      }
+    });
+
+    // Crash reporter IPC handlers
+    ipcMain.handle('get-last-crash-report', async () => {
+      try {
+        return getLastCrashReport();
+      } catch (error) {
+        console.error('Failed to get last crash report:', error);
+        return null;
+      }
+    });
+
+    ipcMain.handle('get-uploaded-crash-reports', async () => {
+      try {
+        return getUploadedReports();
+      } catch (error) {
+        console.error('Failed to get uploaded crash reports:', error);
+        return [];
+      }
+    });
+
+    // Test crash reporting (development only)
+    ipcMain.handle('test-crash-reporting', async () => {
+      try {
+        const { runAllCrashTests } = await import('../test/crashTest');
+        await runAllCrashTests();
+        return true;
+      } catch (error) {
+        console.error('Failed to run crash tests:', error);
+        return false;
       }
     });
   }

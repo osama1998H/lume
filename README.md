@@ -60,12 +60,18 @@ Lume helps you understand your productivity patterns by automatically tracking t
    npm install
    ```
 
-3. **Start development server**
+3. **Configure environment (optional)**
+   ```bash
+   cp .env.example .env
+   # Edit .env to add your Sentry DSN for crash reporting
+   ```
+
+4. **Start development server**
    ```bash
    npm run dev
    ```
 
-4. **Build for production**
+5. **Build for production**
    ```bash
    npm run build
    npm run package
@@ -95,6 +101,8 @@ lume/
 - **Database**: SQLite with better-sqlite3
 - **Build**: Vite, electron-builder
 - **Testing**: Jest, React Testing Library
+- **Error Tracking**: Sentry (optional)
+- **Crash Reporting**: Electron crashReporter
 
 ### Available Scripts
 
@@ -103,6 +111,22 @@ lume/
 - `npm run test` - Run tests
 - `npm run lint` - Lint code
 - `npm run package` - Package for distribution
+
+### Crash Reporting Setup
+
+Lume includes comprehensive crash reporting to help improve stability. See the [Crash Reporting Setup Guide](CRASH_REPORTING.md) for:
+
+- How to configure Sentry for error tracking
+- Setting up native crash reporting
+- Privacy and security features
+- Testing crash reporting
+- User consent and data controls
+
+**Quick start:**
+1. Copy `.env.example` to `.env`
+2. Add your Sentry DSN
+3. Configure crash report URL (optional)
+4. See full guide in [CRASH_REPORTING.md](CRASH_REPORTING.md)
 
 ### Activity Monitoring
 
@@ -122,6 +146,10 @@ Lume is designed with privacy in mind:
 - **No cloud sync** - No data is sent to external servers
 - **Configurable tracking** - Control what gets monitored
 - **Data export** - Full control over your data
+- **Secure crash reporting** - Optional error tracking with privacy controls (see [Crash Reporting Setup](CRASH_REPORTING.md))
+  - PII automatically filtered
+  - Sensitive data redacted
+  - User consent respected
 
 ## 📱 Platform Support
 

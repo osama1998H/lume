@@ -1,10 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-import * as Sentry from "@sentry/electron";
-
-Sentry.init({
-  dsn: "https://e54520cf320b22f34f68ff237ed902d1@o4510136801034240.ingest.de.sentry.io/4510136803590224",
-});
+// Note: Sentry is initialized in the main process only, not in preload
+// Preload script should not initialize Sentry to avoid duplicate tracking
 
 export interface IElectronAPI {
   getTimeEntries: () => Promise<any[]>;
@@ -20,6 +17,9 @@ export interface IElectronAPI {
   getRecentActivitySessions: (limit?: number) => Promise<any[]>;
   getTopApplications: (limit?: number) => Promise<any[]>;
   getTopWebsites: (limit?: number) => Promise<any[]>;
+  getLastCrashReport: () => Promise<any>;
+  getUploadedCrashReports: () => Promise<any[]>;
+  testCrashReporting: () => Promise<boolean>;
 }
 
 const electronAPI: IElectronAPI = {
@@ -36,6 +36,9 @@ const electronAPI: IElectronAPI = {
   getRecentActivitySessions: (limit) => ipcRenderer.invoke('get-recent-activity-sessions', limit),
   getTopApplications: (limit) => ipcRenderer.invoke('get-top-applications', limit),
   getTopWebsites: (limit) => ipcRenderer.invoke('get-top-websites', limit),
+  getLastCrashReport: () => ipcRenderer.invoke('get-last-crash-report'),
+  getUploadedCrashReports: () => ipcRenderer.invoke('get-uploaded-crash-reports'),
+  testCrashReporting: () => ipcRenderer.invoke('test-crash-reporting'),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
