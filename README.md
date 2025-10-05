@@ -8,6 +8,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue.svg)](https://www.typescriptlang.org/)
 
 [![CI](https://github.com/osama1998H/lume/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/osama1998H/lume/actions/workflows/ci.yml)
+[![Dependency Review](https://github.com/osama1998H/lume/actions/workflows/dependency-review.yml/badge.svg?branch=main)](https://github.com/osama1998H/lume/actions/workflows/dependency-review.yml)
 
 Lume helps you understand your productivity patterns by automatically tracking time spent on different applications and websites. Get clear insights to improve focus, productivity, and time management.
 
