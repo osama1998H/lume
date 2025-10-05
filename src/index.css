@@ -23,6 +23,26 @@
   * {
     @apply border-gray-300;
   }
+
+  /* RTL Support */
+  [dir="rtl"] {
+    direction: rtl;
+  }
+
+  [dir="ltr"] {
+    direction: ltr;
+  }
+
+  /* RTL-specific adjustments */
+  [dir="rtl"] .card {
+    text-align: right;
+  }
+
+  [dir="rtl"] input,
+  [dir="rtl"] textarea,
+  [dir="rtl"] select {
+    text-align: right;
+  }
 }
 
 @layer components {
