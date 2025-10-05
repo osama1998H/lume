@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
+import TitleBar from './components/TitleBar';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import TimeTracker from './components/TimeTracker';
@@ -28,13 +29,16 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div className="flex h-screen bg-gray-50">
-        <Sidebar currentView={currentView} onViewChange={setCurrentView} />
-        <main className="flex-1 overflow-y-auto">
-          <ErrorBoundary>
-            {renderView()}
-          </ErrorBoundary>
-        </main>
+      <div className="flex flex-col h-screen bg-gray-50">
+        <TitleBar />
+        <div className="flex flex-1 overflow-hidden">
+          <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+          <main className="flex-1 overflow-y-auto">
+            <ErrorBoundary>
+              {renderView()}
+            </ErrorBoundary>
+          </main>
+        </div>
       </div>
     </ErrorBoundary>
   );
