@@ -326,19 +326,46 @@ describe('Settings Component', () => {
       mockElectronAPI.saveSettings.mockImplementation(() => 
         new Promise(resolve => setTimeout(() => resolve(true), 100))
       );
-      
+
       render(<Settings />);
-      
+
       await waitFor(() => {
         expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
       });
-      
+
       const saveButton = screen.getByText('Save Settings') as HTMLButtonElement;
       fireEvent.click(saveButton);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Saving...')).toBeInTheDocument();
       });
+    });
+
+    it('should only trigger saveSettings once on rapid consecutive clicks', async () => {
+      mockElectronAPI.saveSettings.mockImplementation(() => 
+        new Promise(resolve => setTimeout(() => resolve(true), 100))
+      );
+
+      render(<Settings />);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+      });
+
+      const saveButton = screen.getByText('Save Settings') as HTMLButtonElement;
+
+      // Simulate rapid consecutive clicks
+      fireEvent.click(saveButton);
+      fireEvent.click(saveButton);
+      fireEvent.click(saveButton);
+
+      // Wait for the saving state
+      await waitFor(() => {
+        expect(screen.getByText('Saving...')).toBeInTheDocument();
+      });
+
+      // Assert saveSettings is only called once
+      expect(mockElectronAPI.saveSettings).toHaveBeenCalledTimes(1);
     });
   });
 
