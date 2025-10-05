@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TimeEntry } from '../types';
+import { normalizeTimeEntries } from '../utils/normalizeData';
 
 const TimeTracker: React.FC = () => {
   const { t } = useTranslation();
@@ -35,7 +36,8 @@ const TimeTracker: React.FC = () => {
     try {
       if (window.electronAPI) {
         const entries = await window.electronAPI.getTimeEntries();
-        setRecentEntries(entries.slice(0, 10));
+        const normalized = normalizeTimeEntries(entries);
+        setRecentEntries(normalized.slice(0, 10));
       }
     } catch (error) {
       console.error('Failed to load recent entries:', error);

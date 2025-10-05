@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TimeEntry, AppUsage } from '../types';
+import { normalizeTimeEntries, normalizeAppUsageList } from '../utils/normalizeData';
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -19,8 +20,8 @@ const Dashboard: React.FC = () => {
           window.electronAPI.getTimeEntries(),
           window.electronAPI.getAppUsage(),
         ]);
-        setTimeEntries(entries);
-        setAppUsage(usage);
+        setTimeEntries(normalizeTimeEntries(entries));
+        setAppUsage(normalizeAppUsageList(usage));
       }
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -36,19 +37,47 @@ const Dashboard: React.FC = () => {
   };
 
   const getTodayStats = () => {
-    const today = new Date().toISOString().split('T')[0];
-    const todayEntries = timeEntries.filter(entry =>
-      entry.startTime && entry.startTime.startsWith(today)
-    );
+    const now = new Date();
 
-    const totalMinutes = todayEntries.reduce((sum, entry) =>
-      sum + (entry.duration || 0), 0
-    );
+    const isSameLocalDay = (date: Date, reference: Date) =>
+      date.getFullYear() === reference.getFullYear() &&
+      date.getMonth() === reference.getMonth() &&
+      date.getDate() === reference.getDate();
+
+    const todayEntries = timeEntries.filter(entry => {
+      if (!entry.startTime) return false;
+      const entryDate = new Date(entry.startTime);
+      if (Number.isNaN(entryDate.getTime())) return false;
+      return isSameLocalDay(entryDate, now);
+    });
+
+    const totalMinutesFromEntries = todayEntries.reduce((sum, entry) => {
+      const durationMinutes = entry.duration != null ? Number(entry.duration) : 0;
+      return sum + (Number.isFinite(durationMinutes) ? durationMinutes : 0);
+    }, 0);
+
+    const todayUsage = appUsage.filter(usage => {
+      if (!usage.startTime) return false;
+      const usageDate = new Date(usage.startTime);
+      if (Number.isNaN(usageDate.getTime())) return false;
+      return isSameLocalDay(usageDate, now);
+    });
+
+    const totalUsageMinutes = todayUsage.reduce((sum, usage) => {
+      const durationSeconds = usage.duration != null ? Number(usage.duration) : 0;
+      const safeSeconds = Number.isFinite(durationSeconds) ? durationSeconds : 0;
+      return sum + safeSeconds / 60;
+    }, 0);
+
+    const totalMinutes = Math.round(totalMinutesFromEntries + totalUsageMinutes);
+
+    const activeEntryTask = todayEntries.find(entry => !entry.endTime)?.task || null;
+    const fallbackActiveTask = todayUsage[0]?.appName || null;
 
     return {
       totalTime: totalMinutes,
       tasksCompleted: todayEntries.filter(entry => entry.endTime).length,
-      activeTask: todayEntries.find(entry => !entry.endTime)?.task || null,
+      activeTask: activeEntryTask || fallbackActiveTask,
     };
   };
 

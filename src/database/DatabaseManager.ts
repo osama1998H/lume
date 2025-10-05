@@ -23,8 +23,8 @@ export interface AppUsage {
   startTime: string;
   endTime?: string;
   duration?: number;
-  is_browser?: boolean;
-  is_idle?: boolean;
+  isBrowser?: boolean;
+  isIdle?: boolean;
   createdAt?: string;
 }
 
@@ -143,7 +143,8 @@ export class DatabaseManager {
       LIMIT ?
     `);
 
-    return stmt.all(limit) as TimeEntry[];
+    const rows = stmt.all(limit);
+    return rows.map(row => this.mapTimeEntryRow(row));
   }
 
   addAppUsage(usage: AppUsage): number {
@@ -174,7 +175,8 @@ export class DatabaseManager {
       LIMIT ?
     `);
 
-    return stmt.all(limit) as AppUsage[];
+    const rows = stmt.all(limit);
+    return rows.map(row => this.mapAppUsageRow(row));
   }
 
   getAppUsageByDateRange(startDate: string, endDate: string): AppUsage[] {
@@ -186,7 +188,8 @@ export class DatabaseManager {
       ORDER BY start_time DESC
     `);
 
-    return stmt.all(startDate, endDate) as AppUsage[];
+    const rows = stmt.all(startDate, endDate);
+    return rows.map(row => this.mapAppUsageRow(row));
   }
 
   // Activity tracking methods
@@ -295,6 +298,75 @@ export class DatabaseManager {
     `);
 
     return stmt.all(limit) as Array<{domain: string, totalDuration: number}>;
+  }
+
+  private mapTimeEntryRow(row: any): TimeEntry {
+    const duration = row.duration;
+    const startTime = row.start_time;
+    const endTime = row.end_time;
+
+    let durationMinutes: number | undefined;
+
+    if (duration != null) {
+      const numericDuration = typeof duration === 'number' ? duration : Number(duration);
+      durationMinutes = Number.isFinite(numericDuration) ? numericDuration : undefined;
+    }
+
+    if ((durationMinutes == null || Number.isNaN(durationMinutes)) && startTime && endTime) {
+      const start = new Date(startTime).getTime();
+      const end = new Date(endTime).getTime();
+      if (Number.isFinite(start) && Number.isFinite(end) && end > start) {
+        durationMinutes = Math.max(1, Math.round((end - start) / 60000));
+      }
+    }
+
+    return {
+      id: row.id,
+      task: row.task,
+      startTime: row.start_time,
+      endTime: row.end_time ?? undefined,
+      duration: durationMinutes,
+      category: row.category ?? undefined,
+      createdAt: row.created_at ?? undefined,
+    };
+  }
+
+  private mapAppUsageRow(row: any): AppUsage {
+    const isBrowser = row.is_browser;
+    const isIdle = row.is_idle;
+    const duration = row.duration;
+    const startTime = row.start_time;
+    const endTime = row.end_time;
+
+    let durationSeconds: number | undefined;
+
+    if (duration != null) {
+      const numericDuration = typeof duration === 'number' ? duration : Number(duration);
+      durationSeconds = Number.isFinite(numericDuration) ? numericDuration : undefined;
+    }
+
+    if ((durationSeconds == null || Number.isNaN(durationSeconds)) && startTime && endTime) {
+      const start = new Date(startTime).getTime();
+      const end = new Date(endTime).getTime();
+      if (Number.isFinite(start) && Number.isFinite(end) && end > start) {
+        durationSeconds = Math.max(1, Math.round((end - start) / 1000));
+      }
+    }
+
+    return {
+      id: row.id,
+      appName: row.app_name,
+      windowTitle: row.window_title ?? undefined,
+      category: row.category ?? undefined,
+      domain: row.domain ?? undefined,
+      url: row.url ?? undefined,
+      startTime: row.start_time,
+      endTime: row.end_time ?? undefined,
+      duration: durationSeconds,
+      isBrowser: isBrowser == null ? undefined : (typeof isBrowser === 'number' ? isBrowser === 1 : Boolean(isBrowser)),
+      isIdle: isIdle == null ? undefined : (typeof isIdle === 'number' ? isIdle === 1 : Boolean(isIdle)),
+      createdAt: row.created_at ?? undefined,
+    };
   }
 
   close(): void {

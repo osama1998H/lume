@@ -14,10 +14,13 @@ export const resources = {
   },
 } as const;
 
-i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
+if (typeof window !== 'undefined') {
+  i18n.use(LanguageDetector);
+}
+
+i18n.use(initReactI18next);
+
+i18n.init({
     resources,
     fallbackLng: 'en',
     debug: process.env.NODE_ENV === 'development',

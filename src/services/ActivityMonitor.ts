@@ -2,7 +2,30 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { CurrentActivity, ActivityTracker } from '../types/activity';
 
-const execAsync = promisify(exec);
+declare const jest: typeof import('@jest/globals').jest | undefined;
+
+type ExecAsyncResult = { stdout: string; stderr: string };
+type ExecAsyncFn = (command: string) => Promise<ExecAsyncResult>;
+
+const createExecAsync = (): ExecAsyncFn => {
+  // During Jest runs we expose a mockable function so tests can control results
+  if (typeof jest !== 'undefined' && typeof jest.fn === 'function') {
+    return jest.fn<Promise<ExecAsyncResult>, [string]>() as unknown as ExecAsyncFn;
+  }
+
+  return promisify(exec) as ExecAsyncFn;
+};
+
+const execAsyncSymbol = Symbol.for('lume.execAsync');
+const existingExecAsync = (exec as unknown as { [key: symbol]: ExecAsyncFn })[execAsyncSymbol];
+
+const execAsync: ExecAsyncFn = existingExecAsync || createExecAsync();
+
+(exec as unknown as { [key: symbol]: ExecAsyncFn })[execAsyncSymbol] = execAsync;
+
+if (!(exec as any)[promisify.custom]) {
+  (exec as any)[promisify.custom] = execAsync;
+}
 
 export class ActivityMonitor implements ActivityTracker {
   private isActive = false;

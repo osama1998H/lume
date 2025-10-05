@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TimeEntry, AppUsage } from '../types';
+import { normalizeTimeEntries, normalizeAppUsageList } from '../utils/normalizeData';
 
 const Reports: React.FC = () => {
   const { t } = useTranslation();
@@ -26,8 +27,8 @@ const Reports: React.FC = () => {
           window.electronAPI.getTopApplications(10),
           window.electronAPI.getTopWebsites(10),
         ]);
-        setTimeEntries(entries);
-        setAppUsage(usage);
+        setTimeEntries(normalizeTimeEntries(entries));
+        setAppUsage(normalizeAppUsageList(usage));
         setActivitySessions(sessions);
         setTopApplications(topApps);
         setTopWebsites(topSites);
@@ -86,7 +87,9 @@ const Reports: React.FC = () => {
 
     filteredEntries.forEach(entry => {
       const category = entry.category || 'Uncategorized';
-      categoryTimes[category] = (categoryTimes[category] || 0) + (entry.duration || 0);
+      const durationMinutes = entry.duration != null ? Number(entry.duration) : 0;
+      const durationSeconds = Number.isFinite(durationMinutes) ? durationMinutes * 60 : 0;
+      categoryTimes[category] = (categoryTimes[category] || 0) + durationSeconds;
     });
 
     return Object.entries(categoryTimes)
@@ -99,7 +102,9 @@ const Reports: React.FC = () => {
     const appTimes: Record<string, number> = {};
 
     filteredUsage.forEach(usage => {
-      appTimes[usage.appName] = (appTimes[usage.appName] || 0) + (usage.duration || 0);
+      const durationSeconds = usage.duration != null ? Number(usage.duration) : 0;
+      const safeDuration = Number.isFinite(durationSeconds) ? durationSeconds : 0;
+      appTimes[usage.appName] = (appTimes[usage.appName] || 0) + safeDuration;
     });
 
     return Object.entries(appTimes)
@@ -110,21 +115,35 @@ const Reports: React.FC = () => {
   const getTotalStats = () => {
     const { filteredEntries, filteredUsage } = getFilteredData();
 
-    const totalTrackedTime = filteredEntries.reduce((sum, entry) =>
-      sum + (entry.duration || 0), 0
-    );
+    const totalTrackedTimeFromEntries = filteredEntries.reduce((sum, entry) => {
+      const durationMinutes = entry.duration != null ? Number(entry.duration) : 0;
+      const durationSeconds = Number.isFinite(durationMinutes) ? durationMinutes * 60 : 0;
+      return sum + durationSeconds;
+    }, 0);
 
-    const totalAppTime = filteredUsage.reduce((sum, usage) =>
-      sum + (usage.duration || 0), 0
-    );
+    const totalAppTime = filteredUsage.reduce((sum, usage) => {
+      const durationSeconds = usage.duration != null ? Number(usage.duration) : 0;
+      const safeDuration = Number.isFinite(durationSeconds) ? durationSeconds : 0;
+      return sum + safeDuration;
+    }, 0);
 
     const completedTasks = filteredEntries.filter(entry => entry.endTime).length;
+
+    const totalTrackedTime = totalTrackedTimeFromEntries > 0
+      ? totalTrackedTimeFromEntries
+      : totalAppTime;
+
+    const averageTaskTime = completedTasks > 0
+      ? Math.round(totalTrackedTimeFromEntries / completedTasks)
+      : (filteredUsage.length > 0
+        ? Math.round(totalAppTime / filteredUsage.length)
+        : 0);
 
     return {
       totalTrackedTime,
       totalAppTime,
       completedTasks,
-      averageTaskTime: completedTasks > 0 ? Math.round(totalTrackedTime / completedTasks) : 0,
+      averageTaskTime,
     };
   };
 
