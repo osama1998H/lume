@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ErrorBoundary from './components/ErrorBoundary';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import TimeTracker from './components/TimeTracker';
@@ -26,12 +27,16 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar currentView={currentView} onViewChange={setCurrentView} />
-      <main className="flex-1 overflow-y-auto">
-        {renderView()}
-      </main>
-    </div>
+    <ErrorBoundary>
+      <div className="flex h-screen bg-gray-50">
+        <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+        <main className="flex-1 overflow-y-auto">
+          <ErrorBoundary>
+            {renderView()}
+          </ErrorBoundary>
+        </main>
+      </div>
+    </ErrorBoundary>
   );
 }
 

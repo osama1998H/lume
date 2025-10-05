@@ -36,7 +36,7 @@ const Dashboard: React.FC = () => {
   const getTodayStats = () => {
     const today = new Date().toISOString().split('T')[0];
     const todayEntries = timeEntries.filter(entry =>
-      entry.startTime.startsWith(today)
+      entry.startTime && entry.startTime.startsWith(today)
     );
 
     const totalMinutes = todayEntries.reduce((sum, entry) =>
