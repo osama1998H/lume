@@ -101,16 +101,30 @@ export const normalizeAppUsage = (raw: any): AppUsage | null => {
     startTime,
     endTime,
     duration: durationSeconds ?? undefined,
-    isBrowser: typeof raw.isBrowser === 'boolean'
-      ? raw.isBrowser
-      : raw.is_browser != null
-        ? Boolean(raw.is_browser)
-        : undefined,
-    isIdle: typeof raw.isIdle === 'boolean'
-      ? raw.isIdle
-      : raw.is_idle != null
-        ? Boolean(raw.is_idle)
-        : undefined,
+    isBrowser:
+      typeof raw.isBrowser === 'boolean'
+        ? raw.isBrowser
+        : typeof raw.isBrowser === 'number'
+          ? Boolean(raw.isBrowser)
+          : typeof raw.is_browser === 'boolean'
+            ? raw.is_browser
+            : typeof raw.is_browser === 'number'
+              ? Boolean(raw.is_browser)
+              : raw.is_browser != null
+                ? Boolean(raw.is_browser)
+                : undefined,
+    isIdle:
+      typeof raw.isIdle === 'boolean'
+        ? raw.isIdle
+        : typeof raw.isIdle === 'number'
+          ? Boolean(raw.isIdle)
+          : typeof raw.is_idle === 'boolean'
+            ? raw.is_idle
+            : typeof raw.is_idle === 'number'
+              ? Boolean(raw.is_idle)
+              : raw.is_idle != null
+                ? Boolean(raw.is_idle)
+                : undefined,
     createdAt: pickString(raw.createdAt, raw.created_at),
   };
 };
