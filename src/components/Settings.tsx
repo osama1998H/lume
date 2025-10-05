@@ -139,17 +139,17 @@ const Settings: React.FC = () => {
       if (window.electronAPI) {
         const success = await window.electronAPI.saveSettings(settings);
         if (success) {
-          setSaveMessage('Settings saved successfully!');
+          setSaveMessage(t('settings.settingsSavedSuccess'));
           setTimeout(() => setSaveMessage(''), 3000);
         } else {
-          setSaveMessage('Failed to save settings. Please try again.');
+          setSaveMessage(t('settings.settingsSaveFailed'));
         }
       } else {
-        setSaveMessage('Settings functionality not available.');
+        setSaveMessage(t('settings.settingsFunctionalityUnavailable'));
       }
     } catch (error) {
       console.error('Failed to save settings:', error);
-      setSaveMessage('Failed to save settings. Please try again.');
+      setSaveMessage(t('settings.settingsSaveFailed'));
     } finally {
       setIsSaving(false);
     }
@@ -164,7 +164,7 @@ const Settings: React.FC = () => {
   };
 
   const clearAllData = () => {
-    if (window.confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+    if (window.confirm(t('settings.confirmClearData'))) {
       console.log('Clearing all data...');
     }
   };
@@ -174,7 +174,7 @@ const Settings: React.FC = () => {
       <div className="p-8 h-full flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading settings...</p>
+          <p className="text-gray-600">{t('settings.loadingSettings')}</p>
         </div>
       </div>
     );
@@ -183,8 +183,8 @@ const Settings: React.FC = () => {
   return (
     <div className="p-8 h-full">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Settings</h2>
-        <p className="text-gray-600">Configure your Lume preferences and data management.</p>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('settings.title')}</h2>
+        <p className="text-gray-600">{t('settings.configurePreferences')}</p>
       </div>
 
       <div className="max-w-2xl space-y-6">
@@ -205,8 +205,8 @@ const Settings: React.FC = () => {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <label className="font-medium text-gray-900">Auto-track Applications</label>
-                <p className="text-sm text-gray-600">Automatically track time spent in different applications</p>
+                <label className="font-medium text-gray-900">{t('settings.autoTrackApps')}</label>
+                <p className="text-sm text-gray-600">{t('settings.autoTrackAppsDesc')}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -221,8 +221,8 @@ const Settings: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div>
-                <label className="font-medium text-gray-900">Show Notifications</label>
-                <p className="text-sm text-gray-600">Get notified about tracking milestones and reminders</p>
+                <label className="font-medium text-gray-900">{t('settings.showNotifications')}</label>
+                <p className="text-sm text-gray-600">{t('settings.showNotificationsDesc')}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -237,8 +237,8 @@ const Settings: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div>
-                <label className="font-medium text-gray-900">Minimize to Tray</label>
-                <p className="text-sm text-gray-600">Keep the app running in the system tray when closed</p>
+                <label className="font-medium text-gray-900">{t('settings.minimizeToTray')}</label>
+                <p className="text-sm text-gray-600">{t('settings.minimizeToTrayDesc')}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -252,20 +252,20 @@ const Settings: React.FC = () => {
             </div>
 
             <div>
-              <label className="block font-medium text-gray-900 mb-2">Default Category</label>
+              <label className="block font-medium text-gray-900 mb-2">{t('settings.defaultCategory')}</label>
               <input
                 type="text"
                 value={settings.defaultCategory}
                 onChange={(e) => handleSettingChange('defaultCategory', e.target.value)}
-                placeholder="e.g., Work, Personal, Study"
+                placeholder={t('settings.defaultCategoryPlaceholder')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
-              <p className="text-sm text-gray-600 mt-1">Default category for new time entries</p>
+              <p className="text-sm text-gray-600 mt-1">{t('settings.defaultCategoryDesc')}</p>
             </div>
 
             <div>
               <label className="block font-medium text-gray-900 mb-2">
-                Tracking Interval (seconds): {settings.trackingInterval}
+                {t('settings.trackingInterval')}: {settings.trackingInterval}
               </label>
               <input
                 type="range"
@@ -276,18 +276,18 @@ const Settings: React.FC = () => {
                 onChange={(e) => handleSettingChange('trackingInterval', parseInt(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               />
-              <p className="text-sm text-gray-600 mt-1">How often to update activity tracking</p>
+              <p className="text-sm text-gray-600 mt-1">{t('settings.trackingIntervalDesc')}</p>
             </div>
           </div>
         </div>
 
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4">Activity Tracking</h3>
+          <h3 className="text-xl font-semibold mb-4">{t('settings.activityTracking')}</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <label className="font-medium text-gray-900">Enable Activity Tracking</label>
-                <p className="text-sm text-gray-600">Automatically track time spent in applications and websites</p>
+                <label className="font-medium text-gray-900">{t('settings.enableActivityTracking')}</label>
+                <p className="text-sm text-gray-600">{t('settings.enableActivityTrackingDesc')}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -302,8 +302,8 @@ const Settings: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div>
-                <label className="font-medium text-gray-900">Track Browser Activity</label>
-                <p className="text-sm text-gray-600">Monitor websites and domains visited</p>
+                <label className="font-medium text-gray-900">{t('settings.trackBrowserActivity')}</label>
+                <p className="text-sm text-gray-600">{t('settings.trackBrowserActivityDesc')}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -318,8 +318,8 @@ const Settings: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div>
-                <label className="font-medium text-gray-900">Track Application Activity</label>
-                <p className="text-sm text-gray-600">Monitor desktop applications and software</p>
+                <label className="font-medium text-gray-900">{t('settings.trackApplicationActivity')}</label>
+                <p className="text-sm text-gray-600">{t('settings.trackApplicationActivityDesc')}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -334,7 +334,7 @@ const Settings: React.FC = () => {
 
             <div>
               <label className="block font-medium text-gray-900 mb-2">
-                Activity Tracking Interval (seconds): {settings.activityTracking.trackingInterval}
+                {t('settings.activityTrackingInterval')}: {settings.activityTracking.trackingInterval}
               </label>
               <input
                 type="range"
@@ -345,12 +345,12 @@ const Settings: React.FC = () => {
                 onChange={(e) => handleActivityTrackingChange('trackingInterval', parseInt(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               />
-              <p className="text-sm text-gray-600 mt-1">How often to check for activity changes</p>
+              <p className="text-sm text-gray-600 mt-1">{t('settings.activityTrackingIntervalDesc')}</p>
             </div>
 
             <div>
               <label className="block font-medium text-gray-900 mb-2">
-                Idle Threshold (minutes): {Math.floor(settings.activityTracking.idleThreshold / 60)}
+                {t('settings.idleThreshold')}: {Math.floor(settings.activityTracking.idleThreshold / 60)}
               </label>
               <input
                 type="range"
@@ -361,15 +361,15 @@ const Settings: React.FC = () => {
                 onChange={(e) => handleActivityTrackingChange('idleThreshold', parseInt(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               />
-              <p className="text-sm text-gray-600 mt-1">How long before considering user idle</p>
+              <p className="text-sm text-gray-600 mt-1">{t('settings.idleThresholdDesc')}</p>
             </div>
 
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
-                <h4 className="font-medium text-gray-900">Activity Tracking Status</h4>
+                <h4 className="font-medium text-gray-900">{t('settings.activityTrackingStatus')}</h4>
                 <p className="text-sm text-gray-600">
-                  Current status: <span className={`font-medium ${isTracking ? 'text-green-600' : 'text-red-600'}`}>
-                    {isTracking ? 'Active' : 'Stopped'}
+                  {t('settings.currentStatus')} <span className={`font-medium ${isTracking ? 'text-green-600' : 'text-red-600'}`}>
+                    {isTracking ? t('settings.active') : t('settings.stopped')}
                   </span>
                 </p>
               </div>
@@ -381,62 +381,62 @@ const Settings: React.FC = () => {
                     : 'bg-green-600 hover:bg-green-700 focus:ring-green-500 text-white'
                 }`}
               >
-                {isTracking ? 'Stop Tracking' : 'Start Tracking'}
+                {isTracking ? t('settings.stopTracking') : t('settings.startTracking')}
               </button>
             </div>
           </div>
         </div>
 
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4">Data Management</h3>
+          <h3 className="text-xl font-semibold mb-4">{t('settings.dataManagement')}</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-medium text-gray-900">Export Data</h4>
-                <p className="text-sm text-gray-600">Download your time tracking data as CSV</p>
+                <h4 className="font-medium text-gray-900">{t('settings.exportData')}</h4>
+                <p className="text-sm text-gray-600">{t('settings.exportDataDesc')}</p>
               </div>
               <button
                 onClick={exportData}
                 className="btn-secondary"
               >
-                Export
+                {t('settings.export')}
               </button>
             </div>
 
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-medium text-gray-900">Import Data</h4>
-                <p className="text-sm text-gray-600">Import time tracking data from CSV file</p>
+                <h4 className="font-medium text-gray-900">{t('settings.importData')}</h4>
+                <p className="text-sm text-gray-600">{t('settings.importDataDesc')}</p>
               </div>
               <button
                 onClick={importData}
                 className="btn-secondary"
               >
-                Import
+                {t('settings.import')}
               </button>
             </div>
 
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-medium text-gray-900">Clear All Data</h4>
-                <p className="text-sm text-gray-600 text-red-600">Permanently delete all time tracking data</p>
+                <h4 className="font-medium text-gray-900">{t('settings.clearAllData')}</h4>
+                <p className="text-sm text-gray-600 text-red-600">{t('settings.clearAllDataDesc')}</p>
               </div>
               <button
                 onClick={clearAllData}
                 className="bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white px-4 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
               >
-                Clear Data
+                {t('settings.clearDataButton')}
               </button>
             </div>
           </div>
         </div>
 
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4">About</h3>
+          <h3 className="text-xl font-semibold mb-4">{t('settings.about')}</h3>
           <div className="space-y-2">
-            <p className="text-gray-900"><strong>Lume</strong> v1.0.0</p>
-            <p className="text-gray-600">A desktop application for tracking and visualizing time spent on tasks and applications.</p>
-            <p className="text-gray-600">Built with Electron, React, and Tailwind CSS.</p>
+            <p className="text-gray-900"><strong>{t('settings.appVersion')}</strong></p>
+            <p className="text-gray-600">{t('settings.appDescription')}</p>
+            <p className="text-gray-600">{t('settings.builtWith')}</p>
           </div>
         </div>
 
@@ -451,7 +451,7 @@ const Settings: React.FC = () => {
             disabled={isSaving}
             className={`btn-primary ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {isSaving ? 'Saving...' : 'Save Settings'}
+            {isSaving ? t('settings.saving') : t('settings.saveSettings')}
           </button>
         </div>
       </div>
