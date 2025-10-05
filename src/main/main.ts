@@ -96,14 +96,37 @@ class LumeApp {
     try {
       this.dbManager = new DatabaseManager();
       this.dbManager.initialize();
-      console.log('Database initialized successfully');
+      console.log('✅ Database initialized successfully');
 
       // Initialize activity tracking service
       this.activityTracker = new ActivityTrackingService(this.dbManager);
-      console.log('Activity tracking service initialized');
+      console.log('✅ Activity tracking service initialized');
+
+      // Auto-start tracking if enabled in settings
+      this.autoStartTracking();
     } catch (error) {
-      console.error('Failed to initialize database:', error);
+      console.error('❌ Failed to initialize database:', error);
       // Continue without database for now
+    }
+  }
+
+  private autoStartTracking(): void {
+    try {
+      const settings = this.getSettings();
+      console.log('📋 Loaded settings:', JSON.stringify(settings, null, 2));
+
+      if (settings.activityTracking?.enabled) {
+        console.log('🚀 Auto-starting activity tracking (enabled in settings)');
+        if (this.activityTracker) {
+          this.activityTracker.updateSettings(settings.activityTracking);
+          this.activityTracker.start();
+          console.log('✅ Activity tracking auto-started successfully');
+        }
+      } else {
+        console.log('ℹ️  Activity tracking disabled in settings - not auto-starting');
+      }
+    } catch (error) {
+      console.error('❌ Failed to auto-start activity tracking:', error);
     }
   }
 
@@ -189,16 +212,21 @@ class LumeApp {
 
     ipcMain.handle('save-settings', async (_, settings) => {
       try {
+        console.log('💾 Saving settings:', JSON.stringify(settings, null, 2));
         const success = this.saveSettings(settings);
 
         // Update activity tracking settings if present
         if (success && this.activityTracker && settings.activityTracking) {
+          console.log('🔄 Updating activity tracker with new settings');
           this.activityTracker.updateSettings(settings.activityTracking);
+
+          const isTracking = this.activityTracker.isTracking();
+          console.log(`📊 Activity tracking status after settings update: ${isTracking ? 'ACTIVE' : 'STOPPED'}`);
         }
 
         return success;
       } catch (error) {
-        console.error('Failed to save settings:', error);
+        console.error('❌ Failed to save settings:', error);
         return false;
       }
     });

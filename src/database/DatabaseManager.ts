@@ -38,7 +38,12 @@ export class DatabaseManager {
   }
 
   initialize(): void {
-    if (!this.db) return;
+    if (!this.db) {
+      console.error('❌ Database instance is null, cannot initialize');
+      return;
+    }
+
+    console.log('🗄️  Initializing database tables...');
 
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS time_entries (
@@ -188,6 +193,8 @@ export class DatabaseManager {
   addActivitySession(session: ActivitySession): number {
     if (!this.db) throw new Error('Database not initialized');
 
+    console.log(`💾 DB: Inserting activity session - ${session.app_name} (${session.category})`);
+
     const stmt = this.db.prepare(`
       INSERT INTO app_usage (
         app_name, window_title, category, domain, url,
@@ -208,6 +215,7 @@ export class DatabaseManager {
       false
     );
 
+    console.log(`✅ DB: Session saved with ID: ${result.lastInsertRowid}`);
     return result.lastInsertRowid as number;
   }
 

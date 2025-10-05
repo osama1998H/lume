@@ -15,7 +15,10 @@ export class ActivityMonitor implements ActivityTracker {
   }
 
   start(): void {
-    if (this.isActive) return;
+    if (this.isActive) {
+      console.log('⚠️  Activity monitor already running');
+      return;
+    }
 
     this.isActive = true;
     this.intervalId = setInterval(() => {
@@ -24,18 +27,21 @@ export class ActivityMonitor implements ActivityTracker {
 
     // Capture initial activity
     this.captureCurrentActivity();
-    console.log('Activity monitoring started');
+    console.log(`👁️  Activity monitor started (interval: ${this.intervalMs}ms)`);
   }
 
   stop(): void {
-    if (!this.isActive) return;
+    if (!this.isActive) {
+      console.log('⚠️  Activity monitor already stopped');
+      return;
+    }
 
     this.isActive = false;
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
     }
-    console.log('Activity monitoring stopped');
+    console.log('👁️  Activity monitor stopped');
   }
 
   isTracking(): boolean {
@@ -59,9 +65,12 @@ export class ActivityMonitor implements ActivityTracker {
       const activity = await this.detectActiveWindow();
       if (activity) {
         this.currentActivity = activity;
+        console.log(`🔍 Captured activity: ${activity.app_name}${activity.domain ? ` (${activity.domain})` : ''}`);
+      } else {
+        console.log('⚠️  No activity detected');
       }
     } catch (error) {
-      console.error('Failed to capture activity:', error);
+      console.error('❌ Failed to capture activity:', error);
     }
   }
 
@@ -102,7 +111,10 @@ export class ActivityMonitor implements ActivityTracker {
       const { stdout } = await execAsync(`osascript -e '${script}'`);
       const [appName, windowTitle] = stdout.trim().split('|||');
 
-      if (!appName) return null;
+      if (!appName) {
+        console.log('⚠️  macOS: No active app detected');
+        return null;
+      }
 
       const activity: CurrentActivity = {
         app_name: appName,
@@ -113,16 +125,86 @@ export class ActivityMonitor implements ActivityTracker {
       };
 
       if (activity.is_browser) {
-        const browserInfo = await this.extractBrowserInfo(appName, windowTitle);
+        // Try to get URL directly from browser first (more reliable)
+        const browserInfo = await this.getBrowserUrlDirectly(appName);
         if (browserInfo) {
           activity.domain = browserInfo.domain;
           activity.url = browserInfo.url;
+          console.log(`🌐 Browser detected: ${browserInfo.domain} (via direct URL)`);
+        } else {
+          // Fallback to window title parsing
+          const fallbackInfo = await this.extractBrowserInfo(appName, windowTitle);
+          if (fallbackInfo) {
+            activity.domain = fallbackInfo.domain;
+            activity.url = fallbackInfo.url;
+            console.log(`🌐 Browser detected: ${fallbackInfo.domain} (via window title)`);
+          } else {
+            console.log('⚠️  Browser detected but no URL/domain extracted');
+          }
         }
       }
 
       return activity;
     } catch (error) {
-      console.error('macOS activity detection failed:', error);
+      console.error('❌ macOS activity detection failed:', error);
+      return null;
+    }
+  }
+
+  private async getBrowserUrlDirectly(appName: string): Promise<{domain: string, url: string} | null> {
+    try {
+      let script = '';
+      const lowerAppName = appName.toLowerCase();
+
+      // Map app names to their AppleScript commands
+      if (lowerAppName.includes('chrome') || lowerAppName.includes('chromium')) {
+        script = 'tell application "Google Chrome" to get URL of active tab of front window';
+      } else if (lowerAppName.includes('safari')) {
+        script = 'tell application "Safari" to get URL of current tab of front window';
+      } else if (lowerAppName.includes('firefox')) {
+        // Firefox doesn't support AppleScript URL access easily, will fallback to window title
+        return null;
+      } else if (lowerAppName.includes('brave')) {
+        script = 'tell application "Brave Browser" to get URL of active tab of front window';
+      } else if (lowerAppName.includes('edge')) {
+        script = 'tell application "Microsoft Edge" to get URL of active tab of front window';
+      } else if (lowerAppName.includes('arc')) {
+        script = 'tell application "Arc" to get URL of active tab of front window';
+      } else if (lowerAppName.includes('opera')) {
+        script = 'tell application "Opera" to get URL of active tab of front window';
+      } else if (lowerAppName.includes('vivaldi')) {
+        script = 'tell application "Vivaldi" to get URL of active tab of front window';
+      } else {
+        return null;
+      }
+
+      const { stdout } = await execAsync(`osascript -e '${script}'`);
+      const url = stdout.trim();
+
+      if (!url || url.length === 0) {
+        return null;
+      }
+
+      // Skip internal browser pages
+      if (url.startsWith('chrome://') ||
+          url.startsWith('about:') ||
+          url.startsWith('chrome-extension://') ||
+          url.startsWith('safari-resource://') ||
+          url.startsWith('favorites://')) {
+        console.log(`⏭️  Skipping internal browser page: ${url}`);
+        return null;
+      }
+
+      // Extract domain from URL
+      const urlObj = new URL(url);
+      const domain = urlObj.hostname.replace(/^www\./, ''); // Remove www. prefix
+
+      return {
+        domain,
+        url
+      };
+    } catch (error) {
+      // Silent fail - will fallback to window title parsing
       return null;
     }
   }
