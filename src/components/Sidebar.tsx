@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface SidebarProps {
   currentView: string;
@@ -6,17 +7,19 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
+  const { t } = useTranslation();
+
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'tracker', label: 'Time Tracker', icon: '⏱️' },
-    { id: 'reports', label: 'Reports', icon: '📈' },
-    { id: 'settings', label: 'Settings', icon: '⚙️' },
+    { id: 'dashboard', label: t('navigation.dashboard'), icon: '📊' },
+    { id: 'tracker', label: t('navigation.tracker'), icon: '⏱️' },
+    { id: 'reports', label: t('navigation.reports'), icon: '📈' },
+    { id: 'settings', label: t('navigation.settings'), icon: '⚙️' },
   ];
 
   return (
     <div className="w-64 bg-white shadow-lg h-full">
       <div className="p-6">
-        <h1 className="text-2xl font-bold text-primary-600 mb-8">Lume</h1>
+        <h1 className="text-2xl font-bold text-primary-600 mb-8">{t('app.name')}</h1>
         <nav className="space-y-2">
           {menuItems.map((item) => (
             <button

@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../hooks/useLanguage';
 
 const Settings: React.FC = () => {
+  const { t } = useTranslation();
+  const { language, changeLanguage } = useLanguage();
   const [settings, setSettings] = useState({
     autoTrackApps: true,
     showNotifications: true,
@@ -150,8 +154,20 @@ const Settings: React.FC = () => {
 
       <div className="max-w-2xl space-y-6">
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4">General Settings</h3>
+          <h3 className="text-xl font-semibold mb-4">{t('settings.general')}</h3>
           <div className="space-y-4">
+            <div>
+              <label className="block font-medium text-gray-900 mb-2">{t('settings.language')}</label>
+              <select
+                value={language}
+                onChange={(e) => changeLanguage(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                <option value="en">{t('settings.english')}</option>
+                <option value="ar">{t('settings.arabic')}</option>
+              </select>
+              <p className="text-sm text-gray-600 mt-1">{t('settings.selectLanguage')}</p>
+            </div>
             <div className="flex items-center justify-between">
               <div>
                 <label className="font-medium text-gray-900">Auto-track Applications</label>

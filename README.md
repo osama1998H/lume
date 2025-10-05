@@ -13,6 +13,12 @@ Lume helps you understand your productivity patterns by automatically tracking t
 
 ## ✨ Features
 
+### 🌍 Internationalization (i18n)
+- **Multi-language support** - English and Arabic available
+- **RTL (Right-to-Left) support** - Automatic layout mirroring for RTL languages
+- **Easy to add languages** - See [Translation Guide](TRANSLATION_GUIDE.md)
+- **Language switcher** - Change language from Settings
+
 ### 🎯 Automatic Activity Tracking
 - **Cross-platform monitoring** - Works on macOS, Windows, and Linux
 - **Application tracking** - Monitor time spent in desktop applications
@@ -101,6 +107,7 @@ lume/
 - **Database**: SQLite with better-sqlite3
 - **Build**: Vite, electron-builder
 - **Testing**: Jest, React Testing Library
+- **Internationalization**: react-i18next
 - **Error Tracking**: Sentry (optional)
 - **Crash Reporting**: Electron crashReporter
 
@@ -162,6 +169,20 @@ Lume is designed with privacy in mind:
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Translation Contributions
+
+Want to add support for your language? See our [Translation Guide](TRANSLATION_GUIDE.md)!
+
+**Currently supported languages:**
+- 🇬🇧 English
+- 🇸🇦 Arabic (العربية)
+
+We're actively looking for translations in:
+- French (Français)
+- Spanish (Español)
+- German (Deutsch)
+- And more!
 
 ### Quick Contribution Steps
 
