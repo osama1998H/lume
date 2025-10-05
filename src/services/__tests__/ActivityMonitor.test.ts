@@ -92,7 +92,7 @@ describe('ActivityMonitor', () => {
 
     it('should clear interval timer', () => {
       monitor.start();
-      const intervalId = (monitor as any).intervalId;
+      const {intervalId} = monitor as any;
       expect(intervalId).not.toBeNull();
       
       monitor.stop();
