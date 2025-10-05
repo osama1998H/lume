@@ -21,7 +21,10 @@
     "pack": "electron-builder",
     "dist": "npm run build && electron-builder"
   },
-  "author": "Lume Team <team@lume.app>",
+  "author": {
+    "name": "Lume Team",
+    "email": "team@lume.app"
+  },
   "license": "MIT",
   "keywords": [
     "time tracking",
