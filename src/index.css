@@ -57,4 +57,49 @@
   .card {
     @apply bg-white rounded-lg shadow-sm border p-6;
   }
+
+  /* Title Bar - Draggable Window Region */
+  .titlebar {
+    -webkit-app-region: drag;
+    @apply bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-center;
+    height: 40px;
+    user-select: none;
+  }
+
+  .titlebar-content {
+    @apply flex items-center space-x-2;
+  }
+
+  .titlebar-logo {
+    @apply flex items-center space-x-2;
+  }
+
+  .titlebar-title {
+    @apply text-sm font-semibold text-primary-600;
+  }
+
+  .titlebar-separator {
+    @apply text-gray-400 text-xs;
+  }
+
+  .titlebar-tagline {
+    @apply text-xs text-gray-500;
+  }
+
+  /* Make interactive elements in title bar non-draggable */
+  .titlebar button,
+  .titlebar input,
+  .titlebar select,
+  .titlebar a {
+    -webkit-app-region: no-drag;
+  }
+
+  /* RTL support for title bar */
+  [dir="rtl"] .titlebar-content {
+    @apply space-x-reverse;
+  }
+
+  [dir="rtl"] .titlebar-logo {
+    @apply space-x-reverse;
+  }
 }
