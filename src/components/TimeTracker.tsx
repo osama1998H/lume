@@ -55,7 +55,7 @@ const TimeTracker: React.FC = () => {
     if (!startTime || !currentTask.trim()) return;
 
     const endTime = new Date();
-    const duration = Math.floor((endTime.getTime() - startTime.getTime()) / 60000); // in minutes
+    const duration = Math.floor((endTime.getTime() - startTime.getTime()) / 1000); // in seconds
 
     const entry: TimeEntry = {
       task: currentTask,
@@ -88,10 +88,18 @@ const TimeTracker: React.FC = () => {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if (hours > 0) {
+      return `${hours}h ${mins}m`;
+    } else if (mins > 0) {
+      return `${mins}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
   };
 
   return (

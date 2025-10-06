@@ -29,24 +29,55 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if (hours > 0) {
+      return `${hours}h ${mins}m`;
+    } else if (mins > 0) {
+      return `${mins}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
   };
 
   const getTodayStats = () => {
     const today = new Date().toISOString().split('T')[0];
-    const todayEntries = timeEntries.filter(entry =>
-      entry.startTime && entry.startTime.startsWith(today)
-    );
+    console.log('📊 Dashboard - Total entries:', timeEntries.length);
+    console.log('📊 Dashboard - Today date:', today);
 
-    const totalMinutes = todayEntries.reduce((sum, entry) =>
-      sum + (entry.duration || 0), 0
-    );
+    const todayEntries = timeEntries.filter(entry => {
+      if (!entry.startTime) return false;
+      // Normalize entry.startTime to date string (YYYY-MM-DD)
+      const entryDate = new Date(entry.startTime);
+      // Use toISOString to get UTC date, or use toLocaleDateString for local date
+      const entryDateString = entryDate.toISOString().split('T')[0];
+      const isToday = entryDateString === today;
+      if (isToday) {
+        console.log('📊 Dashboard - Found today entry:', entry);
+      }
+      return isToday;
+    });
+
+    console.log('📊 Dashboard - Today entries count:', todayEntries.length);
+
+    const totalSeconds = todayEntries.reduce((sum, entry) => {
+      // Calculate duration if missing
+      let {duration} = entry;
+      if (!duration && entry.startTime && entry.endTime) {
+        const start = new Date(entry.startTime).getTime();
+        const end = new Date(entry.endTime).getTime();
+        duration = Math.floor((end - start) / 1000);
+      }
+      return sum + (duration || 0);
+    }, 0);
+
+    console.log('📊 Dashboard - Total seconds:', totalSeconds);
 
     return {
-      totalTime: totalMinutes,
+      totalTime: totalSeconds,
       tasksCompleted: todayEntries.filter(entry => entry.endTime).length,
       activeTask: todayEntries.find(entry => !entry.endTime)?.task || null,
     };

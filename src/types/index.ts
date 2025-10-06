@@ -11,10 +11,15 @@ export interface TimeEntry {
 export interface AppUsage {
   id?: number;
   appName: string;
-  windowTitle: string;
+  windowTitle?: string;
+  category?: string;
+  domain?: string;
+  url?: string;
   startTime: string;
   endTime?: string;
   duration?: number;
+  isBrowser?: boolean;
+  isIdle?: boolean;
   createdAt?: string;
 }
 
