@@ -5,6 +5,8 @@ import * as dotenv from 'dotenv';
 import { isDev } from './utils';
 import { DatabaseManager } from '../database/DatabaseManager';
 import { ActivityTrackingService } from '../services/ActivityTrackingService';
+import { PomodoroService } from '../services/PomodoroService';
+import { NotificationService } from '../services/NotificationService';
 import { initializeSentry } from '../config/sentry';
 import { initializeCrashReporter, getLastCrashReport, getUploadedReports } from '../config/crashReporter';
 
@@ -21,6 +23,8 @@ class LumeApp {
   private mainWindow: BrowserWindow | null = null;
   private dbManager: DatabaseManager | null = null;
   private activityTracker: ActivityTrackingService | null = null;
+  private pomodoroService: PomodoroService | null = null;
+  private notificationService: NotificationService | null = null;
   private settingsPath: string;
 
   constructor() {
@@ -101,6 +105,22 @@ class LumeApp {
       // Initialize activity tracking service
       this.activityTracker = new ActivityTrackingService(this.dbManager);
       console.log('✅ Activity tracking service initialized');
+
+      // Initialize notification service
+      const pomodoroSettings = this.getSettings().pomodoro;
+      this.notificationService = new NotificationService(
+        pomodoroSettings?.soundEnabled !== false,
+        pomodoroSettings?.notificationsEnabled !== false
+      );
+      console.log('✅ Notification service initialized');
+
+      // Initialize pomodoro service
+      this.pomodoroService = new PomodoroService(
+        this.dbManager,
+        this.notificationService,
+        pomodoroSettings
+      );
+      console.log('✅ Pomodoro service initialized');
 
       // Auto-start tracking if enabled in settings
       this.autoStartTracking();
@@ -352,6 +372,202 @@ class LumeApp {
       } catch (error) {
         console.error('Failed to run crash tests:', error);
         return false;
+      }
+    });
+
+    // Pomodoro IPC handlers
+    ipcMain.handle('get-pomodoro-settings', async () => {
+      try {
+        const settings = this.getSettings();
+        return settings.pomodoro || {
+          focusDuration: 25,
+          shortBreakDuration: 5,
+          longBreakDuration: 15,
+          longBreakInterval: 4,
+          autoStartBreaks: false,
+          autoStartFocus: false,
+          soundEnabled: true,
+          notificationsEnabled: true,
+          dailyGoal: 8,
+        };
+      } catch (error) {
+        console.error('Failed to get pomodoro settings:', error);
+        return null;
+      }
+    });
+
+    ipcMain.handle('save-pomodoro-settings', async (_, pomodoroSettings) => {
+      try {
+        const settings = this.getSettings();
+        settings.pomodoro = pomodoroSettings;
+        const success = this.saveSettings(settings);
+
+        // Update running services with new settings
+        if (success && this.pomodoroService && this.notificationService) {
+          console.log('🔄 Updating pomodoro service with new settings');
+          this.pomodoroService.updateSettings(pomodoroSettings);
+          this.notificationService.updateSettings(
+            pomodoroSettings.soundEnabled,
+            pomodoroSettings.notificationsEnabled
+          );
+          console.log('✅ Pomodoro settings applied to running services');
+        }
+
+        return success;
+      } catch (error) {
+        console.error('Failed to save pomodoro settings:', error);
+        return false;
+      }
+    });
+
+    ipcMain.handle('add-pomodoro-session', async (_, session) => {
+      try {
+        // Validate session data
+        const requiredFields = [
+          { key: 'startTime', type: 'number' },
+          { key: 'endTime', type: 'number' },
+          { key: 'duration', type: 'number' },
+          { key: 'type', type: 'string' }
+        ];
+
+        for (const field of requiredFields) {
+          if (
+            !(field.key in session) ||
+            typeof session[field.key] !== field.type
+          ) {
+            console.error(
+              `Invalid pomodoro session: missing or invalid field '${field.key}'`
+            );
+            return null;
+          }
+        }
+
+        console.log('Add pomodoro session:', session);
+        return this.dbManager?.addPomodoroSession(session) || null;
+      } catch (error) {
+        console.error('Failed to add pomodoro session:', error);
+        return null;
+      }
+    });
+
+    ipcMain.handle('update-pomodoro-session', async (_, id: number, updates: any) => {
+      try {
+        console.log('Update pomodoro session:', id, updates);
+        return this.dbManager?.updatePomodoroSession(id, updates) || false;
+      } catch (error) {
+        console.error('Failed to update pomodoro session:', error);
+        return false;
+      }
+    });
+
+    ipcMain.handle('get-pomodoro-sessions', async (_, limit = 100) => {
+      try {
+        return this.dbManager?.getPomodoroSessions(limit) || [];
+      } catch (error) {
+        console.error('Failed to get pomodoro sessions:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('get-pomodoro-stats', async (_, startDate?: string, endDate?: string) => {
+      try {
+        return this.dbManager?.getPomodoroStats(startDate, endDate) || {
+          totalSessions: 0,
+          completedSessions: 0,
+          totalFocusTime: 0,
+          totalBreakTime: 0,
+          completionRate: 0,
+          currentStreak: 0,
+        };
+      } catch (error) {
+        console.error('Failed to get pomodoro stats:', error);
+        return {
+          totalSessions: 0,
+          completedSessions: 0,
+          totalFocusTime: 0,
+          totalBreakTime: 0,
+          completionRate: 0,
+          currentStreak: 0,
+        };
+      }
+    });
+
+    // Pomodoro Timer Control IPC handlers
+    ipcMain.handle('start-pomodoro-session', async (_, task: string, sessionType: 'focus' | 'shortBreak' | 'longBreak') => {
+      try {
+        if (this.pomodoroService) {
+          this.pomodoroService.start(task, sessionType);
+          console.log(`🍅 Started pomodoro session: ${sessionType} - "${task}"`);
+        }
+      } catch (error) {
+        console.error('Failed to start pomodoro session:', error);
+      }
+    });
+
+    ipcMain.handle('pause-pomodoro-session', async () => {
+      try {
+        if (this.pomodoroService) {
+          this.pomodoroService.pause();
+          console.log('⏸️  Paused pomodoro session');
+        }
+      } catch (error) {
+        console.error('Failed to pause pomodoro session:', error);
+      }
+    });
+
+    ipcMain.handle('resume-pomodoro-session', async () => {
+      try {
+        if (this.pomodoroService) {
+          this.pomodoroService.resume();
+          console.log('▶️  Resumed pomodoro session');
+        }
+      } catch (error) {
+        console.error('Failed to resume pomodoro session:', error);
+      }
+    });
+
+    ipcMain.handle('stop-pomodoro-session', async () => {
+      try {
+        if (this.pomodoroService) {
+          this.pomodoroService.stop();
+          console.log('⏹️  Stopped pomodoro session');
+        }
+      } catch (error) {
+        console.error('Failed to stop pomodoro session:', error);
+      }
+    });
+
+    ipcMain.handle('skip-pomodoro-session', async () => {
+      try {
+        if (this.pomodoroService) {
+          this.pomodoroService.skip();
+          console.log('⏭️  Skipped pomodoro session');
+        }
+      } catch (error) {
+        console.error('Failed to skip pomodoro session:', error);
+      }
+    });
+
+    ipcMain.handle('get-pomodoro-status', async () => {
+      try {
+        return this.pomodoroService?.getStatus() || {
+          state: 'idle',
+          sessionType: 'focus',
+          timeRemaining: 0,
+          totalDuration: 0,
+          currentTask: '',
+          sessionsCompleted: 0,
+        };
+      } catch (error) {
+        console.error('Failed to get pomodoro status:', error);
+        return {
+          state: 'idle',
+          sessionType: 'focus',
+          timeRemaining: 0,
+          totalDuration: 0,
+          currentTask: '',
+          sessionsCompleted: 0,
+        };
       }
     });
   }

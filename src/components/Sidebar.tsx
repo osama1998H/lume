@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 interface SidebarProps {
   currentView: string;
-  onViewChange: (view: 'dashboard' | 'tracker' | 'reports' | 'settings') => void;
+  onViewChange: (view: 'dashboard' | 'tracker' | 'reports' | 'focus' | 'settings') => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
@@ -12,6 +12,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
   const menuItems = [
     { id: 'dashboard', label: t('navigation.dashboard'), icon: '📊' },
     { id: 'tracker', label: t('navigation.tracker'), icon: '⏱️' },
+    { id: 'focus', label: t('navigation.focus'), icon: '🎯' },
     { id: 'reports', label: t('navigation.reports'), icon: '📈' },
     { id: 'settings', label: t('navigation.settings'), icon: '⚙️' },
   ];

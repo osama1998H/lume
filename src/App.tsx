@@ -5,10 +5,12 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import TimeTracker from './components/TimeTracker';
 import Reports from './components/Reports';
+import FocusMode from './components/FocusMode';
 import Settings from './components/Settings';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { PomodoroProvider } from './contexts/PomodoroContext';
 
-type View = 'dashboard' | 'tracker' | 'reports' | 'settings';
+type View = 'dashboard' | 'tracker' | 'reports' | 'focus' | 'settings';
 
 /**
  * Top-level application component that initializes theming, manages the active view, and composes the main layout with a title bar, sidebar, and view content.
@@ -24,6 +26,8 @@ function App() {
         return <Dashboard />;
       case 'tracker':
         return <TimeTracker />;
+      case 'focus':
+        return <FocusMode />;
       case 'reports':
         return <Reports />;
       case 'settings':
@@ -35,19 +39,21 @@ function App() {
 
   return (
     <ThemeProvider>
-      <ErrorBoundary>
-        <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
-          <TitleBar />
-          <div className="flex flex-1 overflow-hidden">
-            <Sidebar currentView={currentView} onViewChange={setCurrentView} />
-            <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
-              <ErrorBoundary>
-                {renderView()}
-              </ErrorBoundary>
-            </main>
+      <PomodoroProvider>
+        <ErrorBoundary>
+          <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+            <TitleBar />
+            <div className="flex flex-1 overflow-hidden">
+              <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+              <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+                <ErrorBoundary>
+                  {renderView()}
+                </ErrorBoundary>
+              </main>
+            </div>
           </div>
-        </div>
-      </ErrorBoundary>
+        </ErrorBoundary>
+      </PomodoroProvider>
     </ThemeProvider>
   );
 }
