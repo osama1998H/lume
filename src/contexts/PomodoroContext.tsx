@@ -64,15 +64,15 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Poll for status updates from main process
   useEffect(() => {
     if (status.state === 'running' || status.state === 'paused') {
-      intervalRef.current = setInterval(() => {
-        refreshStatus();
-      }, 1000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    }
+          intervalRef.current = setInterval(() => {
+            refreshStatus();
+          }, 1000);
+        }
+    else if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+
 
     return () => {
       if (intervalRef.current) {
