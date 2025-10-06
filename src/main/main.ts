@@ -409,6 +409,26 @@ class LumeApp {
 
     ipcMain.handle('add-pomodoro-session', async (_, session) => {
       try {
+        // Validate session data
+        const requiredFields = [
+          { key: 'startTime', type: 'number' },
+          { key: 'endTime', type: 'number' },
+          { key: 'duration', type: 'number' },
+          { key: 'type', type: 'string' }
+        ];
+
+        for (const field of requiredFields) {
+          if (
+            !(field.key in session) ||
+            typeof session[field.key] !== field.type
+          ) {
+            console.error(
+              `Invalid pomodoro session: missing or invalid field '${field.key}'`
+            );
+            return null;
+          }
+        }
+
         console.log('Add pomodoro session:', session);
         return this.dbManager?.addPomodoroSession(session) || null;
       } catch (error) {
