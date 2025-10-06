@@ -7,7 +7,7 @@
  */
 
 describe('Main Process - Auto Start Tracking', () => {
-  let mockDbManager: any;
+  let _mockDbManager: any;
   let mockActivityTracker: any;
   let consoleLog: jest.SpyInstance;
   let consoleError: jest.SpyInstance;
@@ -23,7 +23,7 @@ describe('Main Process - Auto Start Tracking', () => {
       isTracking: jest.fn().mockReturnValue(false),
     };
 
-    mockDbManager = {
+    _mockDbManager = {
       initialize: jest.fn(),
       addActivitySession: jest.fn(),
     };
