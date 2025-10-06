@@ -41,7 +41,13 @@ const TimeTracker: React.FC = () => {
           console.log('📋 Restoring active timer:', activeEntry);
           setCurrentTask(activeEntry.task);
           setCategory(activeEntry.category || '');
-          setStartTime(new Date(activeEntry.startTime));
+          const parsedStartTime = new Date(activeEntry.startTime);
+          if (!isNaN(parsedStartTime.getTime())) {
+            setStartTime(parsedStartTime);
+          } else {
+            console.warn('Invalid startTime format for activeEntry:', activeEntry.startTime);
+            setStartTime(null);
+          }
           setIsTracking(true);
           setActiveEntryId(activeEntry.id);
         }
