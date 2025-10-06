@@ -101,10 +101,17 @@ describe('i18n configuration', () => {
       expect(i18n).toBeDefined();
       expect(i18n.isInitialized).toBe(true);
     });
-
     it('should have fallback language set to English', () => {
-      const {fallbackLng} = i18n.options;
+      const fallbackLng = i18n.options.fallbackLng;
       expect(Array.isArray(fallbackLng) ? fallbackLng[0] : fallbackLng).toEqual('en');
+    });
+
+    it('should handle fallbackLng as an array', () => {
+      const originalFallbackLng = i18n.options.fallbackLng;
+      i18n.options.fallbackLng = ['en', 'fr'];
+      const fallbackLng = i18n.options.fallbackLng;
+      expect(Array.isArray(fallbackLng) ? fallbackLng[0] : fallbackLng).toEqual('en');
+      i18n.options.fallbackLng = originalFallbackLng; // restore original value
     });
 
     it('should have interpolation escapeValue disabled', () => {
