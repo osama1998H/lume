@@ -149,24 +149,24 @@ const TimeTracker: React.FC = () => {
   return (
     <div className="p-8 overflow-y-auto">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('timeTracker.title')}</h2>
-        <p className="text-gray-600">{t('timeTracker.subtitle')}</p>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('timeTracker.title')}</h2>
+        <p className="text-gray-600 dark:text-gray-400">{t('timeTracker.subtitle')}</p>
       </div>
 
       <div className="max-w-2xl mx-auto">
         <div className="card mb-8">
           <div className="text-center mb-6">
-            <div className="text-6xl font-mono font-bold text-primary-600 mb-4">
+            <div className="text-6xl font-mono font-bold text-primary-600 dark:text-primary-400 mb-4">
               {formatTime(elapsedTime)}
             </div>
             {isTracking && currentTask && (
-              <p className="text-lg text-gray-700">{t('timeTracker.workingOn')} <span className="font-semibold">{currentTask}</span></p>
+              <p className="text-lg text-gray-900 dark:text-gray-100">{t('timeTracker.workingOn')} <span className="font-semibold">{currentTask}</span></p>
             )}
           </div>
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="task" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="task" className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                 {t('timeTracker.taskName')}
               </label>
               <input
@@ -176,12 +176,12 @@ const TimeTracker: React.FC = () => {
                 onChange={(e) => setCurrentTask(e.target.value)}
                 disabled={isTracking}
                 placeholder={t('timeTracker.taskPlaceholder')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
 
             <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="category" className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                 {t('timeTracker.category')}
               </label>
               <input
@@ -191,7 +191,7 @@ const TimeTracker: React.FC = () => {
                 onChange={(e) => setCategory(e.target.value)}
                 disabled={isTracking}
                 placeholder={t('timeTracker.categoryPlaceholder')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -217,33 +217,33 @@ const TimeTracker: React.FC = () => {
         </div>
 
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4">{t('timeTracker.recentEntries')}</h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('timeTracker.recentEntries')}</h3>
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {recentEntries.map((entry, index) => (
-              <div key={entry.id || index} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+              <div key={entry.id || index} className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900">{entry.task}</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{entry.task}</p>
                   <div className="flex items-center space-x-4 mt-1">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {new Date(entry.startTime).toLocaleDateString()} {t('timeTracker.at')}{' '}
                       {new Date(entry.startTime).toLocaleTimeString()}
                     </p>
                     {entry.category && (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-400">
                         {entry.category}
                       </span>
                     )}
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-primary-600">
+                  <p className="font-semibold text-primary-600 dark:text-primary-400">
                     {entry.duration ? formatDuration(entry.duration) : t('timeTracker.active')}
                   </p>
                 </div>
               </div>
             ))}
             {recentEntries.length === 0 && (
-              <p className="text-gray-500 text-center py-8">{t('timeTracker.noEntries')}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-center py-8">{t('timeTracker.noEntries')}</p>
             )}
           </div>
         </div>
