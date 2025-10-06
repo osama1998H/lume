@@ -1,6 +1,15 @@
-import { useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export type Theme = 'light' | 'dark' | 'system';
+
+interface ThemeContextType {
+  theme: Theme;
+  effectiveTheme: 'light' | 'dark';
+  changeTheme: (theme: Theme) => void;
+  isDark: boolean;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'lume-theme';
 
@@ -35,12 +44,8 @@ const applyTheme = (theme: 'light' | 'dark') => {
   }
 };
 
-/**
- * Custom hook to manage theme (light/dark/system) with persistence
- */
-export const useTheme = () => {
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const allowedThemes: Theme[] = ['light', 'dark', 'system'];
-  const isExternalChange = useRef(false);
 
   const [theme, setTheme] = useState<Theme>(() => {
     // Initialize from localStorage or default to 'system'
@@ -61,43 +66,7 @@ export const useTheme = () => {
 
     // Save to localStorage
     localStorage.setItem(STORAGE_KEY, theme);
-
-    // Dispatch custom event for same-window synchronization (only if not an external change)
-    if (!isExternalChange.current) {
-      window.dispatchEvent(new CustomEvent('theme-change', { detail: theme }));
-    }
-    isExternalChange.current = false;
   }, [theme]);
-
-  useEffect(() => {
-    // Listen for theme changes from other hook instances
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY && e.newValue) {
-        const newTheme = e.newValue as Theme;
-        if (allowedThemes.includes(newTheme) && newTheme !== theme) {
-          isExternalChange.current = true;
-          setTheme(newTheme);
-        }
-      }
-    };
-
-    // Listen for custom event (for same-window changes)
-    const handleThemeChange = ((e: CustomEvent) => {
-      const newTheme = e.detail as Theme;
-      if (allowedThemes.includes(newTheme) && newTheme !== theme) {
-        isExternalChange.current = true;
-        setTheme(newTheme);
-      }
-    }) as EventListener;
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('theme-change', handleThemeChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('theme-change', handleThemeChange);
-    };
-  }, [theme, allowedThemes]);
 
   useEffect(() => {
     // Listen for system theme changes when in 'system' mode
@@ -119,10 +88,20 @@ export const useTheme = () => {
     setTheme(newTheme);
   };
 
-  return {
+  const value: ThemeContextType = {
     theme,
     effectiveTheme,
     changeTheme,
     isDark: effectiveTheme === 'dark',
   };
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+};
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
 };
