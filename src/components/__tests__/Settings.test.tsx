@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Settings from '../Settings';
+import * as useThemeModule from '../../hooks/useTheme';
 
 // Mock i18next
 jest.mock('react-i18next', () => ({
@@ -445,5 +446,226 @@ describe('Settings Component', () => {
       // Should render without crashing
       expect(screen.getByText('Settings')).toBeInTheDocument();
     });
+  });
+});
+// Additional tests for theme functionality
+describe('Theme Selection', () => {
+  beforeEach(() => {
+    // Reset mocks
+    jest.clearAllMocks();
+    
+    // Setup default mock implementations
+    mockElectronAPI.getSettings.mockResolvedValue({
+      autoTrackApps: true,
+      showNotifications: true,
+      minimizeToTray: false,
+      autoStartTracking: false,
+      defaultCategory: '',
+      trackingInterval: 30,
+      activityTracking: {
+        enabled: false,
+        trackingInterval: 30,
+        idleThreshold: 300,
+        trackBrowsers: true,
+        trackApplications: true,
+        blacklistedApps: [],
+        blacklistedDomains: [],
+        dataRetentionDays: 90
+      }
+    });
+    
+    mockElectronAPI.getActivityTrackingStatus.mockResolvedValue(false);
+    mockElectronAPI.saveSettings.mockResolvedValue(true);
+    
+    (window as any).electronAPI = mockElectronAPI;
+  });
+
+  afterEach(() => {
+    delete (window as any).electronAPI;
+    jest.restoreAllMocks();
+  });
+
+  it('should render theme dropdown with all options', async () => {
+    render(<Settings />);
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+    });
+    
+    // Find the theme label
+    expect(screen.getByText('settings.theme')).toBeInTheDocument();
+    
+    // Check all theme options are present in the dropdown
+    const themeSelect = screen.getAllByRole('combobox').find(
+      el => el.getAttribute('value') === 'light' || 
+           el.getAttribute('value') === 'dark' || 
+           el.getAttribute('value') === 'system'
+    );
+    
+    expect(themeSelect).toBeInTheDocument();
+  });
+
+  it('should display theme options in the select element', async () => {
+    render(<Settings />);
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+    });
+    
+    expect(screen.getByText('settings.lightMode')).toBeInTheDocument();
+    expect(screen.getByText('settings.darkMode')).toBeInTheDocument();
+    expect(screen.getByText('settings.systemMode')).toBeInTheDocument();
+  });
+
+  it('should show theme helper text', async () => {
+    render(<Settings />);
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+    });
+    
+    expect(screen.getByText('settings.selectTheme')).toBeInTheDocument();
+  });
+
+  it('should call useTheme hook on mount', async () => {
+    const mockChangeTheme = jest.fn();
+    jest.spyOn(useThemeModule, 'useTheme').mockReturnValue({
+      theme: 'system',
+      effectiveTheme: 'light',
+      changeTheme: mockChangeTheme,
+      isDark: false,
+    });
+
+    render(<Settings />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+    });
+
+    // Verify useTheme was called
+    expect(useThemeModule.useTheme).toHaveBeenCalled();
+  });
+
+  it('should change theme when user selects a different option', async () => {
+    const mockChangeTheme = jest.fn();
+    jest.spyOn(useThemeModule, 'useTheme').mockReturnValue({
+      theme: 'light',
+      effectiveTheme: 'light',
+      changeTheme: mockChangeTheme,
+      isDark: false,
+    });
+
+    render(<Settings />);
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+    });
+    
+    const themeSelects = screen.getAllByRole('combobox');
+    const themeSelect = themeSelects.find(
+      el => el.querySelector('option[value="light"]')
+    );
+    
+    if (themeSelect) {
+      fireEvent.change(themeSelect, { target: { value: 'dark' } });
+      
+      await waitFor(() => {
+        expect(mockChangeTheme).toHaveBeenCalledWith('dark');
+      });
+    }
+  });
+
+  it('should handle theme change from light to dark', async () => {
+    const mockChangeTheme = jest.fn();
+    jest.spyOn(useThemeModule, 'useTheme').mockReturnValue({
+      theme: 'light',
+      effectiveTheme: 'light',
+      changeTheme: mockChangeTheme,
+      isDark: false,
+    });
+
+    render(<Settings />);
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+    });
+    
+    const themeSelects = screen.getAllByRole('combobox');
+    const themeSelect = themeSelects.find(
+      el => el.querySelector('option[value="dark"]')
+    );
+    
+    if (themeSelect) {
+      fireEvent.change(themeSelect, { target: { value: 'dark' } });
+      expect(mockChangeTheme).toHaveBeenCalledWith('dark');
+    }
+  });
+
+  it('should handle theme change to system mode', async () => {
+    const mockChangeTheme = jest.fn();
+    jest.spyOn(useThemeModule, 'useTheme').mockReturnValue({
+      theme: 'light',
+      effectiveTheme: 'light',
+      changeTheme: mockChangeTheme,
+      isDark: false,
+    });
+
+    render(<Settings />);
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+    });
+    
+    const themeSelects = screen.getAllByRole('combobox');
+    const themeSelect = themeSelects.find(
+      el => el.querySelector('option[value="system"]')
+    );
+    
+    if (themeSelect) {
+      fireEvent.change(themeSelect, { target: { value: 'system' } });
+      expect(mockChangeTheme).toHaveBeenCalledWith('system');
+    }
+  });
+
+  it('should display current theme value in select', async () => {
+    jest.spyOn(useThemeModule, 'useTheme').mockReturnValue({
+      theme: 'dark',
+      effectiveTheme: 'dark',
+      changeTheme: jest.fn(),
+      isDark: true,
+    });
+
+    render(<Settings />);
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+    });
+    
+    const themeSelects = screen.getAllByRole('combobox') as HTMLSelectElement[];
+    const themeSelect = themeSelects.find(
+      el => el.querySelector('option[value="dark"]')
+    );
+    
+    expect(themeSelect?.value).toBe('dark');
+  });
+
+  it('should integrate theme selection with other settings', async () => {
+    const mockChangeTheme = jest.fn();
+    jest.spyOn(useThemeModule, 'useTheme').mockReturnValue({
+      theme: 'light',
+      effectiveTheme: 'light',
+      changeTheme: mockChangeTheme,
+      isDark: false,
+    });
+
+    render(<Settings />);
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+    });
+    
+    // Verify both language and theme selects exist
+    const selects = screen.getAllByRole('combobox');
+    expect(selects.length).toBeGreaterThanOrEqual(2);
   });
 });

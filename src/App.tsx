@@ -10,6 +10,11 @@ import { useTheme } from './hooks/useTheme';
 
 type View = 'dashboard' | 'tracker' | 'reports' | 'settings';
 
+/**
+ * Top-level application component that initializes theming, manages the active view, and composes the main layout with a title bar, sidebar, and view content.
+ *
+ * @returns The app's root JSX element containing the composed layout, navigation, and the currently selected view.
+ */
 function App() {
   useTheme(); // Initialize theme on app mount
   const [currentView, setCurrentView] = useState<View>('dashboard');
