@@ -1,6 +1,4 @@
 import { GoalsService } from '../GoalsService';
-import { DatabaseManager } from '../../database/DatabaseManager';
-import { NotificationService } from '../NotificationService';
 import { ProductivityGoal, GoalWithProgress } from '../../types';
 
 // Mock DatabaseManager
@@ -9,16 +7,32 @@ jest.mock('../NotificationService');
 
 describe('GoalsService', () => {
   let service: GoalsService;
-  let mockDb: jest.Mocked<DatabaseManager>;
-  let mockNotificationService: jest.Mocked<NotificationService>;
+  let mockDb: any;
+  let mockNotificationService: any;
   let consoleLog: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
     consoleLog = jest.spyOn(console, 'log').mockImplementation();
 
-    mockDb = new DatabaseManager() as jest.Mocked<DatabaseManager>;
-    mockNotificationService = new NotificationService() as jest.Mocked<NotificationService>;
+    mockDb = {
+      addGoal: jest.fn(),
+      updateGoal: jest.fn(),
+      deleteGoal: jest.fn(),
+      getGoals: jest.fn(),
+      updateGoalProgress: jest.fn(),
+      getTodayGoalsWithProgress: jest.fn(),
+      getGoalProgress: jest.fn(),
+      getGoalAchievementHistory: jest.fn(),
+      getGoalStats: jest.fn(),
+      queryTotalActiveTime: jest.fn(),
+      queryCategoryTime: jest.fn(),
+      queryAppTime: jest.fn(),
+    };
+
+    mockNotificationService = {
+      showNotification: jest.fn(),
+    };
 
     service = new GoalsService(mockDb, mockNotificationService);
   });
@@ -261,11 +275,7 @@ describe('GoalsService', () => {
         mockDb.updateGoalProgress.mockResolvedValue(undefined);
 
         // Mock the database query for calculateTotalActiveTime
-        mockDb.db = {
-          prepare: jest.fn().mockReturnValue({
-            get: jest.fn().mockReturnValue({ total_seconds: 7200 }), // 2 hours = 120 minutes
-          }),
-        } as any;
+        mockDb.queryTotalActiveTime.mockReturnValue(120); // 2 hours = 120 minutes
 
         await service.recalculateAllGoalProgress();
 
@@ -298,12 +308,10 @@ describe('GoalsService', () => {
 
   describe('Progress Calculation', () => {
     beforeEach(() => {
-      // Mock database prepare/get for SQL queries
-      mockDb.db = {
-        prepare: jest.fn().mockReturnValue({
-          get: jest.fn().mockReturnValue({ total_seconds: 3600 }), // 1 hour = 60 minutes
-        }),
-      } as any;
+      // Mock database query methods
+      mockDb.queryTotalActiveTime.mockReturnValue(60); // 1 hour = 60 minutes
+      mockDb.queryCategoryTime.mockReturnValue(60);
+      mockDb.queryAppTime.mockReturnValue(60);
     });
 
     it('should calculate progress for daily_time goal', async () => {
@@ -616,11 +624,9 @@ describe('GoalsService', () => {
       };
 
       mockDb.getGoals.mockResolvedValue([goal]);
-      mockDb.db = {
-        prepare: jest.fn().mockImplementation(() => {
-          throw new Error('Query failed');
-        }),
-      } as any;
+      mockDb.queryTotalActiveTime.mockImplementation(() => {
+        throw new Error('Query failed');
+      });
 
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
 

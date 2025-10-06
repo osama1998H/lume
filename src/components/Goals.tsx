@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ProductivityGoal, GoalWithProgress, GoalStats } from '../types';
+import { ProductivityGoal, GoalWithProgress, GoalStats, GoalType, GoalOperator } from '../types';
 
 const Goals: React.FC = () => {
   const { t } = useTranslation();
@@ -438,7 +438,7 @@ const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose, onSave }) => {
               </label>
               <select
                 value={formData.goalType}
-                onChange={(e) => setFormData({ ...formData, goalType: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, goalType: e.target.value as GoalType })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               >
                 <option value="daily_time">{t('goals.goalTypeDaily')}</option>
@@ -490,7 +490,7 @@ const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose, onSave }) => {
                 </label>
                 <select
                   value={formData.operator}
-                  onChange={(e) => setFormData({ ...formData, operator: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, operator: e.target.value as GoalOperator })}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 >
                   <option value="gte">{t('goals.operatorGte')}</option>
