@@ -31,8 +31,9 @@ describe('PomodoroService', () => {
 
     consoleLog = jest.spyOn(console, 'log').mockImplementation();
 
+    let sessionIdCounter = 0;
     mockDbManager = {
-      addPomodoroSession: jest.fn().mockReturnValue(1),
+      addPomodoroSession: jest.fn().mockImplementation(() => ++sessionIdCounter),
       updatePomodoroSession: jest.fn().mockReturnValue(true),
     } as any;
 
@@ -424,6 +425,27 @@ describe('PomodoroService', () => {
 
       // Should still be 1, breaks don't increment
       expect(service.getStatus().sessionsCompleted).toBe(1);
+    });
+
+    it('should properly reset state before auto-starting next session', () => {
+      const autoSettings = { ...defaultSettings, autoStartBreaks: true };
+      service.updateSettings(autoSettings);
+
+      service.start('Test Task', 'focus');
+      const firstSessionId = service.getStatus().currentSessionId;
+
+      // Complete the focus session
+      jest.advanceTimersByTime(25 * 60 * 1000);
+
+      // Wait for the 1 second delay before auto-start
+      jest.advanceTimersByTime(1000);
+
+      const status = service.getStatus();
+      // Should have auto-started short break with new session
+      expect(status.state).toBe('running');
+      expect(status.sessionType).toBe('shortBreak');
+      expect(status.timeRemaining).toBe(5 * 60);
+      expect(status.currentSessionId).not.toBe(firstSessionId);
     });
   });
 

@@ -206,10 +206,12 @@ export class PomodoroService extends EventEmitter {
       ? this.settings.autoStartFocus
       : this.settings.autoStartBreaks;
 
+    // Reset timer state before starting next session
+    this.reset();
+
     if (autoStart) {
       this.start(this.currentTask, nextSessionType);
     } else {
-      this.reset();
       this.emit('stateChange', this.getStatus());
     }
 
@@ -289,6 +291,8 @@ export class PomodoroService extends EventEmitter {
       : this.settings.autoStartBreaks;
 
     if (autoStart) {
+      // Reset timer state before starting next session
+      this.reset();
       setTimeout(() => {
         this.start(this.currentTask, nextSessionType);
       }, 1000);

@@ -400,7 +400,20 @@ class LumeApp {
       try {
         const settings = this.getSettings();
         settings.pomodoro = pomodoroSettings;
-        return this.saveSettings(settings);
+        const success = this.saveSettings(settings);
+
+        // Update running services with new settings
+        if (success && this.pomodoroService && this.notificationService) {
+          console.log('🔄 Updating pomodoro service with new settings');
+          this.pomodoroService.updateSettings(pomodoroSettings);
+          this.notificationService.updateSettings(
+            pomodoroSettings.soundEnabled,
+            pomodoroSettings.notificationsEnabled
+          );
+          console.log('✅ Pomodoro settings applied to running services');
+        }
+
+        return success;
       } catch (error) {
         console.error('Failed to save pomodoro settings:', error);
         return false;
