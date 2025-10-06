@@ -23,7 +23,7 @@ describe('Main Process - Auto Start Tracking', () => {
       isTracking: jest.fn().mockReturnValue(false),
     };
 
-    mockDbManager = {
+    _mockDbManager = {
       initialize: jest.fn(),
       addActivitySession: jest.fn(),
     };
