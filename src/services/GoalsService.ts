@@ -101,6 +101,19 @@ export class GoalsService {
   }
 
   /**
+   * Get a specific goal by ID
+   */
+  async getGoalById(id: number): Promise<ProductivityGoal | null> {
+    try {
+      const goals = await this.db.getGoals();
+      return goals.find(g => g.id === id) || null;
+    } catch (error) {
+      console.error('Failed to get goal by id:', error);
+      return null;
+    }
+  }
+
+  /**
    * Get today's goals with calculated progress
    */
   async getTodayGoalsWithProgress(): Promise<GoalWithProgress[]> {
@@ -279,10 +292,9 @@ export class GoalsService {
    */
   private async checkAndNotifyGoalProgress(goalId: number, date: string, progressMinutes: number): Promise<void> {
     try {
-      const goals = await this.getGoals(true);
-      const goal = goals.find(g => g.id === goalId);
+      const goal = await this.getGoalById(goalId);
 
-      if (!goal || !goal.notificationsEnabled || !this.notificationService) {
+      if (!goal || !goal.active || !goal.notificationsEnabled || !this.notificationService) {
         return;
       }
 

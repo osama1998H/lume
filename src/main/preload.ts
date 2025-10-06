@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { ProductivityGoal, GoalWithProgress, GoalProgress, GoalStats } from '../types';
 
 // Note: Sentry is initialized in the main process only, not in preload
 // Preload script should not initialize Sentry to avoid duplicate tracking
@@ -37,14 +38,14 @@ export interface IElectronAPI {
   skipPomodoroSession: () => Promise<void>;
   getPomodoroStatus: () => Promise<any>;
   // Productivity Goals API
-  addGoal: (goal: any) => Promise<number>;
-  updateGoal: (id: number, updates: any) => Promise<boolean>;
+  addGoal: (goal: ProductivityGoal) => Promise<number>;
+  updateGoal: (id: number, updates: Partial<ProductivityGoal>) => Promise<boolean>;
   deleteGoal: (id: number) => Promise<boolean>;
-  getGoals: (activeOnly?: boolean) => Promise<any[]>;
-  getTodayGoalsWithProgress: () => Promise<any[]>;
-  getGoalProgress: (goalId: number, date: string) => Promise<any | null>;
-  getGoalAchievementHistory: (goalId: number, days: number) => Promise<any[]>;
-  getGoalStats: () => Promise<any>;
+  getGoals: (activeOnly?: boolean) => Promise<ProductivityGoal[]>;
+  getTodayGoalsWithProgress: () => Promise<GoalWithProgress[]>;
+  getGoalProgress: (goalId: number, date: string) => Promise<GoalProgress | null>;
+  getGoalAchievementHistory: (goalId: number, days: number) => Promise<GoalProgress[]>;
+  getGoalStats: () => Promise<GoalStats>;
 }
 
 const electronAPI: IElectronAPI = {

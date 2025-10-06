@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ProductivityGoal, GoalWithProgress, GoalStats, GoalType, GoalOperator } from '../types';
+import { ProductivityGoal, GoalWithProgress, GoalStats, GoalType, GoalOperator, GoalPeriod, GoalStatus } from '../types';
 
 const Goals: React.FC = () => {
   const { t } = useTranslation();
@@ -89,7 +89,7 @@ const Goals: React.FC = () => {
     return `${mins}${t('common.m')}`;
   };
 
-  const getStatusColor = (status: string): string => {
+  const getStatusColor = (status: GoalStatus): string => {
     switch (status) {
       case 'achieved':
         return 'text-green-600 bg-green-100';
@@ -104,7 +104,7 @@ const Goals: React.FC = () => {
     }
   };
 
-  const getProgressBarColor = (status: string): string => {
+  const getProgressBarColor = (status: GoalStatus): string => {
     switch (status) {
       case 'achieved':
         return 'bg-green-500';
@@ -343,7 +343,19 @@ interface GoalModalProps {
 
 const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose, onSave }) => {
   const { t } = useTranslation();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    description: string;
+    goalType: GoalType;
+    category: string;
+    appName: string;
+    targetMinutes: number;
+    operator: GoalOperator;
+    period: GoalPeriod;
+    active: boolean;
+    notificationsEnabled: boolean;
+    notifyAtPercentage: number;
+  }>({
     name: goal?.name || '',
     description: goal?.description || '',
     goalType: goal?.goalType || 'daily_time',
@@ -367,12 +379,12 @@ const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose, onSave }) => {
         const goalData: Partial<ProductivityGoal> = {
           name: formData.name,
           description: formData.description || undefined,
-          goalType: formData.goalType as any,
+          goalType: formData.goalType,
           category: formData.category || undefined,
           appName: formData.appName || undefined,
           targetMinutes: formData.targetMinutes,
-          operator: formData.operator as any,
-          period: formData.period as any,
+          operator: formData.operator,
+          period: formData.period,
           active: formData.active,
           notificationsEnabled: formData.notificationsEnabled,
           notifyAtPercentage: formData.notifyAtPercentage,

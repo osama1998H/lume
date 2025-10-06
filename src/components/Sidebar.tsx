@@ -9,7 +9,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
   const { t } = useTranslation();
 
-  const menuItems = [
+  const menuItems: Array<{ id: 'dashboard' | 'tracker' | 'reports' | 'goals' | 'focus' | 'settings'; label: string; icon: string }> = [
     { id: 'dashboard', label: t('navigation.dashboard'), icon: '📊' },
     { id: 'tracker', label: t('navigation.tracker'), icon: '⏱️' },
     { id: 'reports', label: t('navigation.reports'), icon: '📈' },
@@ -26,7 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
           {menuItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => onViewChange(item.id as any)}
+              onClick={() => onViewChange(item.id)}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
                 currentView === item.id
                   ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 border-primary-200 dark:border-primary-800'

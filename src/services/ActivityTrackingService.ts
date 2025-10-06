@@ -69,10 +69,10 @@ export class ActivityTrackingService {
     console.log('✅ Activity tracking service started successfully');
   }
 
-  stop(): void {
+  async stop(): Promise<void> {
     console.log('🛑 Stopping activity tracking service');
     this.monitor.stop();
-    this.finishCurrentSession();
+    await this.finishCurrentSession();
     this.clearIdleTimer();
     console.log('✅ Activity tracking service stopped successfully');
   }
@@ -104,27 +104,27 @@ export class ActivityTrackingService {
     // Check if app is blacklisted
     if (this.isAppBlacklisted(activity.app_name)) {
       console.log(`🚫 App blacklisted: ${activity.app_name}`);
-      this.finishCurrentSession();
+      await this.finishCurrentSession();
       return;
     }
 
     // Check if domain is blacklisted (for browsers)
     if (activity.is_browser && activity.domain && this.isDomainBlacklisted(activity.domain)) {
       console.log(`🚫 Domain blacklisted: ${activity.domain}`);
-      this.finishCurrentSession();
+      await this.finishCurrentSession();
       return;
     }
 
     // Check tracking preferences
     if (activity.is_browser && !this.settings.trackBrowsers) {
       console.log('🚫 Browser tracking disabled');
-      this.finishCurrentSession();
+      await this.finishCurrentSession();
       return;
     }
 
     if (!activity.is_browser && !this.settings.trackApplications) {
       console.log('🚫 Application tracking disabled');
-      this.finishCurrentSession();
+      await this.finishCurrentSession();
       return;
     }
 
@@ -133,7 +133,7 @@ export class ActivityTrackingService {
     // Check if this is a new activity or continuation of current session
     if (this.shouldStartNewSession(activity)) {
       // Finish current session if exists
-      this.finishCurrentSession();
+      await this.finishCurrentSession();
 
       // Start new session
       this.currentSession = {
@@ -280,9 +280,9 @@ export class ActivityTrackingService {
   private resetIdleTimer(): void {
     this.clearIdleTimer();
 
-    this.idleTimer = setTimeout(() => {
+    this.idleTimer = setTimeout(async () => {
       console.log('😴 User appears idle, pausing current session');
-      this.finishCurrentSession();
+      await this.finishCurrentSession();
     }, this.settings.idleThreshold * 1000);
   }
 
