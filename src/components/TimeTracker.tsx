@@ -10,6 +10,7 @@ const TimeTracker: React.FC = () => {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [recentEntries, setRecentEntries] = useState<TimeEntry[]>([]);
+  const [activeEntryId, setActiveEntryId] = useState<number | null>(null);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -29,7 +30,32 @@ const TimeTracker: React.FC = () => {
 
   useEffect(() => {
     loadRecentEntries();
+    restoreActiveTimer();
   }, []);
+
+  const restoreActiveTimer = async () => {
+    try {
+      if (window.electronAPI) {
+        const activeEntry = await window.electronAPI.getActiveTimeEntry();
+        if (activeEntry && activeEntry.id) {
+          console.log('📋 Restoring active timer:', activeEntry);
+          setCurrentTask(activeEntry.task);
+          setCategory(activeEntry.category || '');
+          const parsedStartTime = new Date(activeEntry.startTime);
+          if (!isNaN(parsedStartTime.getTime())) {
+            setStartTime(parsedStartTime);
+          } else {
+            console.warn('Invalid startTime format for activeEntry:', activeEntry.startTime);
+            setStartTime(null);
+          }
+          setIsTracking(true);
+          setActiveEntryId(activeEntry.id);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to restore active timer:', error);
+    }
+  };
 
   const loadRecentEntries = async () => {
     try {
@@ -42,33 +68,50 @@ const TimeTracker: React.FC = () => {
     }
   };
 
-  const startTracking = () => {
+  const startTracking = async () => {
     if (!currentTask.trim()) return;
 
     const now = new Date();
-    setStartTime(now);
-    setIsTracking(true);
-    setElapsedTime(0);
-  };
-
-  const stopTracking = async () => {
-    if (!startTime || !currentTask.trim()) return;
-
-    const endTime = new Date();
-    const duration = Math.floor((endTime.getTime() - startTime.getTime()) / 1000); // in seconds
-
     const entry: TimeEntry = {
       task: currentTask,
-      startTime: startTime.toISOString(),
-      endTime: endTime.toISOString(),
-      duration,
+      startTime: now.toISOString(),
       category: category || undefined,
+      // No endTime = active timer
     };
 
     try {
       if (window.electronAPI) {
-        await window.electronAPI.addTimeEntry(entry);
-        await loadRecentEntries();
+        const id = await window.electronAPI.addTimeEntry(entry);
+        console.log('⏱️  Started timer with ID:', id);
+        setActiveEntryId(id);
+        setStartTime(now);
+        setIsTracking(true);
+        setElapsedTime(0);
+      }
+    } catch (error) {
+      console.error('Failed to start timer:', error);
+    }
+  };
+
+  const stopTracking = async () => {
+    if (!startTime || !currentTask.trim() || !activeEntryId) return;
+
+    const endTime = new Date();
+    const duration = Math.floor((endTime.getTime() - startTime.getTime()) / 1000); // in seconds
+
+    try {
+      if (window.electronAPI) {
+        const updated = await window.electronAPI.updateTimeEntry(activeEntryId, {
+          endTime: endTime.toISOString(),
+          duration,
+        });
+
+        if (updated) {
+          console.log('✅ Timer stopped and entry updated:', activeEntryId);
+          await loadRecentEntries();
+        } else {
+          console.error('Failed to update timer entry');
+        }
       }
     } catch (error) {
       console.error('Failed to save time entry:', error);
@@ -79,6 +122,7 @@ const TimeTracker: React.FC = () => {
     setElapsedTime(0);
     setCurrentTask('');
     setCategory('');
+    setActiveEntryId(null);
   };
 
   const formatTime = (seconds: number) => {

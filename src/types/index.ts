@@ -26,6 +26,8 @@ export interface AppUsage {
 export interface ElectronAPI {
   getTimeEntries: () => Promise<TimeEntry[]>;
   addTimeEntry: (entry: TimeEntry) => Promise<number>;
+  updateTimeEntry: (id: number, updates: Partial<TimeEntry>) => Promise<boolean>;
+  getActiveTimeEntry: () => Promise<TimeEntry | null>;
   getAppUsage: () => Promise<AppUsage[]>;
   addAppUsage: (usage: AppUsage) => Promise<number>;
   getSettings: () => Promise<any>;
