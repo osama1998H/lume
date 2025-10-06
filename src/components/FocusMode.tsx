@@ -140,7 +140,11 @@ const FocusMode: React.FC = () => {
               </svg>
               <div className="absolute flex flex-col items-center">
                 <span className={`text-5xl font-bold ${getSessionColor(status.sessionType)}`}>
-                  {formatTime(status.timeRemaining || status.totalDuration)}
+                  {formatTime(
+                    status.timeRemaining !== undefined && status.timeRemaining !== null
+                      ? status.timeRemaining
+                      : status.totalDuration
+                  )}
                 </span>
                 <span className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                   {getSessionTypeLabel(status.sessionType)}
