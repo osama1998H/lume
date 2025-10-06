@@ -23,6 +23,39 @@ export interface AppUsage {
   createdAt?: string;
 }
 
+export interface PomodoroSession {
+  id?: number;
+  task: string;
+  sessionType: 'focus' | 'shortBreak' | 'longBreak';
+  duration: number; // in seconds
+  startTime: string;
+  endTime?: string;
+  completed: boolean;
+  interrupted: boolean;
+  createdAt?: string;
+}
+
+export interface PomodoroSettings {
+  focusDuration: number; // in minutes, default 25
+  shortBreakDuration: number; // in minutes, default 5
+  longBreakDuration: number; // in minutes, default 15
+  longBreakInterval: number; // after how many sessions, default 4
+  autoStartBreaks: boolean;
+  autoStartFocus: boolean;
+  soundEnabled: boolean;
+  notificationsEnabled: boolean;
+  dailyGoal: number; // number of focus sessions
+}
+
+export interface PomodoroStats {
+  totalSessions: number;
+  completedSessions: number;
+  totalFocusTime: number; // in seconds
+  totalBreakTime: number; // in seconds
+  completionRate: number; // percentage
+  currentStreak: number; // consecutive days with completed sessions
+}
+
 export interface ElectronAPI {
   getTimeEntries: () => Promise<TimeEntry[]>;
   addTimeEntry: (entry: TimeEntry) => Promise<number>;
@@ -38,6 +71,20 @@ export interface ElectronAPI {
   getRecentActivitySessions: (limit?: number) => Promise<any[]>;
   getTopApplications: (limit?: number) => Promise<any[]>;
   getTopWebsites: (limit?: number) => Promise<any[]>;
+  // Pomodoro API
+  getPomodoroSettings: () => Promise<PomodoroSettings>;
+  savePomodoroSettings: (settings: PomodoroSettings) => Promise<boolean>;
+  addPomodoroSession: (session: PomodoroSession) => Promise<number>;
+  updatePomodoroSession: (id: number, updates: Partial<PomodoroSession>) => Promise<boolean>;
+  getPomodoroSessions: (limit?: number) => Promise<PomodoroSession[]>;
+  getPomodoroStats: (startDate?: string, endDate?: string) => Promise<PomodoroStats>;
+  // Pomodoro Timer Control
+  startPomodoroSession: (task: string, sessionType: 'focus' | 'shortBreak' | 'longBreak') => Promise<void>;
+  pausePomodoroSession: () => Promise<void>;
+  resumePomodoroSession: () => Promise<void>;
+  stopPomodoroSession: () => Promise<void>;
+  skipPomodoroSession: () => Promise<void>;
+  getPomodoroStatus: () => Promise<any>;
 }
 
 declare global {

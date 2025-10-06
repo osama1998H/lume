@@ -2,14 +2,19 @@ import Database from 'better-sqlite3';
 import * as path from 'path';
 import { app } from 'electron';
 import { ActivitySession } from '../types/activity';
-import { TimeEntry, AppUsage } from '../types';
+import { TimeEntry, AppUsage, PomodoroSession, PomodoroStats } from '../types';
 
 export class DatabaseManager {
   private db: Database.Database | null = null;
 
-  constructor() {
-    const userDataPath = app.getPath('userData');
-    const dbPath = path.join(userDataPath, 'lume.db');
+  constructor(customDbPath?: string) {
+    let dbPath: string;
+    if (customDbPath) {
+      dbPath = customDbPath;
+    } else {
+      const userDataPath = app.getPath('userData');
+      dbPath = path.join(userDataPath, 'lume.db');
+    }
     this.db = new Database(dbPath);
   }
 
@@ -88,6 +93,27 @@ export class DatabaseManager {
       CREATE INDEX IF NOT EXISTS idx_app_usage_category ON app_usage(category);
       CREATE INDEX IF NOT EXISTS idx_app_usage_domain ON app_usage(domain);
       CREATE INDEX IF NOT EXISTS idx_app_usage_is_browser ON app_usage(is_browser);
+    `);
+
+    // Pomodoro sessions table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS pomodoro_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        task TEXT NOT NULL,
+        session_type TEXT NOT NULL CHECK(session_type IN ('focus', 'shortBreak', 'longBreak')),
+        duration INTEGER NOT NULL,
+        start_time TEXT NOT NULL,
+        end_time TEXT,
+        completed BOOLEAN DEFAULT 0,
+        interrupted BOOLEAN DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_pomodoro_sessions_start_time ON pomodoro_sessions(start_time);
+      CREATE INDEX IF NOT EXISTS idx_pomodoro_sessions_session_type ON pomodoro_sessions(session_type);
+      CREATE INDEX IF NOT EXISTS idx_pomodoro_sessions_completed ON pomodoro_sessions(completed);
     `);
   }
 
@@ -376,6 +402,203 @@ export class DatabaseManager {
     `);
 
     return stmt.all(limit) as Array<{domain: string, totalDuration: number}>;
+  }
+
+  // Pomodoro methods
+  addPomodoroSession(session: PomodoroSession): number {
+    if (!this.db) throw new Error('Database not initialized');
+
+    console.log(`💾 DB: Inserting pomodoro session - ${session.task} (${session.sessionType})`);
+
+    const stmt = this.db.prepare(`
+      INSERT INTO pomodoro_sessions (
+        task, session_type, duration, start_time, end_time, completed, interrupted
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const result = stmt.run(
+      session.task,
+      session.sessionType,
+      session.duration,
+      session.startTime,
+      session.endTime || null,
+      session.completed ? 1 : 0,
+      session.interrupted ? 1 : 0
+    );
+
+    console.log(`✅ DB: Pomodoro session saved with ID: ${result.lastInsertRowid}`);
+    return result.lastInsertRowid as number;
+  }
+
+  updatePomodoroSession(id: number, updates: Partial<PomodoroSession>): boolean {
+    if (!this.db) return false;
+
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    if (updates.task !== undefined) {
+      fields.push('task = ?');
+      values.push(updates.task);
+    }
+    if (updates.endTime !== undefined) {
+      fields.push('end_time = ?');
+      values.push(updates.endTime);
+    }
+    if (updates.completed !== undefined) {
+      fields.push('completed = ?');
+      values.push(updates.completed ? 1 : 0);
+    }
+    if (updates.interrupted !== undefined) {
+      fields.push('interrupted = ?');
+      values.push(updates.interrupted ? 1 : 0);
+    }
+
+    if (fields.length === 0) {
+      return false; // No updates to perform
+    }
+
+    values.push(id); // Add id for WHERE clause
+
+    const stmt = this.db.prepare(`
+      UPDATE pomodoro_sessions
+      SET ${fields.join(', ')}
+      WHERE id = ?
+    `);
+
+    const result = stmt.run(...values);
+    return result.changes > 0;
+  }
+
+  getPomodoroSessions(limit = 100): PomodoroSession[] {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT
+        id,
+        task,
+        session_type AS sessionType,
+        duration,
+        start_time AS startTime,
+        end_time AS endTime,
+        completed,
+        interrupted,
+        created_at AS createdAt
+      FROM pomodoro_sessions
+      ORDER BY created_at DESC
+      LIMIT ?
+    `);
+
+    const results = stmt.all(limit) as any[];
+    return results.map(row => ({
+      ...row,
+      completed: Boolean(row.completed),
+      interrupted: Boolean(row.interrupted)
+    }));
+  }
+
+  getPomodoroSessionsByDateRange(startDate: string, endDate: string): PomodoroSession[] {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT
+        id,
+        task,
+        session_type AS sessionType,
+        duration,
+        start_time AS startTime,
+        end_time AS endTime,
+        completed,
+        interrupted,
+        created_at AS createdAt
+      FROM pomodoro_sessions
+      WHERE DATE(start_time) BETWEEN ? AND ?
+      ORDER BY start_time DESC
+    `);
+
+    const results = stmt.all(startDate, endDate) as any[];
+    return results.map(row => ({
+      ...row,
+      completed: Boolean(row.completed),
+      interrupted: Boolean(row.interrupted)
+    }));
+  }
+
+  getPomodoroStats(startDate?: string, endDate?: string): PomodoroStats {
+    if (!this.db) {
+      return {
+        totalSessions: 0,
+        completedSessions: 0,
+        totalFocusTime: 0,
+        totalBreakTime: 0,
+        completionRate: 0,
+        currentStreak: 0
+      };
+    }
+
+    let whereClause = '';
+    const params: any[] = [];
+
+    if (startDate && endDate) {
+      whereClause = 'WHERE DATE(start_time) BETWEEN ? AND ?';
+      params.push(startDate, endDate);
+    }
+
+    // Total and completed sessions
+    const statsStmt = this.db.prepare(`
+      SELECT
+        COUNT(*) as totalSessions,
+        SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completedSessions,
+        SUM(CASE WHEN session_type = 'focus' AND completed = 1 THEN duration ELSE 0 END) as totalFocusTime,
+        SUM(CASE WHEN session_type IN ('shortBreak', 'longBreak') AND completed = 1 THEN duration ELSE 0 END) as totalBreakTime
+      FROM pomodoro_sessions
+      ${whereClause}
+    `);
+
+    const stats = statsStmt.get(...params) as any;
+
+    // Calculate completion rate
+    const completionRate = stats.totalSessions > 0
+      ? (stats.completedSessions / stats.totalSessions) * 100
+      : 0;
+
+    // Calculate current streak (consecutive days with at least one completed session)
+    let currentStreak = 0;
+    const streakStmt = this.db.prepare(`
+      SELECT DATE(start_time) as date
+      FROM pomodoro_sessions
+      WHERE completed = 1
+      GROUP BY DATE(start_time)
+      ORDER BY date DESC
+    `);
+
+    const dates = streakStmt.all() as Array<{date: string}>;
+    if (dates.length > 0) {
+      currentStreak = 1;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      for (let i = 0; i < dates.length - 1; i++) {
+        const currentDate = new Date(dates[i].date);
+        const nextDate = new Date(dates[i + 1].date);
+        const diffTime = currentDate.getTime() - nextDate.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          currentStreak++;
+        } else {
+          break;
+        }
+      }
+    }
+
+    return {
+      totalSessions: stats.totalSessions || 0,
+      completedSessions: stats.completedSessions || 0,
+      totalFocusTime: stats.totalFocusTime || 0,
+      totalBreakTime: stats.totalBreakTime || 0,
+      completionRate: Math.round(completionRate * 100) / 100,
+      currentStreak
+    };
   }
 
   close(): void {
