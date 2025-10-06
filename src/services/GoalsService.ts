@@ -211,10 +211,11 @@ export class GoalsService {
           if (!goal.appName) return 0;
           return await this.calculateAppTime(goal.appName, startOfDay, endOfDay);
 
-        case 'weekly_time':
+        case 'weekly_time': {
           // For weekly goals, calculate from start of week
           const startOfWeek = this.getStartOfWeek(date);
           return await this.calculateTotalActiveTime(startOfWeek, endOfDay);
+        }
 
         default:
           console.warn(`Unknown goal type: ${goal.goalType}`);

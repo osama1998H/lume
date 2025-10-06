@@ -1,7 +1,7 @@
 import { GoalsService } from '../GoalsService';
 import { DatabaseManager } from '../../database/DatabaseManager';
 import { NotificationService } from '../NotificationService';
-import { ProductivityGoal, GoalProgress, GoalWithProgress } from '../../types';
+import { ProductivityGoal, GoalWithProgress } from '../../types';
 
 // Mock DatabaseManager
 jest.mock('../../database/DatabaseManager');
