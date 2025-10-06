@@ -182,6 +182,27 @@ class LumeApp {
       }
     });
 
+    ipcMain.handle('update-time-entry', async (_, id: number, updates: any) => {
+      try {
+        console.log('Update time entry:', id, updates);
+        return this.dbManager?.updateTimeEntry(id, updates) || false;
+      } catch (error) {
+        console.error('Failed to update time entry:', error);
+        return false;
+      }
+    });
+
+    ipcMain.handle('get-active-time-entry', async () => {
+      try {
+        const activeEntry = this.dbManager?.getActiveTimeEntry() || null;
+        console.log('Get active time entry:', activeEntry);
+        return activeEntry;
+      } catch (error) {
+        console.error('Failed to get active time entry:', error);
+        return null;
+      }
+    });
+
     ipcMain.handle('get-app-usage', async () => {
       try {
         return this.dbManager?.getAppUsage() || [];

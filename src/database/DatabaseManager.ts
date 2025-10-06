@@ -135,6 +135,67 @@ export class DatabaseManager {
     return results;
   }
 
+  updateTimeEntry(id: number, updates: Partial<TimeEntry>): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    if (updates.task !== undefined) {
+      fields.push('task = ?');
+      values.push(updates.task);
+    }
+    if (updates.endTime !== undefined) {
+      fields.push('end_time = ?');
+      values.push(updates.endTime);
+    }
+    if (updates.duration !== undefined) {
+      fields.push('duration = ?');
+      values.push(updates.duration);
+    }
+    if (updates.category !== undefined) {
+      fields.push('category = ?');
+      values.push(updates.category);
+    }
+
+    if (fields.length === 0) {
+      return false; // No updates to perform
+    }
+
+    values.push(id); // Add id for WHERE clause
+
+    const stmt = this.db.prepare(`
+      UPDATE time_entries
+      SET ${fields.join(', ')}
+      WHERE id = ?
+    `);
+
+    const result = stmt.run(...values);
+    return result.changes > 0;
+  }
+
+  getActiveTimeEntry(): TimeEntry | null {
+    if (!this.db) return null;
+
+    const stmt = this.db.prepare(`
+      SELECT
+        id,
+        task,
+        start_time AS startTime,
+        end_time AS endTime,
+        duration,
+        category,
+        created_at AS createdAt
+      FROM time_entries
+      WHERE end_time IS NULL
+      ORDER BY created_at DESC
+      LIMIT 1
+    `);
+
+    const result = stmt.get() as TimeEntry | undefined;
+    return result || null;
+  }
+
   addAppUsage(usage: AppUsage): number {
     if (!this.db) throw new Error('Database not initialized');
 
