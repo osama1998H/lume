@@ -90,13 +90,15 @@ describe('DatabaseManager', () => {
     });
 
     it('should attempt to add missing columns to existing table', () => {
-      mockExec.mockImplementationOnce(() => {}).mockImplementationOnce(() => {
-        throw new Error('Column exists');
-      });
-      
-      dbManager.initialize();
-      
-      // Should not throw despite column already existing
+      // Mock succeeds for table creation, then throws for ALTER TABLE
+      mockExec
+        .mockImplementationOnce(() => {}) // CREATE time_entries
+        .mockImplementationOnce(() => {}) // CREATE app_usage
+        .mockImplementationOnce(() => { throw new Error('Column exists'); }) // ALTER TABLE (category)
+        .mockImplementation(() => {}); // Subsequent calls succeed
+
+      // Should not throw despite column already existing (error is caught)
+      expect(() => dbManager.initialize()).not.toThrow();
       expect(mockExec).toHaveBeenCalled();
     });
   });
@@ -161,41 +163,26 @@ describe('DatabaseManager', () => {
       const browserSession = { ...mockSession, is_browser: true };
       const mockRun = jest.fn().mockReturnValue({ lastInsertRowid: 123 });
       mockPrepare.mockReturnValue({ run: mockRun });
-      
+
       dbManager.addActivitySession(browserSession);
-      
-      expect(mockRun).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        1,
-        0
-      );
+
+      // Check that is_browser (9th param) is converted to 1
+      expect(mockRun).toHaveBeenCalled();
+      const callArgs = mockRun.mock.calls[0];
+      expect(callArgs[8]).toBe(1); // is_browser parameter (0-indexed)
+      expect(callArgs[9]).toBe(0); // is_idle parameter
     });
 
     it('should set is_idle to 0 (false)', () => {
       const mockRun = jest.fn().mockReturnValue({ lastInsertRowid: 123 });
       mockPrepare.mockReturnValue({ run: mockRun });
-      
+
       dbManager.addActivitySession(mockSession);
-      
-      expect(mockRun).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        0
-      );
+
+      // Check that is_idle (10th param) is always 0
+      expect(mockRun).toHaveBeenCalled();
+      const callArgs = mockRun.mock.calls[0];
+      expect(callArgs[9]).toBe(0); // is_idle parameter (0-indexed, so index 9)
     });
 
     it('should return the inserted row ID', () => {

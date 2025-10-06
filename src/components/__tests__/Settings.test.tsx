@@ -76,18 +76,18 @@ describe('Settings Component', () => {
   describe('Component Rendering', () => {
     it('should render loading state initially', () => {
       render(<Settings />);
-      expect(screen.getByText('Loading settings...')).toBeInTheDocument();
+      expect(screen.getByText('settings.loadingSettings')).toBeInTheDocument();
     });
 
     it('should render settings form after loading', async () => {
       render(<Settings />);
-      
+
       await waitFor(() => {
-        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.loadingSettings')).not.toBeInTheDocument();
       });
-      
-      expect(screen.getByText('Settings')).toBeInTheDocument();
-      expect(screen.getByText('Configure your Lume preferences and data management.')).toBeInTheDocument();
+
+      expect(screen.getByText('settings.title')).toBeInTheDocument();
+      expect(screen.getByText('settings.configurePreferences')).toBeInTheDocument();
     });
 
     it('should load and display settings from electronAPI', async () => {
@@ -114,10 +114,10 @@ describe('Settings Component', () => {
       render(<Settings />);
       
       await waitFor(() => {
-        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.loadingSettings')).not.toBeInTheDocument();
       });
       
-      const startButton = screen.getByText('Start Tracking');
+      const startButton = screen.getByText('settings.startTracking');
       fireEvent.click(startButton);
       
       await waitFor(() => {
@@ -132,10 +132,10 @@ describe('Settings Component', () => {
       render(<Settings />);
       
       await waitFor(() => {
-        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.loadingSettings')).not.toBeInTheDocument();
       });
       
-      const stopButton = screen.getByText('Stop Tracking');
+      const stopButton = screen.getByText('settings.stopTracking');
       fireEvent.click(stopButton);
       
       await waitFor(() => {
@@ -150,10 +150,10 @@ describe('Settings Component', () => {
       render(<Settings />);
       
       await waitFor(() => {
-        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.loadingSettings')).not.toBeInTheDocument();
       });
       
-      const startButton = screen.getByText('Start Tracking');
+      const startButton = screen.getByText('settings.startTracking');
       fireEvent.click(startButton);
       
       await waitFor(() => {
@@ -173,10 +173,10 @@ describe('Settings Component', () => {
       render(<Settings />);
       
       await waitFor(() => {
-        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.loadingSettings')).not.toBeInTheDocument();
       });
       
-      const stopButton = screen.getByText('Stop Tracking');
+      const stopButton = screen.getByText('settings.stopTracking');
       fireEvent.click(stopButton);
       
       await waitFor(() => {
@@ -197,11 +197,11 @@ describe('Settings Component', () => {
       render(<Settings />);
       
       await waitFor(() => {
-        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.loadingSettings')).not.toBeInTheDocument();
       });
       
       // Try to click toggle button - should not crash
-      const startButton = screen.getByText('Start Tracking');
+      const startButton = screen.getByText('settings.startTracking');
       fireEvent.click(startButton);
       
       await waitFor(() => {
@@ -222,10 +222,10 @@ describe('Settings Component', () => {
       render(<Settings />);
       
       await waitFor(() => {
-        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.loadingSettings')).not.toBeInTheDocument();
       });
       
-      const startButton = screen.getByText('Start Tracking');
+      const startButton = screen.getByText('settings.startTracking');
       fireEvent.click(startButton);
       
       await waitFor(() => {
@@ -243,10 +243,10 @@ describe('Settings Component', () => {
       render(<Settings />);
       
       await waitFor(() => {
-        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.loadingSettings')).not.toBeInTheDocument();
       });
       
-      const startButton = screen.getByText('Start Tracking');
+      const startButton = screen.getByText('settings.startTracking');
       fireEvent.click(startButton);
       
       await waitFor(() => {
@@ -262,10 +262,10 @@ describe('Settings Component', () => {
       render(<Settings />);
       
       await waitFor(() => {
-        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.loadingSettings')).not.toBeInTheDocument();
       });
       
-      const saveButton = screen.getByText('Save Settings');
+      const saveButton = screen.getByText('settings.saveSettings');
       fireEvent.click(saveButton);
       
       await waitFor(() => {
@@ -279,14 +279,14 @@ describe('Settings Component', () => {
       render(<Settings />);
       
       await waitFor(() => {
-        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.loadingSettings')).not.toBeInTheDocument();
       });
       
-      const saveButton = screen.getByText('Save Settings');
+      const saveButton = screen.getByText('settings.saveSettings');
       fireEvent.click(saveButton);
       
       await waitFor(() => {
-        expect(screen.getByText('Settings saved successfully!')).toBeInTheDocument();
+        expect(screen.getByText('settings.settingsSavedSuccess')).toBeInTheDocument();
       });
     });
 
@@ -297,20 +297,20 @@ describe('Settings Component', () => {
       render(<Settings />);
       
       await waitFor(() => {
-        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.loadingSettings')).not.toBeInTheDocument();
       });
       
-      const saveButton = screen.getByText('Save Settings');
+      const saveButton = screen.getByText('settings.saveSettings');
       fireEvent.click(saveButton);
       
       await waitFor(() => {
-        expect(screen.getByText('Settings saved successfully!')).toBeInTheDocument();
+        expect(screen.getByText('settings.settingsSavedSuccess')).toBeInTheDocument();
       });
       
       jest.advanceTimersByTime(3000);
       
       await waitFor(() => {
-        expect(screen.queryByText('Settings saved successfully!')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.settingsSavedSuccess')).not.toBeInTheDocument();
       });
       
       jest.useRealTimers();
@@ -322,14 +322,14 @@ describe('Settings Component', () => {
       render(<Settings />);
       
       await waitFor(() => {
-        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.loadingSettings')).not.toBeInTheDocument();
       });
       
-      const saveButton = screen.getByText('Save Settings');
+      const saveButton = screen.getByText('settings.saveSettings');
       fireEvent.click(saveButton);
       
       await waitFor(() => {
-        expect(screen.getByText('Failed to save settings. Please try again.')).toBeInTheDocument();
+        expect(screen.getByText('settings.settingsSaveFailed')).toBeInTheDocument();
       });
     });
 
@@ -341,14 +341,14 @@ describe('Settings Component', () => {
       render(<Settings />);
 
       await waitFor(() => {
-        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.loadingSettings')).not.toBeInTheDocument();
       });
 
       const saveButton = screen.getByText('Save Settings') as HTMLButtonElement;
       fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Saving...')).toBeInTheDocument();
+        expect(screen.getByText('settings.saving')).toBeInTheDocument();
       });
     });
 
@@ -360,7 +360,7 @@ describe('Settings Component', () => {
       render(<Settings />);
 
       await waitFor(() => {
-        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.loadingSettings')).not.toBeInTheDocument();
       });
 
       const saveButton = screen.getByText('Save Settings') as HTMLButtonElement;
@@ -372,7 +372,7 @@ describe('Settings Component', () => {
 
       // Wait for the saving state
       await waitFor(() => {
-        expect(screen.getByText('Saving...')).toBeInTheDocument();
+        expect(screen.getByText('settings.saving')).toBeInTheDocument();
       });
 
       // Assert saveSettings is only called once
@@ -387,7 +387,7 @@ describe('Settings Component', () => {
       render(<Settings />);
       
       await waitFor(() => {
-        expect(screen.getByText('Active')).toBeInTheDocument();
+        expect(screen.getByText('settings.active')).toBeInTheDocument();
       });
     });
 
@@ -397,7 +397,7 @@ describe('Settings Component', () => {
       render(<Settings />);
       
       await waitFor(() => {
-        expect(screen.getByText('Stopped')).toBeInTheDocument();
+        expect(screen.getByText('settings.stopped')).toBeInTheDocument();
       });
     });
 
@@ -407,7 +407,7 @@ describe('Settings Component', () => {
       render(<Settings />);
       
       await waitFor(() => {
-        expect(screen.getByText('Start Tracking')).toBeInTheDocument();
+        expect(screen.getByText('settings.startTracking')).toBeInTheDocument();
       });
     });
   });
@@ -451,11 +451,11 @@ describe('Settings Component', () => {
       render(<Settings />);
       
       await waitFor(() => {
-        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+        expect(screen.queryByText('settings.loadingSettings')).not.toBeInTheDocument();
       });
       
       // Should render without crashing
-      expect(screen.getByText('Settings')).toBeInTheDocument();
+      expect(screen.getByText('settings.title')).toBeInTheDocument();
     });
   });
 });
