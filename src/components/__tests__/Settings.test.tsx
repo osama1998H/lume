@@ -17,6 +17,14 @@ jest.mock('../../hooks/useLanguage', () => ({
   }),
 }));
 
+// Mock useTheme hook
+jest.mock('../../hooks/useTheme', () => ({
+  useTheme: () => ({
+    theme: 'system',
+    changeTheme: jest.fn(),
+  }),
+}));
+
 // Mock window.electronAPI
 const mockElectronAPI = {
   getSettings: jest.fn(),
@@ -437,6 +445,147 @@ describe('Settings Component', () => {
       delete (window as any).electronAPI;
       
       render(<Settings />);
+
+  describe('Theme Selector', () => {
+    it('should render theme selector with current theme value', async () => {
+      render(<Settings />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+      });
+      
+      // Should have a theme select element
+      const themeSelects = screen.getAllByDisplayValue('system');
+      expect(themeSelects.length).toBeGreaterThan(0);
+    });
+
+    it('should display all theme options', async () => {
+      render(<Settings />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+      });
+      
+      expect(screen.getByText('settings.lightMode')).toBeInTheDocument();
+      expect(screen.getByText('settings.darkMode')).toBeInTheDocument();
+      expect(screen.getByText('settings.systemMode')).toBeInTheDocument();
+    });
+
+    it('should call changeTheme when theme is changed', async () => {
+      const mockChangeTheme = jest.fn();
+      jest.spyOn(require('../../hooks/useTheme'), 'useTheme').mockReturnValue({
+        theme: 'light',
+        changeTheme: mockChangeTheme,
+      });
+
+      render(<Settings />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+      });
+      
+      const themeSelects = screen.getAllByDisplayValue('light');
+      const themeSelect = themeSelects[0];
+      
+      fireEvent.change(themeSelect, { target: { value: 'dark' } });
+      
+      expect(mockChangeTheme).toHaveBeenCalledWith('dark');
+    });
+
+    it('should handle theme change to system mode', async () => {
+      const mockChangeTheme = jest.fn();
+      jest.spyOn(require('../../hooks/useTheme'), 'useTheme').mockReturnValue({
+        theme: 'dark',
+        changeTheme: mockChangeTheme,
+      });
+
+      render(<Settings />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+      });
+      
+      const themeSelects = screen.getAllByDisplayValue('dark');
+      const themeSelect = themeSelects[0];
+      
+      fireEvent.change(themeSelect, { target: { value: 'system' } });
+      
+      expect(mockChangeTheme).toHaveBeenCalledWith('system');
+    });
+
+    it('should render theme label and description', async () => {
+      render(<Settings />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+      });
+      
+      expect(screen.getByText('settings.theme')).toBeInTheDocument();
+      expect(screen.getByText('settings.selectTheme')).toBeInTheDocument();
+    });
+
+    it('should maintain theme value consistency with hook', async () => {
+      jest.spyOn(require('../../hooks/useTheme'), 'useTheme').mockReturnValue({
+        theme: 'dark',
+        changeTheme: jest.fn(),
+      });
+
+      render(<Settings />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+      });
+      
+      const themeSelects = screen.getAllByDisplayValue('dark');
+      expect(themeSelects.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Language Selector', () => {
+    it('should render language selector with current language value', async () => {
+      render(<Settings />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+      });
+      
+      // Should have a language select element
+      const languageSelects = screen.getAllByDisplayValue('en');
+      expect(languageSelects.length).toBeGreaterThan(0);
+    });
+
+    it('should call changeLanguage when language is changed', async () => {
+      const mockChangeLanguage = jest.fn();
+      jest.spyOn(require('../../hooks/useLanguage'), 'useLanguage').mockReturnValue({
+        language: 'en',
+        changeLanguage: mockChangeLanguage,
+      });
+
+      render(<Settings />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+      });
+      
+      const languageSelects = screen.getAllByDisplayValue('en');
+      const languageSelect = languageSelects[0];
+      
+      fireEvent.change(languageSelect, { target: { value: 'ar' } });
+      
+      expect(mockChangeLanguage).toHaveBeenCalledWith('ar');
+    });
+
+    it('should display language options', async () => {
+      render(<Settings />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+      });
+      
+      expect(screen.getByText('settings.english')).toBeInTheDocument();
+      expect(screen.getByText('settings.arabic')).toBeInTheDocument();
+    });
+  });
       
       await waitFor(() => {
         expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
