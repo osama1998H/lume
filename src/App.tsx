@@ -5,12 +5,13 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import TimeTracker from './components/TimeTracker';
 import Reports from './components/Reports';
+import Goals from './components/Goals';
 import FocusMode from './components/FocusMode';
 import Settings from './components/Settings';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PomodoroProvider } from './contexts/PomodoroContext';
 
-type View = 'dashboard' | 'tracker' | 'reports' | 'focus' | 'settings';
+type View = 'dashboard' | 'tracker' | 'reports' | 'goals' | 'focus' | 'settings';
 
 /**
  * Top-level application component that initializes theming, manages the active view, and composes the main layout with a title bar, sidebar, and view content.
@@ -26,10 +27,12 @@ function App() {
         return <Dashboard />;
       case 'tracker':
         return <TimeTracker />;
-      case 'focus':
-        return <FocusMode />;
       case 'reports':
         return <Reports />;
+      case 'goals':
+        return <Goals />;
+      case 'focus':
+        return <FocusMode />;
       case 'settings':
         return <Settings />;
       default:
