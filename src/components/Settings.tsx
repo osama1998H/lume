@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../hooks/useLanguage';
+import { useTheme, Theme } from '../hooks/useTheme';
 
 const Settings: React.FC = () => {
   const { t } = useTranslation();
   const { language, changeLanguage } = useLanguage();
+  const { theme, changeTheme } = useTheme();
   const [settings, setSettings] = useState({
     autoTrackApps: true,
     showNotifications: true,
@@ -173,8 +175,8 @@ const Settings: React.FC = () => {
     return (
       <div className="p-8 h-full flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">{t('settings.loadingSettings')}</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 dark:border-primary-400 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">{t('settings.loadingSettings')}</p>
         </div>
       </div>
     );
@@ -183,30 +185,43 @@ const Settings: React.FC = () => {
   return (
     <div className="p-8 h-full">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('settings.title')}</h2>
-        <p className="text-gray-600">{t('settings.configurePreferences')}</p>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('settings.title')}</h2>
+        <p className="text-gray-600 dark:text-gray-400">{t('settings.configurePreferences')}</p>
       </div>
 
       <div className="max-w-2xl space-y-6">
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4">{t('settings.general')}</h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('settings.general')}</h3>
           <div className="space-y-4">
             <div>
-              <label className="block font-medium text-gray-900 mb-2">{t('settings.language')}</label>
+              <label className="block font-medium text-gray-900 dark:text-gray-100 mb-2">{t('settings.language')}</label>
               <select
                 value={language}
                 onChange={(e) => changeLanguage(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="en">{t('settings.english')}</option>
                 <option value="ar">{t('settings.arabic')}</option>
               </select>
-              <p className="text-sm text-gray-600 mt-1">{t('settings.selectLanguage')}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('settings.selectLanguage')}</p>
+            </div>
+            <div>
+              <label className="block font-medium text-gray-900 dark:text-gray-100 mb-2">{t('settings.theme')}</label>
+              <select
+                value={theme}
+                onChange={(e) => changeTheme(e.target.value as Theme)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                <option value="light">{t('settings.lightMode')}</option>
+                <option value="dark">{t('settings.darkMode')}</option>
+                <option value="system">{t('settings.systemMode')}</option>
+              </select>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('settings.selectTheme')}</p>
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <label className="font-medium text-gray-900">{t('settings.autoTrackApps')}</label>
-                <p className="text-sm text-gray-600">{t('settings.autoTrackAppsDesc')}</p>
+                <label className="font-medium text-gray-900 dark:text-gray-100">{t('settings.autoTrackApps')}</label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.autoTrackAppsDesc')}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -221,8 +236,8 @@ const Settings: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div>
-                <label className="font-medium text-gray-900">{t('settings.showNotifications')}</label>
-                <p className="text-sm text-gray-600">{t('settings.showNotificationsDesc')}</p>
+                <label className="font-medium text-gray-900 dark:text-gray-100">{t('settings.showNotifications')}</label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.showNotificationsDesc')}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -237,8 +252,8 @@ const Settings: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div>
-                <label className="font-medium text-gray-900">{t('settings.minimizeToTray')}</label>
-                <p className="text-sm text-gray-600">{t('settings.minimizeToTrayDesc')}</p>
+                <label className="font-medium text-gray-900 dark:text-gray-100">{t('settings.minimizeToTray')}</label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.minimizeToTrayDesc')}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -252,19 +267,19 @@ const Settings: React.FC = () => {
             </div>
 
             <div>
-              <label className="block font-medium text-gray-900 mb-2">{t('settings.defaultCategory')}</label>
+              <label className="block font-medium text-gray-900 dark:text-gray-100 mb-2">{t('settings.defaultCategory')}</label>
               <input
                 type="text"
                 value={settings.defaultCategory}
                 onChange={(e) => handleSettingChange('defaultCategory', e.target.value)}
                 placeholder={t('settings.defaultCategoryPlaceholder')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
-              <p className="text-sm text-gray-600 mt-1">{t('settings.defaultCategoryDesc')}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('settings.defaultCategoryDesc')}</p>
             </div>
 
             <div>
-              <label className="block font-medium text-gray-900 mb-2">
+              <label className="block font-medium text-gray-900 dark:text-gray-100 mb-2">
                 {t('settings.trackingInterval')}: {settings.trackingInterval}
               </label>
               <input
@@ -274,20 +289,20 @@ const Settings: React.FC = () => {
                 step="10"
                 value={settings.trackingInterval}
                 onChange={(e) => handleSettingChange('trackingInterval', parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
               />
-              <p className="text-sm text-gray-600 mt-1">{t('settings.trackingIntervalDesc')}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('settings.trackingIntervalDesc')}</p>
             </div>
           </div>
         </div>
 
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4">{t('settings.activityTracking')}</h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('settings.activityTracking')}</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <label className="font-medium text-gray-900">{t('settings.enableActivityTracking')}</label>
-                <p className="text-sm text-gray-600">{t('settings.enableActivityTrackingDesc')}</p>
+                <label className="font-medium text-gray-900 dark:text-gray-100">{t('settings.enableActivityTracking')}</label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.enableActivityTrackingDesc')}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -302,8 +317,8 @@ const Settings: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div>
-                <label className="font-medium text-gray-900">{t('settings.trackBrowserActivity')}</label>
-                <p className="text-sm text-gray-600">{t('settings.trackBrowserActivityDesc')}</p>
+                <label className="font-medium text-gray-900 dark:text-gray-100">{t('settings.trackBrowserActivity')}</label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.trackBrowserActivityDesc')}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -318,8 +333,8 @@ const Settings: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div>
-                <label className="font-medium text-gray-900">{t('settings.trackApplicationActivity')}</label>
-                <p className="text-sm text-gray-600">{t('settings.trackApplicationActivityDesc')}</p>
+                <label className="font-medium text-gray-900 dark:text-gray-100">{t('settings.trackApplicationActivity')}</label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.trackApplicationActivityDesc')}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -333,7 +348,7 @@ const Settings: React.FC = () => {
             </div>
 
             <div>
-              <label className="block font-medium text-gray-900 mb-2">
+              <label className="block font-medium text-gray-900 dark:text-gray-100 mb-2">
                 {t('settings.activityTrackingInterval')}: {settings.activityTracking.trackingInterval}
               </label>
               <input
@@ -343,13 +358,13 @@ const Settings: React.FC = () => {
                 step="10"
                 value={settings.activityTracking.trackingInterval}
                 onChange={(e) => handleActivityTrackingChange('trackingInterval', parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
               />
-              <p className="text-sm text-gray-600 mt-1">{t('settings.activityTrackingIntervalDesc')}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('settings.activityTrackingIntervalDesc')}</p>
             </div>
 
             <div>
-              <label className="block font-medium text-gray-900 mb-2">
+              <label className="block font-medium text-gray-900 dark:text-gray-100 mb-2">
                 {t('settings.idleThreshold')}: {Math.floor(settings.activityTracking.idleThreshold / 60)}
               </label>
               <input
@@ -359,23 +374,23 @@ const Settings: React.FC = () => {
                 step="60"
                 value={settings.activityTracking.idleThreshold}
                 onChange={(e) => handleActivityTrackingChange('idleThreshold', parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
               />
-              <p className="text-sm text-gray-600 mt-1">{t('settings.idleThresholdDesc')}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('settings.idleThresholdDesc')}</p>
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
               <div>
-                <h4 className="font-medium text-gray-900">{t('settings.activityTrackingStatus')}</h4>
-                <p className="text-sm text-gray-600">
-                  {t('settings.currentStatus')} <span className={`font-medium ${isTracking ? 'text-green-600' : 'text-red-600'}`}>
+                <h4 className="font-medium text-gray-900 dark:text-gray-100">{t('settings.activityTrackingStatus')}</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {t('settings.currentStatus')} <span className={`font-medium ${isTracking ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                     {isTracking ? t('settings.active') : t('settings.stopped')}
                   </span>
                 </p>
               </div>
               <button
                 onClick={toggleActivityTracking}
-                className={`px-4 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
+                className={`px-4 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-colors ${
                   isTracking
                     ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white'
                     : 'bg-green-600 hover:bg-green-700 focus:ring-green-500 text-white'
@@ -388,12 +403,12 @@ const Settings: React.FC = () => {
         </div>
 
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4">{t('settings.dataManagement')}</h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('settings.dataManagement')}</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-medium text-gray-900">{t('settings.exportData')}</h4>
-                <p className="text-sm text-gray-600">{t('settings.exportDataDesc')}</p>
+                <h4 className="font-medium text-gray-900 dark:text-gray-100">{t('settings.exportData')}</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.exportDataDesc')}</p>
               </div>
               <button
                 onClick={exportData}
@@ -405,8 +420,8 @@ const Settings: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-medium text-gray-900">{t('settings.importData')}</h4>
-                <p className="text-sm text-gray-600">{t('settings.importDataDesc')}</p>
+                <h4 className="font-medium text-gray-900 dark:text-gray-100">{t('settings.importData')}</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.importDataDesc')}</p>
               </div>
               <button
                 onClick={importData}
@@ -418,12 +433,12 @@ const Settings: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-medium text-gray-900">{t('settings.clearAllData')}</h4>
-                <p className="text-sm text-gray-600 text-red-600">{t('settings.clearAllDataDesc')}</p>
+                <h4 className="font-medium text-gray-900 dark:text-gray-100">{t('settings.clearAllData')}</h4>
+                <p className="text-sm text-red-600 dark:text-red-400">{t('settings.clearAllDataDesc')}</p>
               </div>
               <button
                 onClick={clearAllData}
-                className="bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white px-4 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
+                className="bg-red-600 hover:bg-red-700 focus:ring-red-500 dark:focus:ring-offset-gray-900 text-white px-4 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
               >
                 {t('settings.clearDataButton')}
               </button>
@@ -432,17 +447,17 @@ const Settings: React.FC = () => {
         </div>
 
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4">{t('settings.about')}</h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('settings.about')}</h3>
           <div className="space-y-2">
-            <p className="text-gray-900"><strong>{t('settings.appVersion')}</strong></p>
-            <p className="text-gray-600">{t('settings.appDescription')}</p>
-            <p className="text-gray-600">{t('settings.builtWith')}</p>
+            <p className="text-gray-900 dark:text-gray-100"><strong>{t('settings.appVersion')}</strong></p>
+            <p className="text-gray-600 dark:text-gray-400">{t('settings.appDescription')}</p>
+            <p className="text-gray-600 dark:text-gray-400">{t('settings.builtWith')}</p>
           </div>
         </div>
 
         <div className="flex justify-end items-center space-x-4">
           {saveMessage && (
-            <span className={`text-sm ${saveMessage.includes('successfully') ? 'text-green-600' : 'text-red-600'}`}>
+            <span className={`text-sm ${saveMessage.includes('successfully') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {saveMessage}
             </span>
           )}

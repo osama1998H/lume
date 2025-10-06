@@ -190,7 +190,7 @@ const Reports: React.FC = () => {
   if (isLoading) {
     return (
       <div className="p-8 flex items-center justify-center h-full">
-        <div className="animate-pulse-slow text-lg text-gray-600">{t('reports.loading')}</div>
+        <div className="animate-pulse-slow text-lg text-gray-600 dark:text-gray-400">{t('reports.loading')}</div>
       </div>
     );
   }
@@ -200,14 +200,14 @@ const Reports: React.FC = () => {
       <div className="mb-8">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('reports.title')}</h2>
-            <p className="text-gray-600">{t('reports.subtitle')}</p>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('reports.title')}</h2>
+            <p className="text-gray-600 dark:text-gray-400">{t('reports.subtitle')}</p>
           </div>
           <div>
             <select
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value as any)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
             >
               <option value="day">{t('reports.today')}</option>
               <option value="week">{t('reports.week')}</option>
@@ -219,37 +219,37 @@ const Reports: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="card text-center">
-          <div className="text-3xl font-bold text-primary-600 mb-2">
+          <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">
             {formatDuration(stats.totalTrackedTime)}
           </div>
-          <div className="text-sm text-gray-600">{t('reports.totalTrackedTime')}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">{t('reports.totalTrackedTime')}</div>
         </div>
 
         <div className="card text-center">
-          <div className="text-3xl font-bold text-green-600 mb-2">
+          <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
             {stats.completedTasks}
           </div>
-          <div className="text-sm text-gray-600">{t('reports.tasksCompleted')}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">{t('reports.tasksCompleted')}</div>
         </div>
 
         <div className="card text-center">
-          <div className="text-3xl font-bold text-orange-600 mb-2">
+          <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
             {formatDuration(stats.averageTaskTime)}
           </div>
-          <div className="text-sm text-gray-600">{t('reports.avgTaskDuration')}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">{t('reports.avgTaskDuration')}</div>
         </div>
 
         <div className="card text-center">
-          <div className="text-3xl font-bold text-purple-600 mb-2">
+          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
             {formatDuration(stats.totalAppTime)}
           </div>
-          <div className="text-sm text-gray-600">{t('reports.totalAppUsage')}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">{t('reports.totalAppUsage')}</div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4">{t('reports.timeByCategory')}</h3>
+          <h3 className="text-xl font-semibold mb-4 dark:text-gray-100">{t('reports.timeByCategory')}</h3>
           <div className="space-y-4">
             {categoryData.map(([category, time], _index) => {
               const maxTime = categoryData[0]?.[1] || 1;
@@ -258,14 +258,14 @@ const Reports: React.FC = () => {
               return (
                 <div key={category} className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-900">{category}</span>
-                    <span className="text-sm font-semibold text-primary-600">
+                    <span className="font-medium text-gray-900 dark:text-gray-100">{category}</span>
+                    <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">
                       {formatDuration(time)}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
-                      className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-primary-600 dark:bg-primary-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
@@ -273,13 +273,13 @@ const Reports: React.FC = () => {
               );
             })}
             {categoryData.length === 0 && (
-              <p className="text-gray-500 text-center py-4">{t('reports.noData')}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">{t('reports.noData')}</p>
             )}
           </div>
         </div>
 
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4">{t('reports.topApplications')}</h3>
+          <h3 className="text-xl font-semibold mb-4 dark:text-gray-100">{t('reports.topApplications')}</h3>
           <div className="space-y-4">
             {appData.map(([appName, time], _index) => {
               const maxTime = appData[0]?.[1] || 1;
@@ -288,14 +288,14 @@ const Reports: React.FC = () => {
               return (
                 <div key={appName} className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-900">{appName}</span>
-                    <span className="text-sm font-semibold text-primary-600">
+                    <span className="font-medium text-gray-900 dark:text-gray-100">{appName}</span>
+                    <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">
                       {formatDuration(time)}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
-                      className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-green-600 dark:bg-green-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
@@ -303,7 +303,7 @@ const Reports: React.FC = () => {
               );
             })}
             {appData.length === 0 && (
-              <p className="text-gray-500 text-center py-4">{t('reports.noData')}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">{t('reports.noData')}</p>
             )}
           </div>
         </div>
@@ -311,7 +311,7 @@ const Reports: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4">{t('reports.activityTrackingTopApps')}</h3>
+          <h3 className="text-xl font-semibold mb-4 dark:text-gray-100">{t('reports.activityTrackingTopApps')}</h3>
           <div className="space-y-4">
             {topApplications.map((app, _index) => {
               const maxTime = topApplications[0]?.totalDuration || 1;
@@ -320,14 +320,14 @@ const Reports: React.FC = () => {
               return (
                 <div key={app.name} className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-900">{app.name}</span>
-                    <span className="text-sm font-semibold text-blue-600">
+                    <span className="font-medium text-gray-900 dark:text-gray-100">{app.name}</span>
+                    <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
                       {formatDuration(app.totalDuration)}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
@@ -335,13 +335,13 @@ const Reports: React.FC = () => {
               );
             })}
             {topApplications.length === 0 && (
-              <p className="text-gray-500 text-center py-4">{t('reports.noActivityData')}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">{t('reports.noActivityData')}</p>
             )}
           </div>
         </div>
 
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4">{t('reports.activityTrackingTopWebsites')}</h3>
+          <h3 className="text-xl font-semibold mb-4 dark:text-gray-100">{t('reports.activityTrackingTopWebsites')}</h3>
           <div className="space-y-4">
             {topWebsites.map((site, _index) => {
               const maxTime = topWebsites[0]?.totalDuration || 1;
@@ -350,14 +350,14 @@ const Reports: React.FC = () => {
               return (
                 <div key={site.domain} className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-900">{site.domain}</span>
-                    <span className="text-sm font-semibold text-purple-600">
+                    <span className="font-medium text-gray-900 dark:text-gray-100">{site.domain}</span>
+                    <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">
                       {formatDuration(site.totalDuration)}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
-                      className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-purple-600 dark:bg-purple-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
@@ -365,64 +365,64 @@ const Reports: React.FC = () => {
               );
             })}
             {topWebsites.length === 0 && (
-              <p className="text-gray-500 text-center py-4">{t('reports.noWebsiteData')}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">{t('reports.noWebsiteData')}</p>
             )}
           </div>
         </div>
       </div>
 
       <div className="card mt-8">
-        <h3 className="text-xl font-semibold mb-4">{t('reports.recentActivitySessions')}</h3>
+        <h3 className="text-xl font-semibold mb-4 dark:text-gray-100">{t('reports.recentActivitySessions')}</h3>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700/50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   {t('reports.application')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   {t('reports.category')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   {t('reports.domain')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   {t('reports.duration')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   {t('reports.startTime')}
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {activitySessions.slice(0, 20).map((session, index) => (
-                <tr key={session.id || index} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tr key={session.id || index} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                     {session.app_name}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       session.category === 'website'
-                        ? 'bg-purple-100 text-purple-800'
-                        : 'bg-blue-100 text-blue-800'
+                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400'
+                        : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400'
                     }`}>
                       {session.category}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {session.domain || session.window_title || '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {session.duration ? formatDuration(session.duration) : '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {session.start_time ? new Date(session.start_time).toLocaleString() : '-'}
                   </td>
                 </tr>
               ))}
               {activitySessions.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                     {t('reports.noActivityData')}
                   </td>
                 </tr>
