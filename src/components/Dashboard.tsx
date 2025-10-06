@@ -49,11 +49,16 @@ const Dashboard: React.FC = () => {
     console.log('📊 Dashboard - Today date:', today);
 
     const todayEntries = timeEntries.filter(entry => {
-      const hasStartTime = entry.startTime && entry.startTime.startsWith(today);
-      if (hasStartTime) {
+      if (!entry.startTime) return false;
+      // Normalize entry.startTime to date string (YYYY-MM-DD)
+      const entryDate = new Date(entry.startTime);
+      // Use toISOString to get UTC date, or use toLocaleDateString for local date
+      const entryDateString = entryDate.toISOString().split('T')[0];
+      const isToday = entryDateString === today;
+      if (isToday) {
         console.log('📊 Dashboard - Found today entry:', entry);
       }
-      return hasStartTime;
+      return isToday;
     });
 
     console.log('📊 Dashboard - Today entries count:', todayEntries.length);
