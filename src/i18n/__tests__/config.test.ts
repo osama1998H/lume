@@ -103,7 +103,7 @@ describe('i18n configuration', () => {
     });
 
     it('should have fallback language set to English', () => {
-      const fallbackLng = i18n.options.fallbackLng;
+      const {fallbackLng} = i18n.options;
       expect(Array.isArray(fallbackLng) ? fallbackLng[0] : fallbackLng).toEqual('en');
     });
 
