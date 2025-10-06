@@ -406,6 +406,28 @@ describe('FocusMode Component', () => {
       });
 
       render(<FocusMode />);
+    });
+
+    it('should display extremely large stats correctly', async () => {
+      mockElectronAPI.getPomodoroStats.mockResolvedValue({
+        totalSessions: 999999999,
+        completedSessions: 888888888,
+        totalFocusTime: 999999999, // in minutes
+        totalBreakTime: 888888888, // in minutes
+        completionRate: 99.9999,
+        currentStreak: 123456789,
+      });
+
+      render(<FocusMode />);
+
+      await waitFor(() => {
+        expect(screen.getByText('999999999')).toBeInTheDocument(); // Total sessions
+        expect(screen.getByText('888888888')).toBeInTheDocument(); // Completed sessions
+        expect(screen.getByText('999999999m')).toBeInTheDocument(); // Focus time
+        expect(screen.getByText('888888888m')).toBeInTheDocument(); // Break time
+        expect(screen.getByText('99.9999%')).toBeInTheDocument(); // Completion rate
+        expect(screen.getByText('123456789')).toBeInTheDocument(); // Current streak
+      });
 
       await waitFor(() => {
         expect(screen.getByText('0')).toBeInTheDocument();
