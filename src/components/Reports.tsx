@@ -26,6 +26,12 @@ const Reports: React.FC = () => {
           window.electronAPI.getTopApplications(10),
           window.electronAPI.getTopWebsites(10),
         ]);
+
+        console.log('📊 Reports - Loaded time entries:', entries.length);
+        console.log('📊 Reports - Sample time entry:', entries[0]);
+        console.log('📊 Reports - Loaded app usage:', usage.length);
+        console.log('📊 Reports - Sample app usage:', usage[0]);
+
         setTimeEntries(entries);
         setAppUsage(usage);
         setActivitySessions(sessions);
@@ -69,13 +75,27 @@ const Reports: React.FC = () => {
         break;
     }
 
-    const filteredEntries = timeEntries.filter(entry =>
-      new Date(entry.startTime) >= startDate
-    );
+    console.log('📊 Reports - Filter period:', selectedPeriod);
+    console.log('📊 Reports - Start date:', startDate.toISOString());
+    console.log('📊 Reports - Total timeEntries before filter:', timeEntries.length);
+    console.log('📊 Reports - Total appUsage before filter:', appUsage.length);
 
-    const filteredUsage = appUsage.filter(usage =>
-      new Date(usage.startTime) >= startDate
-    );
+    const filteredEntries = timeEntries.filter(entry => {
+      const entryDate = new Date(entry.startTime);
+      const matches = entryDate >= startDate;
+      if (!matches && timeEntries.indexOf(entry) < 3) {
+        console.log('📊 Reports - Excluded time entry:', entry.startTime, 'vs', startDate.toISOString());
+      }
+      return matches;
+    });
+
+    const filteredUsage = appUsage.filter(usage => {
+      const usageDate = new Date(usage.startTime);
+      return usageDate >= startDate;
+    });
+
+    console.log('📊 Reports - Filtered entries count:', filteredEntries.length);
+    console.log('📊 Reports - Filtered usage count:', filteredUsage.length);
 
     return { filteredEntries, filteredUsage };
   };
@@ -86,7 +106,16 @@ const Reports: React.FC = () => {
 
     filteredEntries.forEach(entry => {
       const category = entry.category || 'Uncategorized';
-      categoryTimes[category] = (categoryTimes[category] || 0) + (entry.duration || 0);
+
+      // Calculate duration if missing
+      let duration = entry.duration;
+      if (!duration && entry.startTime && entry.endTime) {
+        const start = new Date(entry.startTime).getTime();
+        const end = new Date(entry.endTime).getTime();
+        duration = Math.floor((end - start) / 1000);
+      }
+
+      categoryTimes[category] = (categoryTimes[category] || 0) + (duration || 0);
     });
 
     return Object.entries(categoryTimes)
@@ -110,21 +139,47 @@ const Reports: React.FC = () => {
   const getTotalStats = () => {
     const { filteredEntries, filteredUsage } = getFilteredData();
 
-    const totalTrackedTime = filteredEntries.reduce((sum, entry) =>
-      sum + (entry.duration || 0), 0
-    );
+    console.log('📊 Reports - Filtered entries:', filteredEntries.length);
+    console.log('📊 Reports - Filtered usage:', filteredUsage.length);
 
-    const totalAppTime = filteredUsage.reduce((sum, usage) =>
-      sum + (usage.duration || 0), 0
-    );
+    if (filteredEntries.length > 0) {
+      console.log('📊 Reports - First filtered entry FULL DATA:', filteredEntries[0]);
+    }
+
+    const totalTrackedTime = filteredEntries.reduce((sum, entry) => {
+      // Calculate duration if missing but start/end times exist
+      let duration = entry.duration;
+
+      if (!duration && entry.startTime && entry.endTime) {
+        const start = new Date(entry.startTime).getTime();
+        const end = new Date(entry.endTime).getTime();
+        duration = Math.floor((end - start) / 1000); // in seconds
+        console.log('📊 Reports - Calculated duration from times:', duration, 'seconds');
+      }
+
+      console.log('📊 Reports - Entry duration:', entry.duration, 'Calculated:', duration);
+      return sum + (duration || 0);
+    }, 0);
+
+    const totalAppTime = filteredUsage.reduce((sum, usage) => {
+      console.log('📊 Reports - Usage duration:', usage.duration);
+      return sum + (usage.duration || 0);
+    }, 0);
 
     const completedTasks = filteredEntries.filter(entry => entry.endTime).length;
+
+    console.log('📊 Reports - Total tracked time:', totalTrackedTime);
+    console.log('📊 Reports - Total app time:', totalAppTime);
+    console.log('📊 Reports - Completed tasks:', completedTasks);
+
+    const averageTaskTime = completedTasks > 0 ? Math.round(totalTrackedTime / completedTasks) : 0;
+    console.log('📊 Reports - Avg task time:', averageTaskTime);
 
     return {
       totalTrackedTime,
       totalAppTime,
       completedTasks,
-      averageTaskTime: completedTasks > 0 ? Math.round(totalTrackedTime / completedTasks) : 0,
+      averageTaskTime,
     };
   };
 

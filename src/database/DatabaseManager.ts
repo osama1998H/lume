@@ -2,31 +2,7 @@ import Database from 'better-sqlite3';
 import * as path from 'path';
 import { app } from 'electron';
 import { ActivitySession } from '../types/activity';
-
-export interface TimeEntry {
-  id?: number;
-  task: string;
-  startTime: string;
-  endTime?: string;
-  duration?: number;
-  category?: string;
-  createdAt?: string;
-}
-
-export interface AppUsage {
-  id?: number;
-  appName: string;
-  windowTitle?: string;
-  category?: string;
-  domain?: string;
-  url?: string;
-  startTime: string;
-  endTime?: string;
-  duration?: number;
-  is_browser?: boolean;
-  is_idle?: boolean;
-  createdAt?: string;
-}
+import { TimeEntry, AppUsage } from '../types';
 
 export class DatabaseManager {
   private db: Database.Database | null = null;
@@ -138,12 +114,25 @@ export class DatabaseManager {
     if (!this.db) return [];
 
     const stmt = this.db.prepare(`
-      SELECT * FROM time_entries
+      SELECT
+        id,
+        task,
+        start_time AS startTime,
+        end_time AS endTime,
+        duration,
+        category,
+        created_at AS createdAt
+      FROM time_entries
       ORDER BY created_at DESC
       LIMIT ?
     `);
 
-    return stmt.all(limit) as TimeEntry[];
+    const results = stmt.all(limit) as TimeEntry[];
+    console.log('📊 DB getTimeEntries returned:', results.length, 'entries');
+    if (results.length > 0) {
+      console.log('📊 Sample entry:', results[0]);
+    }
+    return results;
   }
 
   addAppUsage(usage: AppUsage): number {
@@ -169,19 +158,50 @@ export class DatabaseManager {
     if (!this.db) return [];
 
     const stmt = this.db.prepare(`
-      SELECT * FROM app_usage
+      SELECT
+        id,
+        app_name AS appName,
+        window_title AS windowTitle,
+        category,
+        domain,
+        url,
+        start_time AS startTime,
+        end_time AS endTime,
+        duration,
+        is_browser AS isBrowser,
+        is_idle AS isIdle,
+        created_at AS createdAt
+      FROM app_usage
       ORDER BY created_at DESC
       LIMIT ?
     `);
 
-    return stmt.all(limit) as AppUsage[];
+    const results = stmt.all(limit) as AppUsage[];
+    console.log('📊 DB getAppUsage returned:', results.length, 'entries');
+    if (results.length > 0) {
+      console.log('📊 Sample app usage:', results[0]);
+    }
+    return results;
   }
 
   getAppUsageByDateRange(startDate: string, endDate: string): AppUsage[] {
     if (!this.db) return [];
 
     const stmt = this.db.prepare(`
-      SELECT * FROM app_usage
+      SELECT
+        id,
+        app_name AS appName,
+        window_title AS windowTitle,
+        category,
+        domain,
+        url,
+        start_time AS startTime,
+        end_time AS endTime,
+        duration,
+        is_browser AS isBrowser,
+        is_idle AS isIdle,
+        created_at AS createdAt
+      FROM app_usage
       WHERE DATE(start_time) BETWEEN ? AND ?
       ORDER BY start_time DESC
     `);
