@@ -1,4 +1,4 @@
-import { PomodoroService, SessionType } from '../PomodoroService';
+import { PomodoroService } from '../PomodoroService';
 import { DatabaseManager } from '../../database/DatabaseManager';
 import { NotificationService } from '../NotificationService';
 import { PomodoroSettings } from '../../types';

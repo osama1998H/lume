@@ -55,11 +55,46 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [settings, setSettings] = useState<PomodoroSettings | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Define callbacks before effects to avoid temporal dead zone
+  const loadSettings = useCallback(async () => {
+    try {
+      if (window.electronAPI) {
+        const pomodoroSettings = await window.electronAPI.getPomodoroSettings();
+        setSettings(pomodoroSettings || defaultSettings);
+      }
+    } catch (error) {
+      console.error('Failed to load pomodoro settings:', error);
+      setSettings(defaultSettings);
+    }
+  }, []);
+
+  const refreshStatus = useCallback(async () => {
+    try {
+      if (window.electronAPI && window.electronAPI.getPomodoroStatus) {
+        const currentStatus = await window.electronAPI.getPomodoroStatus();
+        setStatus(currentStatus);
+      }
+    } catch (error) {
+      console.error('Failed to refresh pomodoro status:', error);
+    }
+  }, []);
+
+  const saveSettings = useCallback(async (newSettings: PomodoroSettings) => {
+    try {
+      if (window.electronAPI) {
+        await window.electronAPI.savePomodoroSettings(newSettings);
+        setSettings(newSettings);
+      }
+    } catch (error) {
+      console.error('Failed to save pomodoro settings:', error);
+    }
+  }, []);
+
   // Load settings on mount
   useEffect(() => {
     loadSettings();
     refreshStatus();
-  }, []);
+  }, [loadSettings, refreshStatus]);
 
   // Poll for status updates from main process
   useEffect(() => {
@@ -80,41 +115,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         intervalRef.current = null;
       }
     };
-  }, [status.state]);
-
-  const loadSettings = useCallback(async () => {
-    try {
-      if (window.electronAPI) {
-        const pomodoroSettings = await window.electronAPI.getPomodoroSettings();
-        setSettings(pomodoroSettings || defaultSettings);
-      }
-    } catch (error) {
-      console.error('Failed to load pomodoro settings:', error);
-      setSettings(defaultSettings);
-    }
-  }, []);
-
-  const saveSettings = useCallback(async (newSettings: PomodoroSettings) => {
-    try {
-      if (window.electronAPI) {
-        await window.electronAPI.savePomodoroSettings(newSettings);
-        setSettings(newSettings);
-      }
-    } catch (error) {
-      console.error('Failed to save pomodoro settings:', error);
-    }
-  }, []);
-
-  const refreshStatus = useCallback(async () => {
-    try {
-      if (window.electronAPI && window.electronAPI.getPomodoroStatus) {
-        const currentStatus = await window.electronAPI.getPomodoroStatus();
-        setStatus(currentStatus);
-      }
-    } catch (error) {
-      console.error('Failed to refresh pomodoro status:', error);
-    }
-  }, []);
+  }, [status.state, refreshStatus]);
 
   const startSession = useCallback(async (task: string, type: SessionType = 'focus') => {
     try {

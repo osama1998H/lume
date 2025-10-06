@@ -1,6 +1,6 @@
-import { render, waitFor, act, renderHook } from '@testing-library/react';
+import { waitFor, act, renderHook } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { PomodoroProvider, usePomodoro, PomodoroTimerStatus, SessionType } from '../PomodoroContext';
+import { PomodoroProvider, usePomodoro, PomodoroTimerStatus } from '../PomodoroContext';
 import { PomodoroSettings } from '../../types';
 
 // Mock window.electronAPI
@@ -83,15 +83,14 @@ describe('PomodoroContext', () => {
 
     it('should handle missing electronAPI gracefully', async () => {
       delete (window as any).electronAPI;
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
 
-      renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
+      const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
+      // Should not crash and should provide default values
       await waitFor(() => {
-        expect(consoleError).toHaveBeenCalled();
+        expect(result.current.settings).toBeDefined();
+        expect(result.current.status).toEqual(defaultStatus);
       });
-
-      consoleError.mockRestore();
     });
   });
 

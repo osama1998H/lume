@@ -1,5 +1,5 @@
 import { DatabaseManager } from '../DatabaseManager';
-import { PomodoroSession, PomodoroStats } from '../../types';
+import { PomodoroSession } from '../../types';
 
 // Mock the DatabaseManager to avoid native module issues in Jest
 jest.mock('../DatabaseManager', () => {
