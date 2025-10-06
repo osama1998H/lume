@@ -36,6 +36,15 @@ export interface IElectronAPI {
   stopPomodoroSession: () => Promise<void>;
   skipPomodoroSession: () => Promise<void>;
   getPomodoroStatus: () => Promise<any>;
+  // Productivity Goals API
+  addGoal: (goal: any) => Promise<number>;
+  updateGoal: (id: number, updates: any) => Promise<boolean>;
+  deleteGoal: (id: number) => Promise<boolean>;
+  getGoals: (activeOnly?: boolean) => Promise<any[]>;
+  getTodayGoalsWithProgress: () => Promise<any[]>;
+  getGoalProgress: (goalId: number, date: string) => Promise<any | null>;
+  getGoalAchievementHistory: (goalId: number, days: number) => Promise<any[]>;
+  getGoalStats: () => Promise<any>;
 }
 
 const electronAPI: IElectronAPI = {
@@ -71,6 +80,15 @@ const electronAPI: IElectronAPI = {
   stopPomodoroSession: () => ipcRenderer.invoke('stop-pomodoro-session'),
   skipPomodoroSession: () => ipcRenderer.invoke('skip-pomodoro-session'),
   getPomodoroStatus: () => ipcRenderer.invoke('get-pomodoro-status'),
+  // Productivity Goals API
+  addGoal: (goal) => ipcRenderer.invoke('add-goal', goal),
+  updateGoal: (id, updates) => ipcRenderer.invoke('update-goal', id, updates),
+  deleteGoal: (id) => ipcRenderer.invoke('delete-goal', id),
+  getGoals: (activeOnly) => ipcRenderer.invoke('get-goals', activeOnly),
+  getTodayGoalsWithProgress: () => ipcRenderer.invoke('get-today-goals-with-progress'),
+  getGoalProgress: (goalId, date) => ipcRenderer.invoke('get-goal-progress', goalId, date),
+  getGoalAchievementHistory: (goalId, days) => ipcRenderer.invoke('get-goal-achievement-history', goalId, days),
+  getGoalStats: () => ipcRenderer.invoke('get-goal-stats'),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
