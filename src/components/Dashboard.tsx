@@ -65,7 +65,7 @@ const Dashboard: React.FC = () => {
 
     const totalSeconds = todayEntries.reduce((sum, entry) => {
       // Calculate duration if missing
-      let duration = entry.duration;
+      let {duration} = entry;
       if (!duration && entry.startTime && entry.endTime) {
         const start = new Date(entry.startTime).getTime();
         const end = new Date(entry.endTime).getTime();
