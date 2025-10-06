@@ -148,7 +148,7 @@ const Reports: React.FC = () => {
 
     const totalTrackedTime = filteredEntries.reduce((sum, entry) => {
       // Calculate duration if missing but start/end times exist
-      let duration = entry.duration;
+      let {duration} = entry;
 
       if (!duration && entry.startTime && entry.endTime) {
         const start = new Date(entry.startTime).getTime();
