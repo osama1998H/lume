@@ -39,11 +39,12 @@ const applyTheme = (theme: 'light' | 'dark') => {
  * Custom hook to manage theme (light/dark/system) with persistence
  */
 export const useTheme = () => {
+  const allowedThemes: Theme[] = ['light', 'dark', 'system'];
   const [theme, setTheme] = useState<Theme>(() => {
     // Initialize from localStorage or default to 'system'
     if (typeof window === 'undefined') return 'system';
     const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    return stored || 'system';
+    return allowedThemes.includes(stored as Theme) ? (stored as Theme) : 'system';
   });
 
   const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>(() =>
