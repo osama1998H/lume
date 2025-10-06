@@ -115,6 +115,52 @@ export class DatabaseManager {
       CREATE INDEX IF NOT EXISTS idx_pomodoro_sessions_session_type ON pomodoro_sessions(session_type);
       CREATE INDEX IF NOT EXISTS idx_pomodoro_sessions_completed ON pomodoro_sessions(completed);
     `);
+
+    // Productivity goals table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS productivity_goals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT,
+        goal_type TEXT NOT NULL CHECK(goal_type IN ('daily_time', 'weekly_time', 'category', 'app_limit')),
+        category TEXT,
+        app_name TEXT,
+        target_minutes INTEGER NOT NULL,
+        operator TEXT NOT NULL CHECK(operator IN ('gte', 'lte', 'eq')),
+        period TEXT NOT NULL CHECK(period IN ('daily', 'weekly')),
+        active BOOLEAN DEFAULT 1,
+        notifications_enabled BOOLEAN DEFAULT 1,
+        notify_at_percentage INTEGER DEFAULT 100 CHECK(notify_at_percentage IN (50, 75, 90, 100)),
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS goal_progress (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        goal_id INTEGER NOT NULL,
+        date TEXT NOT NULL,
+        progress_minutes INTEGER DEFAULT 0,
+        achieved BOOLEAN DEFAULT 0,
+        notified BOOLEAN DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (goal_id) REFERENCES productivity_goals(id) ON DELETE CASCADE,
+        UNIQUE(goal_id, date)
+      )
+    `);
+
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_goals_active ON productivity_goals(active);
+      CREATE INDEX IF NOT EXISTS idx_goals_goal_type ON productivity_goals(goal_type);
+      CREATE INDEX IF NOT EXISTS idx_goals_period ON productivity_goals(period);
+      CREATE INDEX IF NOT EXISTS idx_goal_progress_date ON goal_progress(date);
+      CREATE INDEX IF NOT EXISTS idx_goal_progress_goal_id ON goal_progress(goal_id);
+      CREATE INDEX IF NOT EXISTS idx_goal_progress_achieved ON goal_progress(achieved);
+    `);
+
+    console.log('✅ Database initialization complete');
   }
 
   addTimeEntry(entry: TimeEntry): number {
@@ -599,6 +645,461 @@ export class DatabaseManager {
       completionRate: Math.round(completionRate * 100) / 100,
       currentStreak
     };
+  }
+
+  // ==================== PRODUCTIVITY GOALS METHODS ====================
+
+  addGoal(goal: import('../types').ProductivityGoal): number {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      INSERT INTO productivity_goals (
+        name, description, goal_type, category, app_name,
+        target_minutes, operator, period, active,
+        notifications_enabled, notify_at_percentage
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const result = stmt.run(
+      goal.name,
+      goal.description || null,
+      goal.goalType,
+      goal.category || null,
+      goal.appName || null,
+      goal.targetMinutes,
+      goal.operator,
+      goal.period,
+      goal.active ? 1 : 0,
+      goal.notificationsEnabled ? 1 : 0,
+      goal.notifyAtPercentage
+    );
+
+    return result.lastInsertRowid as number;
+  }
+
+  updateGoal(id: number, updates: Partial<import('../types').ProductivityGoal>): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    if (updates.name !== undefined) {
+      fields.push('name = ?');
+      values.push(updates.name);
+    }
+    if (updates.description !== undefined) {
+      fields.push('description = ?');
+      values.push(updates.description);
+    }
+    if (updates.goalType !== undefined) {
+      fields.push('goal_type = ?');
+      values.push(updates.goalType);
+    }
+    if (updates.category !== undefined) {
+      fields.push('category = ?');
+      values.push(updates.category);
+    }
+    if (updates.appName !== undefined) {
+      fields.push('app_name = ?');
+      values.push(updates.appName);
+    }
+    if (updates.targetMinutes !== undefined) {
+      fields.push('target_minutes = ?');
+      values.push(updates.targetMinutes);
+    }
+    if (updates.operator !== undefined) {
+      fields.push('operator = ?');
+      values.push(updates.operator);
+    }
+    if (updates.period !== undefined) {
+      fields.push('period = ?');
+      values.push(updates.period);
+    }
+    if (updates.active !== undefined) {
+      fields.push('active = ?');
+      values.push(updates.active ? 1 : 0);
+    }
+    if (updates.notificationsEnabled !== undefined) {
+      fields.push('notifications_enabled = ?');
+      values.push(updates.notificationsEnabled ? 1 : 0);
+    }
+    if (updates.notifyAtPercentage !== undefined) {
+      fields.push('notify_at_percentage = ?');
+      values.push(updates.notifyAtPercentage);
+    }
+
+    if (fields.length === 0) return false;
+
+    fields.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(id);
+
+    const stmt = this.db.prepare(`
+      UPDATE productivity_goals
+      SET ${fields.join(', ')}
+      WHERE id = ?
+    `);
+
+    const result = stmt.run(...values);
+    return result.changes > 0;
+  }
+
+  deleteGoal(id: number): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare('DELETE FROM productivity_goals WHERE id = ?');
+    const result = stmt.run(id);
+    return result.changes > 0;
+  }
+
+  getGoals(activeOnly = false): import('../types').ProductivityGoal[] {
+    if (!this.db) return [];
+
+    let query = `
+      SELECT
+        id,
+        name,
+        description,
+        goal_type AS goalType,
+        category,
+        app_name AS appName,
+        target_minutes AS targetMinutes,
+        operator,
+        period,
+        active,
+        notifications_enabled AS notificationsEnabled,
+        notify_at_percentage AS notifyAtPercentage,
+        created_at AS createdAt,
+        updated_at AS updatedAt
+      FROM productivity_goals
+    `;
+
+    if (activeOnly) {
+      query += ' WHERE active = 1';
+    }
+
+    query += ' ORDER BY created_at DESC';
+
+    const stmt = this.db.prepare(query);
+    return stmt.all() as import('../types').ProductivityGoal[];
+  }
+
+  getGoalProgress(goalId: number, date: string): import('../types').GoalProgress | null {
+    if (!this.db) return null;
+
+    const stmt = this.db.prepare(`
+      SELECT
+        id,
+        goal_id AS goalId,
+        date,
+        progress_minutes AS progressMinutes,
+        achieved,
+        notified,
+        created_at AS createdAt,
+        updated_at AS updatedAt
+      FROM goal_progress
+      WHERE goal_id = ? AND date = ?
+    `);
+
+    return stmt.get(goalId, date) as import('../types').GoalProgress | null;
+  }
+
+  updateGoalProgress(goalId: number, date: string, minutes: number): void {
+    if (!this.db) throw new Error('Database not initialized');
+
+    // Check if target was achieved
+    const goalStmt = this.db.prepare('SELECT target_minutes, operator FROM productivity_goals WHERE id = ?');
+    const goal = goalStmt.get(goalId) as {target_minutes: number, operator: string} | undefined;
+
+    if (!goal) return;
+
+    let achieved = false;
+    switch (goal.operator) {
+      case 'gte':
+        achieved = minutes >= goal.target_minutes;
+        break;
+      case 'lte':
+        achieved = minutes <= goal.target_minutes;
+        break;
+      case 'eq':
+        achieved = minutes === goal.target_minutes;
+        break;
+    }
+
+    // Upsert progress
+    const stmt = this.db.prepare(`
+      INSERT INTO goal_progress (goal_id, date, progress_minutes, achieved, updated_at)
+      VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(goal_id, date)
+      DO UPDATE SET
+        progress_minutes = excluded.progress_minutes,
+        achieved = excluded.achieved,
+        updated_at = CURRENT_TIMESTAMP
+    `);
+
+    stmt.run(goalId, date, minutes, achieved ? 1 : 0);
+  }
+
+  getTodayGoalsWithProgress(): import('../types').GoalWithProgress[] {
+    if (!this.db) return [];
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const stmt = this.db.prepare(`
+      SELECT
+        g.id,
+        g.name,
+        g.description,
+        g.goal_type AS goalType,
+        g.category,
+        g.app_name AS appName,
+        g.target_minutes AS targetMinutes,
+        g.operator,
+        g.period,
+        g.active,
+        g.notifications_enabled AS notificationsEnabled,
+        g.notify_at_percentage AS notifyAtPercentage,
+        g.created_at AS createdAt,
+        g.updated_at AS updatedAt,
+        gp.id AS progressId,
+        gp.progress_minutes AS progressMinutes,
+        gp.achieved,
+        gp.notified
+      FROM productivity_goals g
+      LEFT JOIN goal_progress gp ON g.id = gp.goal_id AND gp.date = ?
+      WHERE g.active = 1 AND g.period = 'daily'
+      ORDER BY g.created_at DESC
+    `);
+
+    const results = stmt.all(today) as any[];
+
+    return results.map((row) => {
+      const progressMinutes = row.progressMinutes || 0;
+      const progressPercentage = (progressMinutes / row.targetMinutes) * 100;
+      const timeRemaining = Math.max(0, row.targetMinutes - progressMinutes);
+
+      let status: import('../types').GoalStatus = 'not_started';
+      if (progressMinutes === 0) {
+        status = 'not_started';
+      } else if (row.achieved) {
+        status = row.operator === 'lte' ? 'achieved' : (progressMinutes > row.targetMinutes ? 'exceeded' : 'achieved');
+      } else {
+        status = 'in_progress';
+      }
+
+      return {
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        goalType: row.goalType,
+        category: row.category,
+        appName: row.appName,
+        targetMinutes: row.targetMinutes,
+        operator: row.operator,
+        period: row.period,
+        active: row.active,
+        notificationsEnabled: row.notificationsEnabled,
+        notifyAtPercentage: row.notifyAtPercentage,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        todayProgress: row.progressId ? {
+          id: row.progressId,
+          goalId: row.id,
+          date: today,
+          progressMinutes,
+          achieved: row.achieved,
+          notified: row.notified
+        } : undefined,
+        progressPercentage: Math.min(100, Math.round(progressPercentage)),
+        timeRemaining,
+        status
+      };
+    });
+  }
+
+  getGoalAchievementHistory(goalId: number, days: number): import('../types').GoalProgress[] {
+    if (!this.db) return [];
+
+    const endDate = new Date().toISOString().split('T')[0];
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    const startDateStr = startDate.toISOString().split('T')[0];
+
+    const stmt = this.db.prepare(`
+      SELECT
+        id,
+        goal_id AS goalId,
+        date,
+        progress_minutes AS progressMinutes,
+        achieved,
+        notified,
+        created_at AS createdAt,
+        updated_at AS updatedAt
+      FROM goal_progress
+      WHERE goal_id = ? AND date BETWEEN ? AND ?
+      ORDER BY date DESC
+    `);
+
+    return stmt.all(goalId, startDateStr, endDate) as import('../types').GoalProgress[];
+  }
+
+  getGoalStats(): import('../types').GoalStats {
+    if (!this.db) {
+      return {
+        totalGoals: 0,
+        activeGoals: 0,
+        achievedToday: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        achievementRate: 0
+      };
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // Get total and active goals
+    const countStmt = this.db.prepare(`
+      SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN active = 1 THEN 1 ELSE 0 END) as active
+      FROM productivity_goals
+    `);
+    const counts = countStmt.get() as {total: number, active: number};
+
+    // Get achieved today
+    const achievedTodayStmt = this.db.prepare(`
+      SELECT COUNT(*) as achieved
+      FROM goal_progress
+      WHERE date = ? AND achieved = 1
+    `);
+    const achievedToday = (achievedTodayStmt.get(today) as {achieved: number}).achieved;
+
+    // Calculate current streak (consecutive days with at least one achieved goal)
+    let currentStreak = 0;
+    const streakStmt = this.db.prepare(`
+      SELECT date
+      FROM goal_progress
+      WHERE achieved = 1
+      GROUP BY date
+      HAVING COUNT(*) > 0
+      ORDER BY date DESC
+    `);
+
+    const dates = streakStmt.all() as Array<{date: string}>;
+    if (dates.length > 0) {
+      currentStreak = 1;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      for (let i = 0; i < dates.length - 1; i++) {
+        const currentDate = new Date(dates[i].date);
+        const nextDate = new Date(dates[i + 1].date);
+        const diffTime = currentDate.getTime() - nextDate.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          currentStreak++;
+        } else {
+          break;
+        }
+      }
+    }
+
+    // Calculate longest streak
+    let longestStreak = 0;
+    let tempStreak = 0;
+
+    for (let i = 0; i < dates.length; i++) {
+      tempStreak = 1;
+      for (let j = i; j < dates.length - 1; j++) {
+        const currentDate = new Date(dates[j].date);
+        const nextDate = new Date(dates[j + 1].date);
+        const diffTime = currentDate.getTime() - nextDate.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          tempStreak++;
+        } else {
+          break;
+        }
+      }
+      longestStreak = Math.max(longestStreak, tempStreak);
+    }
+
+    // Calculate achievement rate (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
+
+    const achievementRateStmt = this.db.prepare(`
+      SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN achieved = 1 THEN 1 ELSE 0 END) as achieved
+      FROM goal_progress
+      WHERE date >= ?
+    `);
+    const achievementData = achievementRateStmt.get(thirtyDaysAgoStr) as {total: number, achieved: number};
+    const achievementRate = achievementData.total > 0
+      ? Math.round((achievementData.achieved / achievementData.total) * 100)
+      : 0;
+
+    return {
+      totalGoals: counts.total || 0,
+      activeGoals: counts.active || 0,
+      achievedToday: achievedToday || 0,
+      currentStreak,
+      longestStreak,
+      achievementRate
+    };
+  }
+
+  /**
+   * Query total active time between two timestamps (returns minutes)
+   */
+  queryTotalActiveTime(startTime: string, endTime: string): number {
+    if (!this.db) return 0;
+
+    const result = this.db.prepare(`
+      SELECT COALESCE(SUM(duration), 0) as total_seconds
+      FROM app_usage
+      WHERE start_time >= ? AND start_time <= ?
+      AND is_idle = 0
+    `).get(startTime, endTime) as { total_seconds: number };
+
+    return Math.round(result.total_seconds / 60);
+  }
+
+  /**
+   * Query time spent in a specific category between two timestamps (returns minutes)
+   */
+  queryCategoryTime(category: string, startTime: string, endTime: string): number {
+    if (!this.db) return 0;
+
+    const result = this.db.prepare(`
+      SELECT COALESCE(SUM(duration), 0) as total_seconds
+      FROM app_usage
+      WHERE start_time >= ? AND start_time <= ?
+      AND category = ?
+      AND is_idle = 0
+    `).get(startTime, endTime, category) as { total_seconds: number };
+
+    return Math.round(result.total_seconds / 60);
+  }
+
+  /**
+   * Query time spent on a specific app between two timestamps (returns minutes)
+   */
+  queryAppTime(appName: string, startTime: string, endTime: string): number {
+    if (!this.db) return 0;
+
+    const result = this.db.prepare(`
+      SELECT COALESCE(SUM(duration), 0) as total_seconds
+      FROM app_usage
+      WHERE start_time >= ? AND start_time <= ?
+      AND app_name = ?
+      AND is_idle = 0
+    `).get(startTime, endTime, appName) as { total_seconds: number };
+
+    return Math.round(result.total_seconds / 60);
   }
 
   close(): void {

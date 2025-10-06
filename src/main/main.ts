@@ -7,6 +7,7 @@ import { DatabaseManager } from '../database/DatabaseManager';
 import { ActivityTrackingService } from '../services/ActivityTrackingService';
 import { PomodoroService } from '../services/PomodoroService';
 import { NotificationService } from '../services/NotificationService';
+import { GoalsService } from '../services/GoalsService';
 import { initializeSentry } from '../config/sentry';
 import { initializeCrashReporter, getLastCrashReport, getUploadedReports } from '../config/crashReporter';
 
@@ -25,6 +26,7 @@ class LumeApp {
   private activityTracker: ActivityTrackingService | null = null;
   private pomodoroService: PomodoroService | null = null;
   private notificationService: NotificationService | null = null;
+  private goalsService: GoalsService | null = null;
   private settingsPath: string;
 
   constructor() {
@@ -102,10 +104,6 @@ class LumeApp {
       this.dbManager.initialize();
       console.log('✅ Database initialized successfully');
 
-      // Initialize activity tracking service
-      this.activityTracker = new ActivityTrackingService(this.dbManager);
-      console.log('✅ Activity tracking service initialized');
-
       // Initialize notification service
       const pomodoroSettings = this.getSettings().pomodoro;
       this.notificationService = new NotificationService(
@@ -113,6 +111,14 @@ class LumeApp {
         pomodoroSettings?.notificationsEnabled !== false
       );
       console.log('✅ Notification service initialized');
+
+      // Initialize goals service
+      this.goalsService = new GoalsService(this.dbManager, this.notificationService);
+      console.log('✅ Goals service initialized');
+
+      // Initialize activity tracking service (with goals service for integration)
+      this.activityTracker = new ActivityTrackingService(this.dbManager, this.goalsService);
+      console.log('✅ Activity tracking service initialized');
 
       // Initialize pomodoro service
       this.pomodoroService = new PomodoroService(
@@ -567,6 +573,97 @@ class LumeApp {
           totalDuration: 0,
           currentTask: '',
           sessionsCompleted: 0,
+        };
+      }
+    });
+
+    // Productivity Goals IPC handlers
+    ipcMain.handle('add-goal', async (_, goal) => {
+      try {
+        console.log('➕ Adding goal:', goal);
+        const goalId = await this.goalsService?.addGoal(goal);
+        return goalId || null;
+      } catch (error) {
+        console.error('Failed to add goal:', error);
+        return null;
+      }
+    });
+
+    ipcMain.handle('update-goal', async (_, id: number, updates: any) => {
+      try {
+        console.log('📝 Updating goal:', id, updates);
+        return await this.goalsService?.updateGoal(id, updates) || false;
+      } catch (error) {
+        console.error('Failed to update goal:', error);
+        return false;
+      }
+    });
+
+    ipcMain.handle('delete-goal', async (_, id: number) => {
+      try {
+        console.log('🗑️  Deleting goal:', id);
+        return await this.goalsService?.deleteGoal(id) || false;
+      } catch (error) {
+        console.error('Failed to delete goal:', error);
+        return false;
+      }
+    });
+
+    ipcMain.handle('get-goals', async (_, activeOnly = false) => {
+      try {
+        return await this.goalsService?.getGoals(activeOnly) || [];
+      } catch (error) {
+        console.error('Failed to get goals:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('get-today-goals-with-progress', async () => {
+      try {
+        return await this.goalsService?.getTodayGoalsWithProgress() || [];
+      } catch (error) {
+        console.error('Failed to get today goals with progress:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('get-goal-progress', async (_, goalId: number, date: string) => {
+      try {
+        return await this.goalsService?.getGoalProgress(goalId, date) || null;
+      } catch (error) {
+        console.error('Failed to get goal progress:', error);
+        return null;
+      }
+    });
+
+    ipcMain.handle('get-goal-achievement-history', async (_, goalId: number, days = 30) => {
+      try {
+        return await this.goalsService?.getGoalAchievementHistory(goalId, days) || [];
+      } catch (error) {
+        console.error('Failed to get goal achievement history:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('get-goal-stats', async () => {
+      try {
+        return await this.goalsService?.getGoalStats() || {
+          totalGoals: 0,
+          activeGoals: 0,
+          achievedToday: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+          achievementRate: 0,
+        };
+      } catch (error) {
+        console.error('Failed to get goal stats:', error);
+        return {
+          totalGoals: 0,
+          activeGoals: 0,
+          achievedToday: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+          achievementRate: 0,
         };
       }
     });

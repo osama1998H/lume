@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TimeEntry, AppUsage } from '../types';
+import GoalProgressWidget from './GoalProgressWidget';
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -142,7 +143,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="card">
           <h3 className="text-xl font-semibold mb-4 dark:text-gray-100">{t('dashboard.recentEntries')}</h3>
           <div className="space-y-3">
@@ -189,6 +190,8 @@ const Dashboard: React.FC = () => {
             )}
           </div>
         </div>
+
+        <GoalProgressWidget />
       </div>
     </div>
   );

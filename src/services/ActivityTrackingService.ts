@@ -1,6 +1,7 @@
 import { ActivityMonitor } from './ActivityMonitor';
 import { DatabaseManager } from '../database/DatabaseManager';
 import { ActivitySession, CurrentActivity, ActivityTrackingSettings } from '../types/activity';
+import { GoalsService } from './GoalsService';
 
 export class ActivityTrackingService {
   private monitor: ActivityMonitor;
@@ -10,11 +11,13 @@ export class ActivityTrackingService {
   private sessionStartTime: number = 0;
   private lastActivity: CurrentActivity | null = null;
   private idleTimer: NodeJS.Timeout | null = null;
+  private goalsService: GoalsService | null = null;
 
-  constructor(dbManager: DatabaseManager) {
+  constructor(dbManager: DatabaseManager, goalsService?: GoalsService) {
     this.dbManager = dbManager;
     this.monitor = new ActivityMonitor();
     this.settings = this.getDefaultSettings();
+    this.goalsService = goalsService || null;
   }
 
   private getDefaultSettings(): ActivityTrackingSettings {
@@ -48,6 +51,11 @@ export class ActivityTrackingService {
     return { ...this.settings };
   }
 
+  setGoalsService(goalsService: GoalsService): void {
+    this.goalsService = goalsService;
+    console.log('🎯 GoalsService linked to ActivityTrackingService');
+  }
+
   start(): void {
     if (!this.settings.enabled) {
       console.log('⚠️  Activity tracking is disabled in settings - cannot start');
@@ -61,10 +69,10 @@ export class ActivityTrackingService {
     console.log('✅ Activity tracking service started successfully');
   }
 
-  stop(): void {
+  async stop(): Promise<void> {
     console.log('🛑 Stopping activity tracking service');
     this.monitor.stop();
-    this.finishCurrentSession();
+    await this.finishCurrentSession();
     this.clearIdleTimer();
     console.log('✅ Activity tracking service stopped successfully');
   }
@@ -96,27 +104,27 @@ export class ActivityTrackingService {
     // Check if app is blacklisted
     if (this.isAppBlacklisted(activity.app_name)) {
       console.log(`🚫 App blacklisted: ${activity.app_name}`);
-      this.finishCurrentSession();
+      await this.finishCurrentSession();
       return;
     }
 
     // Check if domain is blacklisted (for browsers)
     if (activity.is_browser && activity.domain && this.isDomainBlacklisted(activity.domain)) {
       console.log(`🚫 Domain blacklisted: ${activity.domain}`);
-      this.finishCurrentSession();
+      await this.finishCurrentSession();
       return;
     }
 
     // Check tracking preferences
     if (activity.is_browser && !this.settings.trackBrowsers) {
       console.log('🚫 Browser tracking disabled');
-      this.finishCurrentSession();
+      await this.finishCurrentSession();
       return;
     }
 
     if (!activity.is_browser && !this.settings.trackApplications) {
       console.log('🚫 Application tracking disabled');
-      this.finishCurrentSession();
+      await this.finishCurrentSession();
       return;
     }
 
@@ -125,7 +133,7 @@ export class ActivityTrackingService {
     // Check if this is a new activity or continuation of current session
     if (this.shouldStartNewSession(activity)) {
       // Finish current session if exists
-      this.finishCurrentSession();
+      await this.finishCurrentSession();
 
       // Start new session
       this.currentSession = {
@@ -221,7 +229,7 @@ export class ActivityTrackingService {
     return matrix[str2.length][str1.length];
   }
 
-  private finishCurrentSession(): void {
+  private async finishCurrentSession(): Promise<void> {
     if (!this.currentSession || !this.sessionStartTime) {
       return;
     }
@@ -237,6 +245,15 @@ export class ActivityTrackingService {
       try {
         const sessionId = this.dbManager.addActivitySession(this.currentSession);
         console.log(`💾 Saved session ${sessionId}: ${this.currentSession.app_name} (${duration}s) to database`);
+
+        // Trigger goal progress recalculation after saving session
+        if (this.goalsService) {
+          try {
+            await this.goalsService.recalculateAllGoalProgress();
+          } catch (error) {
+            console.error('❌ Failed to recalculate goal progress:', error);
+          }
+        }
       } catch (error) {
         console.error('❌ Failed to save activity session:', error);
       }
@@ -263,9 +280,9 @@ export class ActivityTrackingService {
   private resetIdleTimer(): void {
     this.clearIdleTimer();
 
-    this.idleTimer = setTimeout(() => {
+    this.idleTimer = setTimeout(async () => {
       console.log('😴 User appears idle, pausing current session');
-      this.finishCurrentSession();
+      await this.finishCurrentSession();
     }, this.settings.idleThreshold * 1000);
   }
 
