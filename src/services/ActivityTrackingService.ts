@@ -1,6 +1,7 @@
 import { ActivityMonitor } from './ActivityMonitor';
 import { DatabaseManager } from '../database/DatabaseManager';
 import { ActivitySession, CurrentActivity, ActivityTrackingSettings } from '../types/activity';
+import { GoalsService } from './GoalsService';
 
 export class ActivityTrackingService {
   private monitor: ActivityMonitor;
@@ -10,11 +11,13 @@ export class ActivityTrackingService {
   private sessionStartTime: number = 0;
   private lastActivity: CurrentActivity | null = null;
   private idleTimer: NodeJS.Timeout | null = null;
+  private goalsService: GoalsService | null = null;
 
-  constructor(dbManager: DatabaseManager) {
+  constructor(dbManager: DatabaseManager, goalsService?: GoalsService) {
     this.dbManager = dbManager;
     this.monitor = new ActivityMonitor();
     this.settings = this.getDefaultSettings();
+    this.goalsService = goalsService || null;
   }
 
   private getDefaultSettings(): ActivityTrackingSettings {
@@ -46,6 +49,11 @@ export class ActivityTrackingService {
 
   getSettings(): ActivityTrackingSettings {
     return { ...this.settings };
+  }
+
+  setGoalsService(goalsService: GoalsService): void {
+    this.goalsService = goalsService;
+    console.log('🎯 GoalsService linked to ActivityTrackingService');
   }
 
   start(): void {
@@ -221,7 +229,7 @@ export class ActivityTrackingService {
     return matrix[str2.length][str1.length];
   }
 
-  private finishCurrentSession(): void {
+  private async finishCurrentSession(): Promise<void> {
     if (!this.currentSession || !this.sessionStartTime) {
       return;
     }
@@ -237,6 +245,15 @@ export class ActivityTrackingService {
       try {
         const sessionId = this.dbManager.addActivitySession(this.currentSession);
         console.log(`💾 Saved session ${sessionId}: ${this.currentSession.app_name} (${duration}s) to database`);
+
+        // Trigger goal progress recalculation after saving session
+        if (this.goalsService) {
+          try {
+            await this.goalsService.recalculateAllGoalProgress();
+          } catch (error) {
+            console.error('❌ Failed to recalculate goal progress:', error);
+          }
+        }
       } catch (error) {
         console.error('❌ Failed to save activity session:', error);
       }

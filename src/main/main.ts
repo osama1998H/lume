@@ -104,10 +104,6 @@ class LumeApp {
       this.dbManager.initialize();
       console.log('✅ Database initialized successfully');
 
-      // Initialize activity tracking service
-      this.activityTracker = new ActivityTrackingService(this.dbManager);
-      console.log('✅ Activity tracking service initialized');
-
       // Initialize notification service
       const pomodoroSettings = this.getSettings().pomodoro;
       this.notificationService = new NotificationService(
@@ -116,6 +112,14 @@ class LumeApp {
       );
       console.log('✅ Notification service initialized');
 
+      // Initialize goals service
+      this.goalsService = new GoalsService(this.dbManager, this.notificationService);
+      console.log('✅ Goals service initialized');
+
+      // Initialize activity tracking service (with goals service for integration)
+      this.activityTracker = new ActivityTrackingService(this.dbManager, this.goalsService);
+      console.log('✅ Activity tracking service initialized');
+
       // Initialize pomodoro service
       this.pomodoroService = new PomodoroService(
         this.dbManager,
@@ -123,10 +127,6 @@ class LumeApp {
         pomodoroSettings
       );
       console.log('✅ Pomodoro service initialized');
-
-      // Initialize goals service
-      this.goalsService = new GoalsService(this.dbManager, this.notificationService);
-      console.log('✅ Goals service initialized');
 
       // Auto-start tracking if enabled in settings
       this.autoStartTracking();
