@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Settings from '../Settings';
-import * as useThemeModule from '../../hooks/useTheme';
+import * as ThemeContext from '../../contexts/ThemeContext';
 
 // Mock i18next
 jest.mock('react-i18next', () => ({
@@ -16,6 +16,17 @@ jest.mock('../../hooks/useLanguage', () => ({
     language: 'en',
     changeLanguage: jest.fn(),
   }),
+}));
+
+// Mock ThemeContext
+jest.mock('../../contexts/ThemeContext', () => ({
+  useTheme: jest.fn(() => ({
+    theme: 'system',
+    effectiveTheme: 'light',
+    changeTheme: jest.fn(),
+    isDark: false,
+  })),
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 // Mock window.electronAPI
@@ -529,7 +540,7 @@ describe('Theme Selection', () => {
 
   it('should call useTheme hook on mount', async () => {
     const mockChangeTheme = jest.fn();
-    jest.spyOn(useThemeModule, 'useTheme').mockReturnValue({
+    jest.spyOn(ThemeContext, 'useTheme').mockReturnValue({
       theme: 'system',
       effectiveTheme: 'light',
       changeTheme: mockChangeTheme,
@@ -543,12 +554,12 @@ describe('Theme Selection', () => {
     });
 
     // Verify useTheme was called
-    expect(useThemeModule.useTheme).toHaveBeenCalled();
+    expect(ThemeContext.useTheme).toHaveBeenCalled();
   });
 
   it('should change theme when user selects a different option', async () => {
     const mockChangeTheme = jest.fn();
-    jest.spyOn(useThemeModule, 'useTheme').mockReturnValue({
+    jest.spyOn(ThemeContext, 'useTheme').mockReturnValue({
       theme: 'light',
       effectiveTheme: 'light',
       changeTheme: mockChangeTheme,
@@ -577,7 +588,7 @@ describe('Theme Selection', () => {
 
   it('should handle theme change from light to dark', async () => {
     const mockChangeTheme = jest.fn();
-    jest.spyOn(useThemeModule, 'useTheme').mockReturnValue({
+    jest.spyOn(ThemeContext, 'useTheme').mockReturnValue({
       theme: 'light',
       effectiveTheme: 'light',
       changeTheme: mockChangeTheme,
@@ -603,7 +614,7 @@ describe('Theme Selection', () => {
 
   it('should handle theme change to system mode', async () => {
     const mockChangeTheme = jest.fn();
-    jest.spyOn(useThemeModule, 'useTheme').mockReturnValue({
+    jest.spyOn(ThemeContext, 'useTheme').mockReturnValue({
       theme: 'light',
       effectiveTheme: 'light',
       changeTheme: mockChangeTheme,
@@ -628,7 +639,7 @@ describe('Theme Selection', () => {
   });
 
   it('should display current theme value in select', async () => {
-    jest.spyOn(useThemeModule, 'useTheme').mockReturnValue({
+    jest.spyOn(ThemeContext, 'useTheme').mockReturnValue({
       theme: 'dark',
       effectiveTheme: 'dark',
       changeTheme: jest.fn(),
@@ -651,7 +662,7 @@ describe('Theme Selection', () => {
 
   it('should integrate theme selection with other settings', async () => {
     const mockChangeTheme = jest.fn();
-    jest.spyOn(useThemeModule, 'useTheme').mockReturnValue({
+    jest.spyOn(ThemeContext, 'useTheme').mockReturnValue({
       theme: 'light',
       effectiveTheme: 'light',
       changeTheme: mockChangeTheme,

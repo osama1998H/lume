@@ -1,6 +1,15 @@
-import { useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export type Theme = 'light' | 'dark' | 'system';
+
+interface ThemeContextType {
+  theme: Theme;
+  effectiveTheme: 'light' | 'dark';
+  changeTheme: (theme: Theme) => void;
+  isDark: boolean;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'lume-theme';
 
@@ -35,11 +44,9 @@ const applyTheme = (theme: 'light' | 'dark') => {
   }
 };
 
-/**
- * Custom hook to manage theme (light/dark/system) with persistence
- */
-export const useTheme = () => {
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const allowedThemes: Theme[] = ['light', 'dark', 'system'];
+
   const [theme, setTheme] = useState<Theme>(() => {
     // Initialize from localStorage or default to 'system'
     if (typeof window === 'undefined') return 'system';
@@ -81,10 +88,20 @@ export const useTheme = () => {
     setTheme(newTheme);
   };
 
-  return {
+  const value: ThemeContextType = {
     theme,
     effectiveTheme,
     changeTheme,
     isDark: effectiveTheme === 'dark',
   };
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+};
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
 };

@@ -6,7 +6,7 @@ import Dashboard from './components/Dashboard';
 import TimeTracker from './components/TimeTracker';
 import Reports from './components/Reports';
 import Settings from './components/Settings';
-import { useTheme } from './hooks/useTheme';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 type View = 'dashboard' | 'tracker' | 'reports' | 'settings';
 
@@ -16,7 +16,6 @@ type View = 'dashboard' | 'tracker' | 'reports' | 'settings';
  * @returns The app's root JSX element containing the composed layout, navigation, and the currently selected view.
  */
 function App() {
-  useTheme(); // Initialize theme on app mount
   const [currentView, setCurrentView] = useState<View>('dashboard');
 
   const renderView = () => {
@@ -35,19 +34,21 @@ function App() {
   };
 
   return (
-    <ErrorBoundary>
-      <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
-        <TitleBar />
-        <div className="flex flex-1 overflow-hidden">
-          <Sidebar currentView={currentView} onViewChange={setCurrentView} />
-          <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
-            <ErrorBoundary>
-              {renderView()}
-            </ErrorBoundary>
-          </main>
+    <ThemeProvider>
+      <ErrorBoundary>
+        <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+          <TitleBar />
+          <div className="flex flex-1 overflow-hidden">
+            <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+            <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+              <ErrorBoundary>
+                {renderView()}
+              </ErrorBoundary>
+            </main>
+          </div>
         </div>
-      </div>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </ThemeProvider>
   );
 }
 

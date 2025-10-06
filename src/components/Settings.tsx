@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../hooks/useLanguage';
-import { useTheme, Theme } from '../hooks/useTheme';
+import { useTheme, Theme } from '../contexts/ThemeContext';
 
 const Settings: React.FC = () => {
   const { t } = useTranslation();
