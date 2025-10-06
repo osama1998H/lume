@@ -4,11 +4,35 @@ import FocusMode from '../FocusMode';
 import * as PomodoroContext from '../../contexts/PomodoroContext';
 import { PomodoroTimerStatus, SessionType, TimerState } from '../../contexts/PomodoroContext';
 import { PomodoroSettings } from '../../types';
+import { ThemeProvider } from '../../contexts/ThemeContext';
+
+// Mock window.matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
 
 // Mock i18next
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
+  }),
+}));
+
+// Mock useLanguage hook
+jest.mock('../../hooks/useLanguage', () => ({
+  useLanguage: () => ({
+    language: 'en',
+    changeLanguage: jest.fn(),
   }),
 }));
 
@@ -45,6 +69,11 @@ const mockPomodoroContext = {
 
 const mockElectronAPI = {
   getPomodoroStats: jest.fn(),
+};
+
+// Helper function to render with ThemeProvider
+const renderWithTheme = (component: React.ReactElement) => {
+  return render(<ThemeProvider>{component}</ThemeProvider>);
 };
 
 describe('FocusMode Component', () => {
@@ -86,13 +115,13 @@ describe('FocusMode Component', () => {
         settings: null,
       });
 
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.getByText('common.loading')).toBeInTheDocument();
     });
 
     it('should render component after loading', async () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       await waitFor(() => {
         expect(screen.getByText('focusMode.title')).toBeInTheDocument();
@@ -100,7 +129,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should render subtitle', async () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       await waitFor(() => {
         expect(screen.getByText('focusMode.subtitle')).toBeInTheDocument();
@@ -108,7 +137,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should load today\'s stats on mount', async () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       await waitFor(() => {
         expect(mockElectronAPI.getPomodoroStats).toHaveBeenCalled();
@@ -118,7 +147,7 @@ describe('FocusMode Component', () => {
 
   describe('Timer Display', () => {
     it('should display timer in idle state', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.getByText('focusMode.focusSession')).toBeInTheDocument();
     });
@@ -131,7 +160,7 @@ describe('FocusMode Component', () => {
         timeRemaining: 1500,
       };
 
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.getByText('25:00')).toBeInTheDocument();
     });
@@ -142,7 +171,7 @@ describe('FocusMode Component', () => {
         sessionType: 'focus',
       };
 
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.getByText('focusMode.focusSession')).toBeInTheDocument();
     });
@@ -153,7 +182,7 @@ describe('FocusMode Component', () => {
         sessionType: 'shortBreak',
       };
 
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.getByText('focusMode.shortBreak')).toBeInTheDocument();
     });
@@ -164,7 +193,7 @@ describe('FocusMode Component', () => {
         sessionType: 'longBreak',
       };
 
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.getByText('focusMode.longBreak')).toBeInTheDocument();
     });
@@ -176,7 +205,7 @@ describe('FocusMode Component', () => {
         currentTask: 'Important Work',
       };
 
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.getByText('Important Work')).toBeInTheDocument();
     });
@@ -184,7 +213,7 @@ describe('FocusMode Component', () => {
 
   describe('Task Input', () => {
     it('should display task input when idle', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       const input = screen.getByPlaceholderText('focusMode.taskPlaceholder');
       expect(input).toBeInTheDocument();
@@ -196,13 +225,13 @@ describe('FocusMode Component', () => {
         state: 'running',
       };
 
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.queryByPlaceholderText('focusMode.taskPlaceholder')).not.toBeInTheDocument();
     });
 
     it('should update task input value', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       const input = screen.getByPlaceholderText('focusMode.taskPlaceholder') as HTMLInputElement;
       fireEvent.change(input, { target: { value: 'New Task' } });
@@ -211,7 +240,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should start session on Enter key', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       const input = screen.getByPlaceholderText('focusMode.taskPlaceholder');
       fireEvent.change(input, { target: { value: 'New Task' } });
@@ -221,7 +250,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should not start session on Enter if task is empty and no current task', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       const input = screen.getByPlaceholderText('focusMode.taskPlaceholder');
       fireEvent.keyDown(input, { key: 'Enter' });
@@ -232,13 +261,13 @@ describe('FocusMode Component', () => {
 
   describe('Control Buttons - Idle State', () => {
     it('should display start button when idle', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.getByText('focusMode.startFocus')).toBeInTheDocument();
     });
 
     it('should start session when start button clicked', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       const input = screen.getByPlaceholderText('focusMode.taskPlaceholder');
       fireEvent.change(input, { target: { value: 'Test Task' } });
@@ -250,7 +279,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should disable start button if no task and no current task', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       const startButton = screen.getByText('focusMode.startFocus') as HTMLButtonElement;
 
@@ -258,7 +287,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should enable start button if task is entered', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       const input = screen.getByPlaceholderText('focusMode.taskPlaceholder');
       fireEvent.change(input, { target: { value: 'Test Task' } });
@@ -269,7 +298,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should clear task input after starting session', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       const input = screen.getByPlaceholderText('focusMode.taskPlaceholder') as HTMLInputElement;
       fireEvent.change(input, { target: { value: 'Test Task' } });
@@ -291,7 +320,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should display pause, stop, and skip buttons when running', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.getByText('focusMode.pause')).toBeInTheDocument();
       expect(screen.getByText('focusMode.stop')).toBeInTheDocument();
@@ -299,7 +328,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should pause session when pause button clicked', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       const pauseButton = screen.getByText('focusMode.pause');
       fireEvent.click(pauseButton);
@@ -308,7 +337,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should stop session when stop button clicked', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       const stopButton = screen.getByText('focusMode.stop');
       fireEvent.click(stopButton);
@@ -317,7 +346,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should skip session when skip button clicked', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       const skipButton = screen.getByText('focusMode.skip');
       fireEvent.click(skipButton);
@@ -336,14 +365,14 @@ describe('FocusMode Component', () => {
     });
 
     it('should display resume and stop buttons when paused', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.getByText('focusMode.resume')).toBeInTheDocument();
       expect(screen.getByText('focusMode.stop')).toBeInTheDocument();
     });
 
     it('should resume session when resume button clicked', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       const resumeButton = screen.getByText('focusMode.resume');
       fireEvent.click(resumeButton);
@@ -352,7 +381,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should stop session when stop button clicked', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       const stopButton = screen.getByText('focusMode.stop');
       fireEvent.click(stopButton);
@@ -368,14 +397,14 @@ describe('FocusMode Component', () => {
         sessionsCompleted: 3,
       };
 
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.getByText('3')).toBeInTheDocument();
       expect(screen.getByText('focusMode.sessionsCompleted')).toBeInTheDocument();
     });
 
     it('should display daily goal progress', async () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       await waitFor(() => {
         expect(screen.getByText('4 / 8')).toBeInTheDocument();
@@ -385,7 +414,7 @@ describe('FocusMode Component', () => {
 
   describe('Statistics Display', () => {
     it('should display today\'s stats', async () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       await waitFor(() => {
         expect(screen.getByText('5')).toBeInTheDocument(); // Total sessions
@@ -405,7 +434,7 @@ describe('FocusMode Component', () => {
         currentStreak: 0,
       });
 
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
     });
 
     it('should display extremely large stats correctly', async () => {
@@ -418,7 +447,7 @@ describe('FocusMode Component', () => {
         currentStreak: 123456789,
       });
 
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       await waitFor(() => {
         expect(screen.getByText('999999999')).toBeInTheDocument(); // Total sessions
@@ -435,7 +464,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should reload stats when sessions completed changes', async () => {
-      const { rerender } = render(<FocusMode />);
+      const { rerender } = renderWithTheme(<FocusMode />);
 
       await waitFor(() => {
         expect(mockElectronAPI.getPomodoroStats).toHaveBeenCalledTimes(1);
@@ -446,7 +475,7 @@ describe('FocusMode Component', () => {
         sessionsCompleted: 1,
       };
 
-      rerender(<FocusMode />);
+      rerender(<ThemeProvider><FocusMode /></ThemeProvider>);
 
       await waitFor(() => {
         expect(mockElectronAPI.getPomodoroStats).toHaveBeenCalledTimes(2);
@@ -456,19 +485,19 @@ describe('FocusMode Component', () => {
 
   describe('Settings Display', () => {
     it('should display focus duration', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.getByText('25m')).toBeInTheDocument();
     });
 
     it('should display short break duration', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.getByText('5m')).toBeInTheDocument();
     });
 
     it('should display long break duration', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.getByText('15m')).toBeInTheDocument();
     });
@@ -483,7 +512,7 @@ describe('FocusMode Component', () => {
         timeRemaining: 750, // 50% complete
       };
 
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       // Progress circle should be rendered (difficult to test SVG values directly)
       const circles = screen.getAllByRole('img', { hidden: true });
@@ -491,7 +520,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should show 0% progress when idle', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       // Should render but with 0 progress
       const circles = screen.getAllByRole('img', { hidden: true });
@@ -504,7 +533,7 @@ describe('FocusMode Component', () => {
       delete (window as any).electronAPI;
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
 
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       await waitFor(() => {
         expect(consoleError).toHaveBeenCalled();
@@ -517,7 +546,7 @@ describe('FocusMode Component', () => {
       mockElectronAPI.getPomodoroStats.mockRejectedValue(new Error('Stats failed'));
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
 
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       await waitFor(() => {
         expect(consoleError).toHaveBeenCalledWith(
@@ -532,7 +561,7 @@ describe('FocusMode Component', () => {
 
   describe('i18n Integration', () => {
     it('should use translation keys for all text', () => {
-      render(<FocusMode />);
+      renderWithTheme(<FocusMode />);
 
       expect(screen.getByText('focusMode.title')).toBeInTheDocument();
       expect(screen.getByText('focusMode.subtitle')).toBeInTheDocument();

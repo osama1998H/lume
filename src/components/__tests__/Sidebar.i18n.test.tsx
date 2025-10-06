@@ -3,10 +3,30 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '../../i18n/config';
 import Sidebar from '../Sidebar';
+import { ThemeProvider } from '../../contexts/ThemeContext';
+
+// Mock window.matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
 
 const renderWithI18n = (component: React.ReactElement, language = 'en') => {
   i18n.changeLanguage(language);
-  return render(<I18nextProvider i18n={i18n}>{component}</I18nextProvider>);
+  return render(
+    <ThemeProvider>
+      <I18nextProvider i18n={i18n}>{component}</I18nextProvider>
+    </ThemeProvider>
+  );
 };
 
 describe('Sidebar i18n Integration', () => {
@@ -132,11 +152,13 @@ describe('Sidebar i18n Integration', () => {
 
       i18n.changeLanguage('ar');
       rerender(
-        <I18nextProvider i18n={i18n}>
-          <Sidebar currentView="dashboard" onViewChange={mockOnViewChange} />
-        </I18nextProvider>
+        <ThemeProvider>
+          <I18nextProvider i18n={i18n}>
+            <Sidebar currentView="dashboard" onViewChange={mockOnViewChange} />
+          </I18nextProvider>
+        </ThemeProvider>
       );
-      
+
       expect(screen.getByText('لوحة التحكم')).toBeInTheDocument();
       expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
     });
@@ -151,11 +173,13 @@ describe('Sidebar i18n Integration', () => {
 
       i18n.changeLanguage('ar');
       rerender(
-        <I18nextProvider i18n={i18n}>
-          <Sidebar currentView="dashboard" onViewChange={mockOnViewChange} />
-        </I18nextProvider>
+        <ThemeProvider>
+          <I18nextProvider i18n={i18n}>
+            <Sidebar currentView="dashboard" onViewChange={mockOnViewChange} />
+          </I18nextProvider>
+        </ThemeProvider>
       );
-      
+
       expect(screen.getByText('لومي')).toBeInTheDocument();
       expect(screen.queryByText('Lume')).not.toBeInTheDocument();
     });
@@ -171,11 +195,13 @@ describe('Sidebar i18n Integration', () => {
 
       i18n.changeLanguage('ar');
       rerender(
-        <I18nextProvider i18n={i18n}>
-          <Sidebar currentView="reports" onViewChange={mockOnViewChange} />
-        </I18nextProvider>
+        <ThemeProvider>
+          <I18nextProvider i18n={i18n}>
+            <Sidebar currentView="reports" onViewChange={mockOnViewChange} />
+          </I18nextProvider>
+        </ThemeProvider>
       );
-      
+
       reportsButton = screen.getByText('التقارير').closest('button');
       expect(reportsButton).toHaveClass('bg-primary-50');
     });
