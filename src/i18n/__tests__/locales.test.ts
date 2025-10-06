@@ -304,9 +304,8 @@ describe('Locale Files', () => {
     it('should have consistent punctuation style in English', () => {
       // Most English strings should not end with periods (UI convention)
       const checkPunctuation = (obj: any) => {
-        const exceptions = ['subtitle', 'Desc'];
         Object.entries(obj).forEach(([key, value]) => {
-          if (typeof value === 'string' && !exceptions.some(ex => key.includes(ex))) {
+          if (typeof value === 'string') {
             if (value.length > 20) { // Only check longer strings
               expect(value.endsWith('.')).toBe(false);
             }
@@ -320,23 +319,183 @@ describe('Locale Files', () => {
     });
 
     it('should have similar string lengths between locales (within reason)', () => {
-      const compareLength = (en: any, ar: any, path: string = '') => {
-        Object.keys(en).forEach(key => {
+      const compareLength = (enObj: any, arObj: any, path: string = '') => {
+        Object.keys(enObj).forEach(key => {
           const newPath = path ? path + '.' + key : key;
 
-          if (typeof en[key] === 'string' && typeof ar[key] === 'string') {
-            const enLength = en[key].length;
-            const arLength = ar[key].length;
+          if (typeof enObj[key] === 'string' && typeof arObj[key] === 'string') {
+            const enLength = enObj[key].length;
+            const arLength = arObj[key].length;
             // Allow for up to 3x difference in length (some languages are more verbose)
             const ratio = Math.max(enLength, arLength) / Math.min(enLength, arLength);
             expect(ratio).toBeLessThan(3);
-          } else if (typeof en[key] === 'object' && en[key] !== null) {
-            compareLength(en[key], ar[key], newPath);
+          } else if (typeof enObj[key] === 'object' && enObj[key] !== null) {
+            compareLength(enObj[key], arObj[key], newPath);
           }
         });
       };
 
       compareLength(en, ar);
+    });
+  });
+});
+
+describe('Locale Files - Theme Integration', () => {
+  describe('Theme-related keys in English', () => {
+    it('should have theme key', () => {
+      expect(en.settings).toHaveProperty('theme');
+      expect(typeof en.settings.theme).toBe('string');
+      expect(en.settings.theme).toBeTruthy();
+    });
+
+    it('should have selectTheme key', () => {
+      expect(en.settings).toHaveProperty('selectTheme');
+      expect(typeof en.settings.selectTheme).toBe('string');
+      expect(en.settings.selectTheme).toBeTruthy();
+    });
+
+    it('should have lightMode key', () => {
+      expect(en.settings).toHaveProperty('lightMode');
+      expect(typeof en.settings.lightMode).toBe('string');
+      expect(en.settings.lightMode).toBeTruthy();
+    });
+
+    it('should have darkMode key', () => {
+      expect(en.settings).toHaveProperty('darkMode');
+      expect(typeof en.settings.darkMode).toBe('string');
+      expect(en.settings.darkMode).toBeTruthy();
+    });
+
+    it('should have systemMode key', () => {
+      expect(en.settings).toHaveProperty('systemMode');
+      expect(typeof en.settings.systemMode).toBe('string');
+      expect(en.settings.systemMode).toBeTruthy();
+    });
+
+    it('should have appearance key', () => {
+      expect(en.settings).toHaveProperty('appearance');
+      expect(typeof en.settings.appearance).toBe('string');
+      expect(en.settings.appearance).toBeTruthy();
+    });
+  });
+
+  describe('Theme-related keys in Arabic', () => {
+    it('should have theme key', () => {
+      expect(ar.settings).toHaveProperty('theme');
+      expect(typeof ar.settings.theme).toBe('string');
+      expect(ar.settings.theme).toBeTruthy();
+    });
+
+    it('should have selectTheme key', () => {
+      expect(ar.settings).toHaveProperty('selectTheme');
+      expect(typeof ar.settings.selectTheme).toBe('string');
+      expect(ar.settings.selectTheme).toBeTruthy();
+    });
+
+    it('should have lightMode key', () => {
+      expect(ar.settings).toHaveProperty('lightMode');
+      expect(typeof ar.settings.lightMode).toBe('string');
+      expect(ar.settings.lightMode).toBeTruthy();
+    });
+
+    it('should have darkMode key', () => {
+      expect(ar.settings).toHaveProperty('darkMode');
+      expect(typeof ar.settings.darkMode).toBe('string');
+      expect(ar.settings.darkMode).toBeTruthy();
+    });
+
+    it('should have systemMode key', () => {
+      expect(ar.settings).toHaveProperty('systemMode');
+      expect(typeof ar.settings.systemMode).toBe('string');
+      expect(ar.settings.systemMode).toBeTruthy();
+    });
+
+    it('should have appearance key', () => {
+      expect(ar.settings).toHaveProperty('appearance');
+      expect(typeof ar.settings.appearance).toBe('string');
+      expect(ar.settings.appearance).toBeTruthy();
+    });
+  });
+
+  describe('Theme translations quality', () => {
+    it('should have appropriate English theme translations', () => {
+      expect(en.settings.lightMode).toBe('Light');
+      expect(en.settings.darkMode).toBe('Dark');
+      expect(en.settings.systemMode).toBe('System');
+    });
+
+    it('should have appropriate Arabic theme translations', () => {
+      expect(ar.settings.lightMode).toBe('فاتح');
+      expect(ar.settings.darkMode).toBe('داكن');
+      expect(ar.settings.systemMode).toBe('النظام');
+    });
+
+    it('should have meaningful selectTheme descriptions', () => {
+      expect(en.settings.selectTheme.length).toBeGreaterThan(10);
+      expect(ar.settings.selectTheme.length).toBeGreaterThan(5);
+    });
+
+    it('should not use generic placeholder values for theme keys', () => {
+      expect(en.settings.theme).not.toMatch(/theme|appearance/i);
+      expect(ar.settings.theme).not.toMatch(/ثيم|مظهر عام/i);
+    });
+  });
+
+  describe('Theme key consistency', () => {
+    it('should have same number of theme-related keys in both locales', () => {
+      const enThemeKeys = ['theme', 'selectTheme', 'lightMode', 'darkMode', 'systemMode', 'appearance'];
+      const arThemeKeys = ['theme', 'selectTheme', 'lightMode', 'darkMode', 'systemMode', 'appearance'];
+
+      enThemeKeys.forEach(key => {
+        expect(en.settings).toHaveProperty(key);
+      });
+
+      arThemeKeys.forEach(key => {
+        expect(ar.settings).toHaveProperty(key);
+      });
+    });
+
+    it('should not have duplicate theme keys', () => {
+      const keys = Object.keys(en.settings);
+      const uniqueKeys = new Set(keys);
+      expect(keys.length).toBe(uniqueKeys.size);
+    });
+  });
+
+  describe('Complete settings section after theme addition', () => {
+    it('should still have all original settings keys', () => {
+      const originalKeys = [
+        'title', 'subtitle', 'general', 'language', 'selectLanguage',
+        'english', 'arabic', 'tracking', 'autoTrackApps', 'autoTrackAppsDesc'
+      ];
+
+      originalKeys.forEach(key => {
+        expect(en.settings).toHaveProperty(key);
+        expect(ar.settings).toHaveProperty(key);
+      });
+    });
+
+    it('should maintain settings structure integrity', () => {
+      const enKeys = Object.keys(en.settings).sort();
+      const arKeys = Object.keys(ar.settings).sort();
+      expect(enKeys).toEqual(arKeys);
+    });
+  });
+
+  describe('Theme translations semantic correctness', () => {
+    it('should use appropriate terminology for light theme', () => {
+      expect(en.settings.lightMode).toMatch(/light/i);
+      expect(ar.settings.lightMode).toMatch(/فاتح/);
+    });
+
+    it('should use appropriate terminology for dark theme', () => {
+      expect(en.settings.darkMode).toMatch(/dark/i);
+      expect(ar.settings.darkMode).toMatch(/داكن/);
+    });
+
+    it('should use appropriate terminology for system theme', () => {
+      expect(en.settings.systemMode).toMatch(/system/i);
+      expect(ar.settings.systemMode).toMatch(/النظام/);
     });
   });
 });
