@@ -1,5 +1,7 @@
-import enLocale from '../locales/en.json';
-import arLocale from '../locales/ar.json';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const enLocale = require('../locales/en.json');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const arLocale = require('../locales/ar.json');
 
 describe('Theme Locale Keys', () => {
   describe('English Locale (en.json)', () => {

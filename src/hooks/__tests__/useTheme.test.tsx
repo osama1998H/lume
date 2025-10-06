@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useTheme, Theme } from '../useTheme';
 
 describe('useTheme', () => {
@@ -394,7 +394,6 @@ describe('useTheme', () => {
       });
 
       const matchMediaInstance = mockMatchMedia.mock.results[0].value;
-      const addEventListenerCalls = matchMediaInstance.addEventListener.mock.calls.length;
 
       act(() => {
         result.current.changeTheme('light');
@@ -622,7 +621,7 @@ describe('useTheme', () => {
   describe('concurrent hook instances', () => {
     it('should synchronize theme across multiple hook instances', () => {
       const { result: result1 } = renderHook(() => useTheme());
-      const { result: result2 } = renderHook(() => useTheme());
+      renderHook(() => useTheme());
 
       act(() => {
         result1.current.changeTheme('dark');
@@ -631,8 +630,8 @@ describe('useTheme', () => {
       // Both should read from same localStorage
       expect(localStorage.getItem('lume-theme')).toBe('dark');
       expect(result1.current.theme).toBe('dark');
-      
-      // Note: result2 won't automatically update unless we trigger a re-render
+
+      // Note: Additional hook instances won't automatically update unless we trigger a re-render
       // This is expected behavior for independent hook instances
     });
   });

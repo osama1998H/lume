@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import App from '../App';
+import * as useThemeModule from '../hooks/useTheme';
 
 // Mock all child components
 jest.mock('../components/TitleBar', () => {
@@ -76,10 +77,10 @@ describe('App Component - Theme Integration', () => {
   });
 
   it('should call useTheme hook on mount', () => {
-    const useThemeSpy = jest.spyOn(require('../hooks/useTheme'), 'useTheme');
-    
+    const useThemeSpy = jest.spyOn(useThemeModule, 'useTheme');
+
     render(<App />);
-    
+
     expect(useThemeSpy).toHaveBeenCalled();
   });
 
@@ -92,7 +93,7 @@ describe('App Component - Theme Integration', () => {
   });
 
   it('should apply dark mode classes when theme is dark', () => {
-    jest.spyOn(require('../hooks/useTheme'), 'useTheme').mockReturnValue({
+    jest.spyOn(useThemeModule, 'useTheme').mockReturnValue({
       theme: 'dark',
       effectiveTheme: 'dark',
       changeTheme: jest.fn(),
@@ -100,14 +101,14 @@ describe('App Component - Theme Integration', () => {
     });
 
     const { container } = render(<App />);
-    
+
     // Check for dark mode classes in the container
     const mainContainer = container.querySelector('.dark\\:bg-gray-900');
     expect(mainContainer).toBeInTheDocument();
   });
 
   it('should apply light mode classes when theme is light', () => {
-    jest.spyOn(require('../hooks/useTheme'), 'useTheme').mockReturnValue({
+    jest.spyOn(useThemeModule, 'useTheme').mockReturnValue({
       theme: 'light',
       effectiveTheme: 'light',
       changeTheme: jest.fn(),
@@ -115,7 +116,7 @@ describe('App Component - Theme Integration', () => {
     });
 
     const { container } = render(<App />);
-    
+
     // Check for light mode classes
     const mainContainer = container.querySelector('.bg-gray-50');
     expect(mainContainer).toBeInTheDocument();
@@ -123,8 +124,8 @@ describe('App Component - Theme Integration', () => {
 
   it('should initialize theme before rendering children', () => {
     const initOrder: string[] = [];
-    
-    jest.spyOn(require('../hooks/useTheme'), 'useTheme').mockImplementation(() => {
+
+    jest.spyOn(useThemeModule, 'useTheme').mockImplementation(() => {
       initOrder.push('useTheme');
       return {
         theme: 'system',
@@ -135,7 +136,7 @@ describe('App Component - Theme Integration', () => {
     });
 
     render(<App />);
-    
+
     expect(initOrder[0]).toBe('useTheme');
   });
 
