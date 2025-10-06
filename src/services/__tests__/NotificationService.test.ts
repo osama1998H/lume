@@ -177,7 +177,7 @@ describe('NotificationService', () => {
   describe('notifyTimeToFocus', () => {
     it('should show notification when notifications are enabled', () => {
       service = new NotificationService(true, true);
-      service.notifyTimeToFocus();
+      service.notifyTimeToFocus('Test Task');
 
       expect(Notification).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -188,7 +188,7 @@ describe('NotificationService', () => {
 
     it('should not be silent when sound is enabled', () => {
       service = new NotificationService(true, true);
-      service.notifyTimeToFocus();
+      service.notifyTimeToFocus('Test Task');
 
       expect(Notification).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -199,7 +199,7 @@ describe('NotificationService', () => {
 
     it('should be silent when sound is disabled', () => {
       service = new NotificationService(false, true);
-      service.notifyTimeToFocus();
+      service.notifyTimeToFocus('Test Task');
 
       expect(Notification).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -210,7 +210,7 @@ describe('NotificationService', () => {
 
     it('should not show notification when notifications are disabled', () => {
       service = new NotificationService(true, false);
-      service.notifyTimeToFocus();
+      service.notifyTimeToFocus('Test Task');
 
       expect(Notification).not.toHaveBeenCalled();
     });
@@ -241,7 +241,7 @@ describe('NotificationService', () => {
 
       service.notifyFocusComplete('Task 1');
       service.notifyBreakComplete();
-      service.notifyTimeToFocus();
+      service.notifyTimeToFocus('Task 2');
 
       expect(Notification).toHaveBeenCalledTimes(3);
     });

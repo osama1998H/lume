@@ -20,7 +20,7 @@ export class NotificationService {
   /**
    * Show a desktop notification
    */
-  showNotification(type: NotificationType, config: NotificationConfig): void {
+  showNotification(_type: NotificationType, config: NotificationConfig): void {
     if (!this.notificationsEnabled) {
       console.log('🔕 Notifications disabled');
       return;
