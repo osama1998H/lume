@@ -231,16 +231,7 @@ export class GoalsService {
    */
   private async calculateTotalActiveTime(startTime: string, endTime: string): Promise<number> {
     try {
-      // Query app_usage table for total duration
-      const result = this.db.db.prepare(`
-        SELECT COALESCE(SUM(duration), 0) as total_seconds
-        FROM app_usage
-        WHERE start_time >= ? AND start_time <= ?
-        AND is_idle = 0
-      `).get(startTime, endTime) as { total_seconds: number };
-
-      // Convert seconds to minutes
-      return Math.round(result.total_seconds / 60);
+      return this.db.queryTotalActiveTime(startTime, endTime);
     } catch (error) {
       console.error('Failed to calculate total active time:', error);
       return 0;
@@ -252,15 +243,7 @@ export class GoalsService {
    */
   private async calculateCategoryTime(category: string, startTime: string, endTime: string): Promise<number> {
     try {
-      const result = this.db.db.prepare(`
-        SELECT COALESCE(SUM(duration), 0) as total_seconds
-        FROM app_usage
-        WHERE start_time >= ? AND start_time <= ?
-        AND category = ?
-        AND is_idle = 0
-      `).get(startTime, endTime, category) as { total_seconds: number };
-
-      return Math.round(result.total_seconds / 60);
+      return this.db.queryCategoryTime(category, startTime, endTime);
     } catch (error) {
       console.error('Failed to calculate category time:', error);
       return 0;
@@ -272,15 +255,7 @@ export class GoalsService {
    */
   private async calculateAppTime(appName: string, startTime: string, endTime: string): Promise<number> {
     try {
-      const result = this.db.db.prepare(`
-        SELECT COALESCE(SUM(duration), 0) as total_seconds
-        FROM app_usage
-        WHERE start_time >= ? AND start_time <= ?
-        AND app_name = ?
-        AND is_idle = 0
-      `).get(startTime, endTime, appName) as { total_seconds: number };
-
-      return Math.round(result.total_seconds / 60);
+      return this.db.queryAppTime(appName, startTime, endTime);
     } catch (error) {
       console.error('Failed to calculate app time:', error);
       return 0;

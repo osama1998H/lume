@@ -1052,6 +1052,56 @@ export class DatabaseManager {
     };
   }
 
+  /**
+   * Query total active time between two timestamps (returns minutes)
+   */
+  queryTotalActiveTime(startTime: string, endTime: string): number {
+    if (!this.db) return 0;
+
+    const result = this.db.prepare(`
+      SELECT COALESCE(SUM(duration), 0) as total_seconds
+      FROM app_usage
+      WHERE start_time >= ? AND start_time <= ?
+      AND is_idle = 0
+    `).get(startTime, endTime) as { total_seconds: number };
+
+    return Math.round(result.total_seconds / 60);
+  }
+
+  /**
+   * Query time spent in a specific category between two timestamps (returns minutes)
+   */
+  queryCategoryTime(category: string, startTime: string, endTime: string): number {
+    if (!this.db) return 0;
+
+    const result = this.db.prepare(`
+      SELECT COALESCE(SUM(duration), 0) as total_seconds
+      FROM app_usage
+      WHERE start_time >= ? AND start_time <= ?
+      AND category = ?
+      AND is_idle = 0
+    `).get(startTime, endTime, category) as { total_seconds: number };
+
+    return Math.round(result.total_seconds / 60);
+  }
+
+  /**
+   * Query time spent on a specific app between two timestamps (returns minutes)
+   */
+  queryAppTime(appName: string, startTime: string, endTime: string): number {
+    if (!this.db) return 0;
+
+    const result = this.db.prepare(`
+      SELECT COALESCE(SUM(duration), 0) as total_seconds
+      FROM app_usage
+      WHERE start_time >= ? AND start_time <= ?
+      AND app_name = ?
+      AND is_idle = 0
+    `).get(startTime, endTime, appName) as { total_seconds: number };
+
+    return Math.round(result.total_seconds / 60);
+  }
+
   close(): void {
     if (this.db) {
       this.db.close();
