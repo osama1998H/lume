@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TimeEntry } from '../types';
+import ActivityListCard from './ui/ActivityListCard';
 
 const TimeTracker: React.FC = () => {
   const { t } = useTranslation();
@@ -216,37 +217,18 @@ const TimeTracker: React.FC = () => {
           </div>
         </div>
 
-        <div className="card">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('timeTracker.recentEntries')}</h3>
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {recentEntries.map((entry, index) => (
-              <div key={entry.id || index} className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900 dark:text-gray-100">{entry.task}</p>
-                  <div className="flex items-center space-x-4 mt-1">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {new Date(entry.startTime).toLocaleDateString()} {t('timeTracker.at')}{' '}
-                      {new Date(entry.startTime).toLocaleTimeString()}
-                    </p>
-                    {entry.category && (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-400">
-                        {entry.category}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-primary-600 dark:text-primary-400">
-                    {entry.duration ? formatDuration(entry.duration) : t('timeTracker.active')}
-                  </p>
-                </div>
-              </div>
-            ))}
-            {recentEntries.length === 0 && (
-              <p className="text-gray-600 dark:text-gray-400 text-center py-8">{t('timeTracker.noEntries')}</p>
-            )}
-          </div>
-        </div>
+        <ActivityListCard
+          title={t('timeTracker.recentEntries')}
+          items={recentEntries.map((entry, index) => ({
+            key: entry.id || index,
+            mainLabel: entry.task,
+            subLabel: `${new Date(entry.startTime).toLocaleDateString()} ${t('timeTracker.at')} ${new Date(entry.startTime).toLocaleTimeString()}`,
+            category: entry.category,
+            value: entry.duration ? formatDuration(entry.duration) : t('timeTracker.active'),
+          }))}
+          emptyStateText={t('timeTracker.noEntries')}
+          className="max-h-96 overflow-y-auto"
+        />
       </div>
     </div>
   );

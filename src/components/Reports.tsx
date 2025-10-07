@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TimeEntry, AppUsage } from '../types';
+import StatCard from './ui/StatCard';
+import ProgressListCard from './ui/ProgressListCard';
 
 const Reports: React.FC = () => {
   const { t } = useTranslation();
@@ -218,157 +220,82 @@ const Reports: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="card text-center">
-          <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">
-            {formatDuration(stats.totalTrackedTime)}
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">{t('reports.totalTrackedTime')}</div>
-        </div>
-
-        <div className="card text-center">
-          <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
-            {stats.completedTasks}
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">{t('reports.tasksCompleted')}</div>
-        </div>
-
-        <div className="card text-center">
-          <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
-            {formatDuration(stats.averageTaskTime)}
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">{t('reports.avgTaskDuration')}</div>
-        </div>
-
-        <div className="card text-center">
-          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-            {formatDuration(stats.totalAppTime)}
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">{t('reports.totalAppUsage')}</div>
-        </div>
+        <StatCard
+          icon="⏱️"
+          title={t('reports.totalTrackedTime')}
+          value={formatDuration(stats.totalTrackedTime)}
+          colorScheme="primary"
+        />
+        <StatCard
+          icon="✅"
+          title={t('reports.tasksCompleted')}
+          value={stats.completedTasks}
+          colorScheme="green"
+        />
+        <StatCard
+          icon="⏰"
+          title={t('reports.avgTaskDuration')}
+          value={formatDuration(stats.averageTaskTime)}
+          colorScheme="orange"
+        />
+        <StatCard
+          icon="📱"
+          title={t('reports.totalAppUsage')}
+          value={formatDuration(stats.totalAppTime)}
+          colorScheme="purple"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card">
-          <h3 className="text-xl font-semibold mb-4 dark:text-gray-100">{t('reports.timeByCategory')}</h3>
-          <div className="space-y-4">
-            {categoryData.map(([category, time], _index) => {
-              const maxTime = categoryData[0]?.[1] || 1;
-              const percentage = (time / maxTime) * 100;
+        <ProgressListCard
+          title={t('reports.timeByCategory')}
+          items={categoryData.map(([category, time]) => ({
+            key: category,
+            label: category,
+            value: time,
+            formattedValue: formatDuration(time),
+          }))}
+          colorScheme="primary"
+          emptyStateText={t('reports.noData')}
+        />
 
-              return (
-                <div key={category} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-900 dark:text-gray-100">{category}</span>
-                    <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">
-                      {formatDuration(time)}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div
-                      className="bg-primary-600 dark:bg-primary-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-            {categoryData.length === 0 && (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">{t('reports.noData')}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="card">
-          <h3 className="text-xl font-semibold mb-4 dark:text-gray-100">{t('reports.topApplications')}</h3>
-          <div className="space-y-4">
-            {appData.map(([appName, time], _index) => {
-              const maxTime = appData[0]?.[1] || 1;
-              const percentage = (time / maxTime) * 100;
-
-              return (
-                <div key={appName} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-900 dark:text-gray-100">{appName}</span>
-                    <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">
-                      {formatDuration(time)}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div
-                      className="bg-green-600 dark:bg-green-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-            {appData.length === 0 && (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">{t('reports.noData')}</p>
-            )}
-          </div>
-        </div>
+        <ProgressListCard
+          title={t('reports.topApplications')}
+          items={appData.map(([appName, time]) => ({
+            key: appName,
+            label: appName,
+            value: time,
+            formattedValue: formatDuration(time),
+          }))}
+          colorScheme="green"
+          emptyStateText={t('reports.noData')}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        <div className="card">
-          <h3 className="text-xl font-semibold mb-4 dark:text-gray-100">{t('reports.activityTrackingTopApps')}</h3>
-          <div className="space-y-4">
-            {topApplications.map((app, _index) => {
-              const maxTime = topApplications[0]?.totalDuration || 1;
-              const percentage = (app.totalDuration / maxTime) * 100;
+        <ProgressListCard
+          title={t('reports.activityTrackingTopApps')}
+          items={topApplications.map((app) => ({
+            key: app.name,
+            label: app.name,
+            value: app.totalDuration,
+            formattedValue: formatDuration(app.totalDuration),
+          }))}
+          colorScheme="blue"
+          emptyStateText={t('reports.noActivityData')}
+        />
 
-              return (
-                <div key={app.name} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-900 dark:text-gray-100">{app.name}</span>
-                    <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                      {formatDuration(app.totalDuration)}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-            {topApplications.length === 0 && (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">{t('reports.noActivityData')}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="card">
-          <h3 className="text-xl font-semibold mb-4 dark:text-gray-100">{t('reports.activityTrackingTopWebsites')}</h3>
-          <div className="space-y-4">
-            {topWebsites.map((site, _index) => {
-              const maxTime = topWebsites[0]?.totalDuration || 1;
-              const percentage = (site.totalDuration / maxTime) * 100;
-
-              return (
-                <div key={site.domain} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-900 dark:text-gray-100">{site.domain}</span>
-                    <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">
-                      {formatDuration(site.totalDuration)}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div
-                      className="bg-purple-600 dark:bg-purple-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-            {topWebsites.length === 0 && (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">{t('reports.noWebsiteData')}</p>
-            )}
-          </div>
-        </div>
+        <ProgressListCard
+          title={t('reports.activityTrackingTopWebsites')}
+          items={topWebsites.map((site) => ({
+            key: site.domain,
+            label: site.domain,
+            value: site.totalDuration,
+            formattedValue: formatDuration(site.totalDuration),
+          }))}
+          colorScheme="purple"
+          emptyStateText={t('reports.noWebsiteData')}
+        />
       </div>
 
       <div className="card mt-8">
