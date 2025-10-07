@@ -13,12 +13,44 @@
   --color-primary-900: #0c4a6e;
 
   --animate-pulse-slow: pulse 3s infinite;
+
+  /* Cairo Font Family */
+  --font-sans: 'Cairo', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Font Sizes with Cairo-optimized hierarchy */
+  --font-size-xs: 0.75rem;      /* 12px */
+  --line-height-xs: 1rem;       /* 16px */
+
+  --font-size-sm: 0.875rem;     /* 14px */
+  --line-height-sm: 1.25rem;    /* 20px */
+
+  --font-size-base: 1rem;       /* 16px */
+  --line-height-base: 1.5rem;   /* 24px */
+
+  --font-size-lg: 1.125rem;     /* 18px */
+  --line-height-lg: 1.75rem;    /* 28px */
+
+  --font-size-xl: 1.25rem;      /* 20px */
+  --line-height-xl: 1.75rem;    /* 28px */
+
+  --font-size-2xl: 1.5rem;      /* 24px */
+  --line-height-2xl: 2rem;      /* 32px */
+
+  --font-size-3xl: 1.875rem;    /* 30px */
+  --line-height-3xl: 2.25rem;   /* 36px */
+
+  --font-size-4xl: 2.25rem;     /* 36px */
+  --line-height-4xl: 2.5rem;    /* 40px */
+
+  --font-size-5xl: 3rem;        /* 48px */
+  --line-height-5xl: 1;         /* 1 */
 }
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+    @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 font-sans;
     transition: background-color 0.3s ease, color 0.3s ease;
+    font-family: var(--font-sans);
   }
 
   * {
