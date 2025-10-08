@@ -2086,7 +2086,7 @@ export class DatabaseManager {
       SELECT
         COUNT(*) as total,
         SUM(CASE
-          WHEN gp.status = 'achieved' THEN 1
+          WHEN gp.achieved = 1 THEN 1
           ELSE 0
         END) as achieved
       FROM productivity_goals pg
@@ -2394,8 +2394,10 @@ export class DatabaseManager {
       FROM app_usage
       WHERE DATE(start_time) >= ? AND (is_idle = 0 OR is_idle IS NULL)
       GROUP BY app_name
-      HAVING session_count >= 5 AND avg_session_minutes < 10
-      ORDER BY session_count DESC
+      HAVING COUNT(*) >= 5 AND (AVG(CASE WHEN duration IS NOT NULL THEN duration ELSE
+        CAST((JULIANDAY(COALESCE(end_time, start_time)) - JULIANDAY(start_time)) * 86400 AS INTEGER)
+      END) / 60.0) < 10
+      ORDER BY COUNT(*) DESC
       LIMIT 1
     `);
     const distractionRow = distractionStmt.get(last30DaysStr) as any;
@@ -2503,18 +2505,17 @@ export class DatabaseManager {
     const last30DaysStr = last30Days.toISOString().split('T')[0];
 
     // Total productive minutes (last 30 days)
+    // Use app_usage as the primary source to avoid double-counting with manual time_entries
+    // app_usage provides comprehensive automatic tracking of all application usage
     const productiveStmt = this.db.prepare(`
       SELECT
         SUM(CASE WHEN duration IS NOT NULL THEN duration ELSE
           CAST((JULIANDAY(COALESCE(end_time, start_time)) - JULIANDAY(start_time)) * 86400 AS INTEGER)
         END) / 60.0 as total_minutes
-      FROM (
-        SELECT duration, start_time, end_time FROM time_entries WHERE DATE(start_time) >= ?
-        UNION ALL
-        SELECT duration, start_time, end_time FROM app_usage WHERE DATE(start_time) >= ? AND (is_idle = 0 OR is_idle IS NULL)
-      )
+      FROM app_usage
+      WHERE DATE(start_time) >= ? AND (is_idle = 0 OR is_idle IS NULL)
     `);
-    const productiveRow = productiveStmt.get(last30DaysStr, last30DaysStr) as any;
+    const productiveRow = productiveStmt.get(last30DaysStr) as any;
     const totalProductiveMinutes = Math.round(productiveRow?.total_minutes || 0);
 
     // Average daily focus hours
@@ -2610,7 +2611,7 @@ export class DatabaseManager {
     const productiveDayRow = productiveDayStmt.get(last30DaysStr, last30DaysStr) as any;
     const mostProductiveDay = productiveDayRow?.day_name || 'Monday';
 
-    // Weekly streak
+    // Weekly streak - count consecutive days from most recent activity going backwards
     const streakStmt = this.db.prepare(`
       WITH daily_activity AS (
         SELECT DISTINCT DATE(start_time) as activity_date
@@ -2623,23 +2624,38 @@ export class DatabaseManager {
         FROM app_usage
         WHERE DATE(start_time) >= DATE('now', '-60 days') AND (is_idle = 0 OR is_idle IS NULL)
       ),
-      date_sequence AS (
-        SELECT activity_date, LAG(activity_date) OVER (ORDER BY activity_date) as prev_date
+      ordered_dates AS (
+        SELECT
+          activity_date,
+          ROW_NUMBER() OVER (ORDER BY activity_date DESC) as row_num
         FROM daily_activity
-        ORDER BY activity_date DESC
       ),
       streak_calc AS (
         SELECT
-          activity_date,
-          CASE WHEN julianday(activity_date) - julianday(prev_date) = 1 THEN 0 ELSE 1 END as is_break
-        FROM date_sequence
+          od.activity_date,
+          od.row_num,
+          CASE
+            WHEN od.row_num = 1 THEN 0
+            WHEN julianday(od.activity_date) = julianday((
+              SELECT activity_date
+              FROM ordered_dates
+              WHERE row_num = od.row_num - 1
+            )) - 1 THEN 0
+            ELSE 1
+          END as is_break
+        FROM ordered_dates od
       )
       SELECT COUNT(*) as streak_days
       FROM streak_calc
-      WHERE is_break = 0
+      WHERE row_num <= (
+        SELECT COALESCE(MIN(row_num), 0)
+        FROM streak_calc
+        WHERE is_break = 1
+      )
+      OR NOT EXISTS (SELECT 1 FROM streak_calc WHERE is_break = 1)
     `);
     const streakRow = streakStmt.get() as any;
-    const weeklyStreak = (streakRow?.streak_days || 0) + 1;
+    const weeklyStreak = streakRow?.streak_days || 0;
 
     // Calculate productivity score (0-100)
     // Formula: weighted combination of factors
@@ -2695,8 +2711,10 @@ export class DatabaseManager {
       FROM app_usage
       WHERE DATE(start_time) >= ? AND (is_idle = 0 OR is_idle IS NULL)
       GROUP BY app_name
-      HAVING sessionCount >= 3
-      ORDER BY sessionCount DESC, avgSessionMinutes ASC
+      HAVING COUNT(*) >= 3
+      ORDER BY COUNT(*) DESC, AVG(CASE WHEN duration IS NOT NULL THEN duration ELSE
+        CAST((JULIANDAY(COALESCE(end_time, start_time)) - JULIANDAY(start_time)) * 86400 AS INTEGER)
+      END) / 60.0 ASC
       LIMIT 10
     `);
 

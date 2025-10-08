@@ -75,19 +75,19 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({
         <div className="overflow-x-auto">
           <div className="inline-flex gap-1">
             {/* Day labels */}
-            <div className="flex flex-col gap-1 mr-2">
+            <div className="flex flex-col gap-1.5 mr-2">
               <div className="h-3 text-xs text-text-tertiary" style={{ lineHeight: '12px' }}>{t('common.daysOfWeekShort.Mon')}</div>
-              <div className="h-3"></div>
+              <div className="h-3 text-xs text-text-tertiary" style={{ lineHeight: '12px' }}>{t('common.daysOfWeekShort.Tue')}</div>
               <div className="h-3 text-xs text-text-tertiary" style={{ lineHeight: '12px' }}>{t('common.daysOfWeekShort.Wed')}</div>
-              <div className="h-3"></div>
+              <div className="h-3 text-xs text-text-tertiary" style={{ lineHeight: '12px' }}>{t('common.daysOfWeekShort.Thu')}</div>
               <div className="h-3 text-xs text-text-tertiary" style={{ lineHeight: '12px' }}>{t('common.daysOfWeekShort.Fri')}</div>
-              <div className="h-3"></div>
+              <div className="h-3 text-xs text-text-tertiary" style={{ lineHeight: '12px' }}>{t('common.daysOfWeekShort.Sat')}</div>
               <div className="h-3 text-xs text-text-tertiary" style={{ lineHeight: '12px' }}>{t('common.daysOfWeekShort.Sun')}</div>
             </div>
 
             {/* Week columns */}
             {weeks.map((week, weekIndex) => (
-              <div key={weekIndex} className="flex flex-col gap-1">
+              <div key={weekIndex} className="flex flex-col gap-1.5">
                 {week.map((day, dayIndex) => (
                   <div
                     key={dayIndex}
@@ -146,6 +146,14 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({
   );
 };
 
+// Helper function to convert Date to local YYYY-MM-DD string (avoiding timezone issues)
+function toLocalDateString(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // Helper function to group days by weeks
 function groupByWeeks(data: HeatmapDay[], year: number): (HeatmapDay | null)[][] {
   const weeks: (HeatmapDay | null)[][] = [];
@@ -163,7 +171,7 @@ function groupByWeeks(data: HeatmapDay[], year: number): (HeatmapDay | null)[][]
     const week: (HeatmapDay | null)[] = [];
 
     for (let i = 0; i < 7; i++) {
-      const dateStr = currentDate.toISOString().split('T')[0];
+      const dateStr = toLocalDateString(currentDate);
       const dayData = dataMap.get(dateStr) || null;
 
       // Only add if it's in the current year
