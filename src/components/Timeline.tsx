@@ -5,12 +5,12 @@ import {
   Clock,
   TrendingUp,
   Activity,
-  Info,
-  X,
   Calendar,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import Modal from './ui/Modal';
 import type {
   TimelineActivity,
   TimelineFilters,
@@ -204,20 +204,29 @@ const TimelineView: React.FC = () => {
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Activity className="w-6 h-6 text-primary-600" />
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 flex-shrink-0">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600" />
               {t('timeline.title')}
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
               {t('timeline.subtitle')}
             </p>
-          </div>
+          </motion.div>
 
           {/* Date Range Selector */}
-          <div className="flex items-center gap-2">
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="flex items-center gap-2 w-full sm:w-auto"
+          >
             <button
               onClick={() => navigateDate('prev')}
               className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -227,19 +236,19 @@ const TimelineView: React.FC = () => {
             </button>
             <button
               onClick={() => handleDateRangeChange('today')}
-              className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              className="px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
             >
               {t('reports.today')}
             </button>
             <button
               onClick={() => handleDateRangeChange('week')}
-              className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              className="px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
             >
               {t('reports.week')}
             </button>
             <button
               onClick={() => handleDateRangeChange('month')}
-              className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              className="px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
             >
               {t('reports.month')}
             </button>
@@ -250,7 +259,7 @@ const TimelineView: React.FC = () => {
             >
               <ChevronRight className="w-5 h-5" />
             </button>
-          </div>
+          </motion.div>
         </div>
       </div>
 
@@ -449,106 +458,93 @@ const TimelineView: React.FC = () => {
       </div>
 
       {/* Activity Details Modal */}
-      {showDetailsModal && selectedActivity && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={() => setShowDetailsModal(false)}
-        >
-          <div
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full transform transition-all"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-                  <Info className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-                </div>
-                Activity Details
-              </h3>
-              <button
-                onClick={() => setShowDetailsModal(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
+      <Modal
+        isOpen={showDetailsModal && !!selectedActivity}
+        onClose={() => setShowDetailsModal(false)}
+        title="Activity Details"
+        size="lg"
+      >
+        {selectedActivity && (
+          <div className="space-y-4">
+            <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                Title
+              </p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">
+                {selectedActivity.title}
+              </p>
             </div>
-            <div className="px-6 py-5 space-y-4 max-h-[60vh] overflow-y-auto">
-              <div className="space-y-3">
-                <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
-                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Title</p>
-                  <p className="text-lg font-bold text-gray-900 dark:text-white">
-                    {selectedActivity.title}
-                  </p>
-                </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
-                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Type</p>
-                    <p className="text-base font-semibold text-gray-900 dark:text-white capitalize">
-                      {selectedActivity.type.replace('_', ' ')}
-                    </p>
-                  </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                  Type
+                </p>
+                <p className="text-base font-semibold text-gray-900 dark:text-white capitalize">
+                  {selectedActivity.type.replace('_', ' ')}
+                </p>
+              </div>
 
-                  <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
-                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Duration</p>
-                    <p className="text-base font-semibold text-gray-900 dark:text-white">
-                      {formatDuration(selectedActivity.duration)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
-                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Time Range</p>
-                  <p className="text-base font-semibold text-gray-900 dark:text-white">
-                    {formatTime(selectedActivity.startTime)} - {formatTime(selectedActivity.endTime)}
-                  </p>
-                </div>
-
-                {selectedActivity.categoryName && (
-                  <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
-                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Category</p>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-4 h-4 rounded-full shadow-md"
-                        style={{ backgroundColor: selectedActivity.categoryColor || '#3b82f6' }}
-                      ></div>
-                      <p className="text-base font-semibold text-gray-900 dark:text-white">
-                        {selectedActivity.categoryName}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {selectedActivity.metadata?.appName && (
-                  <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
-                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Application</p>
-                    <p className="text-base font-semibold text-gray-900 dark:text-white">
-                      {selectedActivity.metadata.appName}
-                    </p>
-                  </div>
-                )}
-
-                {selectedActivity.metadata?.domain && (
-                  <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
-                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Website</p>
-                    <p className="text-base font-semibold text-gray-900 dark:text-white">
-                      {selectedActivity.metadata.domain}
-                    </p>
-                  </div>
-                )}
+              <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                  Duration
+                </p>
+                <p className="text-base font-semibold text-gray-900 dark:text-white">
+                  {formatDuration(selectedActivity.duration)}
+                </p>
               </div>
             </div>
-            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 flex justify-end rounded-b-2xl">
-              <button
-                onClick={() => setShowDetailsModal(false)}
-                className="px-6 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-lg transition-all shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40"
-              >
-                Close
-              </button>
+
+            <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                Time Range
+              </p>
+              <p className="text-base font-semibold text-gray-900 dark:text-white">
+                {formatTime(selectedActivity.startTime)} - {formatTime(selectedActivity.endTime)}
+              </p>
             </div>
+
+            {selectedActivity.categoryName && (
+              <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                  Category
+                </p>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-4 h-4 rounded-full shadow-md"
+                    style={{ backgroundColor: selectedActivity.categoryColor || '#3b82f6' }}
+                  />
+                  <p className="text-base font-semibold text-gray-900 dark:text-white">
+                    {selectedActivity.categoryName}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {selectedActivity.metadata?.appName && (
+              <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                  Application
+                </p>
+                <p className="text-base font-semibold text-gray-900 dark:text-white">
+                  {selectedActivity.metadata.appName}
+                </p>
+              </div>
+            )}
+
+            {selectedActivity.metadata?.domain && (
+              <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                  Website
+                </p>
+                <p className="text-base font-semibold text-gray-900 dark:text-white">
+                  {selectedActivity.metadata.domain}
+                </p>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 };

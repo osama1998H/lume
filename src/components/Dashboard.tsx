@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, CheckCircle2, Target } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { TimeEntry, AppUsage } from '../types';
 import GoalProgressWidget from './GoalProgressWidget';
 import StatCard from './ui/StatCard';
@@ -106,61 +107,111 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4, ease: 'easeOut' },
+    },
+  };
+
   return (
-    <div className="p-8 overflow-y-auto">
-      <div className="mb-8 animate-fade-in">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('dashboard.title')}</h2>
-        <p className="text-gray-600 dark:text-gray-400">{t('dashboard.subtitle')}</p>
-      </div>
+    <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="mb-6 sm:mb-8"
+      >
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          {t('dashboard.title')}
+        </h2>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+          {t('dashboard.subtitle')}
+        </p>
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <StatCard
-          icon={Clock}
-          title={t('dashboard.todayTime')}
-          value={formatDuration(stats.totalTime)}
-          colorScheme="primary"
-        />
-        <StatCard
-          icon={CheckCircle2}
-          title={t('dashboard.tasksDone')}
-          value={stats.tasksCompleted}
-          colorScheme="green"
-        />
-        <StatCard
-          icon={Target}
-          title={t('dashboard.activeTask')}
-          value={stats.activeTask || t('dashboard.noActiveTask')}
-          colorScheme="orange"
-        />
-      </div>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8"
+      >
+        <motion.div variants={itemVariants}>
+          <StatCard
+            icon={Clock}
+            title={t('dashboard.todayTime')}
+            value={formatDuration(stats.totalTime)}
+            colorScheme="primary"
+          />
+        </motion.div>
+        <motion.div variants={itemVariants}>
+          <StatCard
+            icon={CheckCircle2}
+            title={t('dashboard.tasksDone')}
+            value={stats.tasksCompleted}
+            colorScheme="green"
+          />
+        </motion.div>
+        <motion.div variants={itemVariants} className="sm:col-span-2 lg:col-span-1">
+          <StatCard
+            icon={Target}
+            title={t('dashboard.activeTask')}
+            value={stats.activeTask || t('dashboard.noActiveTask')}
+            colorScheme="orange"
+          />
+        </motion.div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <ActivityListCard
-          title={t('dashboard.recentEntries')}
-          items={timeEntries.slice(0, 5).map((entry, index) => ({
-            key: entry.id || index,
-            mainLabel: entry.task,
-            subLabel: new Date(entry.startTime).toLocaleTimeString(),
-            category: entry.category,
-            value: entry.duration ? formatDuration(entry.duration) : t('dashboard.active'),
-          }))}
-          emptyStateText={t('dashboard.noEntries')}
-        />
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6"
+      >
+        <motion.div variants={itemVariants}>
+          <ActivityListCard
+            title={t('dashboard.recentEntries')}
+            items={timeEntries.slice(0, 5).map((entry, index) => ({
+              key: entry.id || index,
+              mainLabel: entry.task,
+              subLabel: new Date(entry.startTime).toLocaleTimeString(),
+              category: entry.category,
+              value: entry.duration ? formatDuration(entry.duration) : t('dashboard.active'),
+            }))}
+            emptyStateText={t('dashboard.noEntries')}
+          />
+        </motion.div>
 
-        <ActivityListCard
-          title={t('dashboard.appUsageSummary')}
-          items={appUsage.slice(0, 5).map((usage, index) => ({
-            key: usage.id || index,
-            mainLabel: usage.appName,
-            subLabel: usage.windowTitle,
-            value: usage.duration ? formatDuration(usage.duration) : t('dashboard.active'),
-          }))}
-          emptyStateText={t('dashboard.noAppUsage')}
-          showCategory={false}
-        />
+        <motion.div variants={itemVariants}>
+          <ActivityListCard
+            title={t('dashboard.appUsageSummary')}
+            items={appUsage.slice(0, 5).map((usage, index) => ({
+              key: usage.id || index,
+              mainLabel: usage.appName,
+              subLabel: usage.windowTitle,
+              value: usage.duration ? formatDuration(usage.duration) : t('dashboard.active'),
+            }))}
+            emptyStateText={t('dashboard.noAppUsage')}
+            showCategory={false}
+          />
+        </motion.div>
 
-        <GoalProgressWidget />
-      </div>
+        <motion.div variants={itemVariants}>
+          <GoalProgressWidget />
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

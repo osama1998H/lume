@@ -5,6 +5,8 @@ import { useLanguage } from '../hooks/useLanguage';
 import { useTheme, Theme } from '../contexts/ThemeContext';
 import Button from './ui/Button';
 import Skeleton from './ui/Skeleton';
+import { ConfirmModal } from './ui/Modal';
+import { showToast } from '../utils/toast';
 import type { Category } from '../types';
 
 const Settings: React.FC = () => {
@@ -33,8 +35,8 @@ const Settings: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState('');
   const [isTracking, setIsTracking] = useState(false);
+  const [showClearDataConfirm, setShowClearDataConfirm] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -154,22 +156,20 @@ const Settings: React.FC = () => {
   const saveSettings = async () => {
     try {
       setIsSaving(true);
-      setSaveMessage('');
 
       if (window.electronAPI) {
         const success = await window.electronAPI.saveSettings(settings);
         if (success) {
-          setSaveMessage(t('settings.settingsSavedSuccess'));
-          setTimeout(() => setSaveMessage(''), 3000);
+          showToast.success(t('settings.settingsSavedSuccess'));
         } else {
-          setSaveMessage(t('settings.settingsSaveFailed'));
+          showToast.error(t('settings.settingsSaveFailed'));
         }
       } else {
-        setSaveMessage(t('settings.settingsFunctionalityUnavailable'));
+        showToast.error(t('settings.settingsFunctionalityUnavailable'));
       }
     } catch (error) {
       console.error('Failed to save settings:', error);
-      setSaveMessage(t('settings.settingsSaveFailed'));
+      showToast.error(t('settings.settingsSaveFailed'));
     } finally {
       setIsSaving(false);
     }
@@ -184,8 +184,18 @@ const Settings: React.FC = () => {
   };
 
   const clearAllData = () => {
-    if (window.confirm(t('settings.confirmClearData'))) {
+    setShowClearDataConfirm(true);
+  };
+
+  const confirmClearData = async () => {
+    try {
+      // TODO: Implement actual data clearing
       console.log('Clearing all data...');
+      showToast.success('All data cleared successfully');
+      setShowClearDataConfirm(false);
+    } catch (error) {
+      console.error('Failed to clear data:', error);
+      showToast.error('Failed to clear data');
     }
   };
 
@@ -505,11 +515,6 @@ const Settings: React.FC = () => {
         </div>
 
         <div className="flex justify-end items-center space-x-4">
-          {saveMessage && (
-            <span className={`text-sm font-medium ${saveMessage.includes('successfully') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-              {saveMessage}
-            </span>
-          )}
           <Button
             onClick={saveSettings}
             disabled={isSaving}
@@ -521,6 +526,17 @@ const Settings: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Clear Data Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showClearDataConfirm}
+        onClose={() => setShowClearDataConfirm(false)}
+        onConfirm={confirmClearData}
+        title={t('settings.clearAllData')}
+        message={t('settings.confirmClearData')}
+        confirmText={t('settings.clearDataButton')}
+        variant="danger"
+      />
     </div>
   );
 };

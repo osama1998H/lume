@@ -4,10 +4,13 @@ import { Target, TrendingUp, Award, Flame, Edit2, Trash2, Plus } from 'lucide-re
 import { ProductivityGoal, GoalWithProgress, GoalStats, GoalType, GoalOperator, GoalPeriod, GoalStatus } from '../types';
 import StatCard from './ui/StatCard';
 import Button from './ui/Button';
-import Input from './ui/Input';
 import Badge from './ui/Badge';
 import EmptyState from './ui/EmptyState';
 import Skeleton from './ui/Skeleton';
+import { FormModal, ConfirmModal } from './ui/Modal';
+import FormField, { SelectField } from './ui/FormField';
+import { showToast } from '../utils/toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Goals: React.FC = () => {
   const { t } = useTranslation();
@@ -16,6 +19,36 @@ const Goals: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<GoalWithProgress | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteGoalId, setDeleteGoalId] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Form state
+  const [formData, setFormData] = useState<{
+    name: string;
+    description: string;
+    goalType: GoalType;
+    category: string;
+    appName: string;
+    targetMinutes: number;
+    operator: GoalOperator;
+    period: GoalPeriod;
+    active: boolean;
+    notificationsEnabled: boolean;
+    notifyAtPercentage: number;
+  }>({
+    name: '',
+    description: '',
+    goalType: 'daily_time',
+    category: '',
+    appName: '',
+    targetMinutes: 60,
+    operator: 'gte',
+    period: 'daily',
+    active: true,
+    notificationsEnabled: true,
+    notifyAtPercentage: 100,
+  });
 
   useEffect(() => {
     loadGoals();
@@ -30,6 +63,7 @@ const Goals: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to load goals:', error);
+      showToast.error(t('goals.loadingGoals') || 'Failed to load goals');
     } finally {
       setIsLoading(false);
     }
@@ -48,29 +82,111 @@ const Goals: React.FC = () => {
 
   const handleCreateGoal = () => {
     setEditingGoal(null);
+    setFormData({
+      name: '',
+      description: '',
+      goalType: 'daily_time',
+      category: '',
+      appName: '',
+      targetMinutes: 60,
+      operator: 'gte',
+      period: 'daily',
+      active: true,
+      notificationsEnabled: true,
+      notifyAtPercentage: 100,
+    });
     setShowCreateModal(true);
   };
 
   const handleEditGoal = (goal: GoalWithProgress) => {
     setEditingGoal(goal);
+    setFormData({
+      name: goal.name,
+      description: goal.description || '',
+      goalType: goal.goalType,
+      category: goal.category || '',
+      appName: goal.appName || '',
+      targetMinutes: goal.targetMinutes,
+      operator: goal.operator,
+      period: goal.period,
+      active: goal.active,
+      notificationsEnabled: goal.notificationsEnabled,
+      notifyAtPercentage: goal.notifyAtPercentage,
+    });
     setShowCreateModal(true);
   };
 
-  const handleDeleteGoal = async (goalId: number) => {
-    if (!window.confirm(t('goals.confirmDelete'))) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.name.trim()) {
+      showToast.error(t('goals.goalName') + ' is required');
       return;
     }
 
+    setIsSaving(true);
     try {
       if (window.electronAPI) {
-        const success = await window.electronAPI.deleteGoal(goalId);
+        const goalData: Partial<ProductivityGoal> = {
+          name: formData.name,
+          description: formData.description || undefined,
+          goalType: formData.goalType,
+          category: formData.category || undefined,
+          appName: formData.appName || undefined,
+          targetMinutes: formData.targetMinutes,
+          operator: formData.operator,
+          period: formData.period,
+          active: formData.active,
+          notificationsEnabled: formData.notificationsEnabled,
+          notifyAtPercentage: formData.notifyAtPercentage,
+        };
+
+        if (editingGoal?.id) {
+          await window.electronAPI.updateGoal(editingGoal.id, goalData);
+          showToast.success(t('goals.updateSuccess') || 'Goal updated successfully');
+        } else {
+          await window.electronAPI.addGoal(goalData as ProductivityGoal);
+          showToast.success(t('goals.createSuccess') || 'Goal created successfully');
+        }
+
+        setShowCreateModal(false);
+        setEditingGoal(null);
+        await loadGoals();
+        await loadStats();
+      }
+    } catch (error) {
+      console.error('Failed to save goal:', error);
+      showToast.error(editingGoal ? t('goals.updateFailed') : t('goals.createFailed'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteGoal = (goalId: number) => {
+    setDeleteGoalId(goalId);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteGoalId) return;
+
+    setIsSaving(true);
+    try {
+      if (window.electronAPI) {
+        const success = await window.electronAPI.deleteGoal(deleteGoalId);
         if (success) {
           await loadGoals();
           await loadStats();
+          showToast.success(t('goals.deleteSuccess') || 'Goal deleted successfully');
         }
       }
     } catch (error) {
       console.error('Failed to delete goal:', error);
+      showToast.error(t('goals.deleteFailed') || 'Failed to delete goal');
+    } finally {
+      setIsSaving(false);
+      setShowDeleteConfirm(false);
+      setDeleteGoalId(null);
     }
   };
 
@@ -80,9 +196,11 @@ const Goals: React.FC = () => {
         await window.electronAPI.updateGoal(goal.id, { active: !goal.active });
         await loadGoals();
         await loadStats();
+        showToast.success(goal.active ? 'Goal paused' : 'Goal activated');
       }
     } catch (error) {
       console.error('Failed to toggle goal:', error);
+      showToast.error('Failed to update goal status');
     }
   };
 
@@ -124,12 +242,12 @@ const Goals: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-8 overflow-y-auto space-y-8">
+      <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto space-y-8">
         <div className="space-y-2">
           <Skeleton width="200px" height="32px" />
           <Skeleton width="300px" height="20px" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <Skeleton variant="rectangular" height="120px" />
           <Skeleton variant="rectangular" height="120px" />
           <Skeleton variant="rectangular" height="120px" />
@@ -140,20 +258,29 @@ const Goals: React.FC = () => {
   }
 
   return (
-    <div className="p-8 overflow-y-auto">
+    <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto">
       {/* Header */}
-      <div className="mb-8 animate-fade-in">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8"
+      >
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           {t('goals.title')}
         </h2>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
           {t('goals.subtitle')}
         </p>
-      </div>
+      </motion.div>
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8"
+        >
           <StatCard
             icon={Target}
             title={t('goals.stats.totalGoals')}
@@ -178,11 +305,16 @@ const Goals: React.FC = () => {
             value={`${stats.currentStreak} ${t('goals.stats.days')}`}
             colorScheme="orange"
           />
-        </div>
+        </motion.div>
       )}
 
       {/* Create Goal Button */}
-      <div className="mb-6">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="mb-6"
+      >
         <Button
           onClick={handleCreateGoal}
           variant="primary"
@@ -190,379 +322,295 @@ const Goals: React.FC = () => {
         >
           {t('goals.createGoal')}
         </Button>
-      </div>
+      </motion.div>
 
       {/* Goals List */}
       {goals.length === 0 ? (
-        <EmptyState
-          icon={Target}
-          title={t('goals.noGoals')}
-          description={t('goals.noGoalsPrompt')}
-          action={{
-            label: t('goals.createGoal'),
-            onClick: handleCreateGoal,
-          }}
-        />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <EmptyState
+            icon={Target}
+            title={t('goals.noGoals')}
+            description={t('goals.noGoalsPrompt')}
+            action={{
+              label: t('goals.createGoal'),
+              onClick: handleCreateGoal,
+            }}
+          />
+        </motion.div>
       ) : (
         <div className="space-y-4">
-          {goals.map((goal) => (
-            <div
-              key={goal.id}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow p-6"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                      {goal.name}
-                    </h3>
-                    <Badge variant={getStatusVariant(goal.status)} size="sm">
-                      {t(`goals.status${goal.status.charAt(0).toUpperCase() + goal.status.slice(1)}`)}
-                    </Badge>
+          <AnimatePresence mode="popLayout">
+            {goals.map((goal, index) => (
+              <motion.div
+                key={goal.id}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ delay: index * 0.05 }}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-lg transition-all p-4 sm:p-6 border border-gray-200 dark:border-gray-700 group"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white truncate">
+                        {goal.name}
+                      </h3>
+                      <Badge variant={getStatusVariant(goal.status)} size="sm">
+                        {t(`goals.status${goal.status.charAt(0).toUpperCase() + goal.status.slice(1)}`)}
+                      </Badge>
+                    </div>
+                    {goal.description && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        {goal.description}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md">
+                        {t(`goals.goalType${goal.goalType.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`)}
+                      </span>
+                      <span>•</span>
+                      <span>
+                        {t(`goals.operator${goal.operator.charAt(0).toUpperCase() + goal.operator.slice(1)}`)} {formatMinutes(goal.targetMinutes)}
+                      </span>
+                      {goal.category && (
+                        <>
+                          <span className="hidden sm:inline">•</span>
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md">
+                            {goal.category}
+                          </span>
+                        </>
+                      )}
+                      {goal.appName && (
+                        <>
+                          <span className="hidden sm:inline">•</span>
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md">
+                            {goal.appName}
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  {goal.description && (
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">
-                      {goal.description}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
-                    <span>
-                      {t(`goals.goalType${goal.goalType.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`)}
-                    </span>
-                    <span>•</span>
-                    <span>
-                      {t(`goals.operator${goal.operator.charAt(0).toUpperCase() + goal.operator.slice(1)}`)} {formatMinutes(goal.targetMinutes)}
-                    </span>
-                    {goal.category && (
-                      <>
-                        <span>•</span>
-                        <span>{goal.category}</span>
-                      </>
-                    )}
-                    {goal.appName && (
-                      <>
-                        <span>•</span>
-                        <span>{goal.appName}</span>
-                      </>
-                    )}
+                  <div className="flex sm:flex-col gap-2 sm:items-end">
+                    <Button
+                      onClick={() => handleToggleActive(goal)}
+                      variant={goal.active ? 'secondary' : 'ghost'}
+                      size="sm"
+                      className="flex-1 sm:flex-none"
+                    >
+                      {goal.active ? t('goals.active') : t('settings.stopped')}
+                    </Button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEditGoal(goal)}
+                        className="p-2 text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                        title="Edit goal"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => goal.id && handleDeleteGoal(goal.id)}
+                        className="p-2 text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                        title="Delete goal"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={() => handleToggleActive(goal)}
-                    variant={goal.active ? 'secondary' : 'ghost'}
-                    size="sm"
-                  >
-                    {goal.active ? t('goals.active') : t('settings.stopped')}
-                  </Button>
-                  <button
-                    onClick={() => handleEditGoal(goal)}
-                    className="p-2 text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => goal.id && handleDeleteGoal(goal.id)}
-                    className="p-2 text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
 
-              {/* Progress Bar */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {t('goals.progress')}
-                  </span>
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    {formatMinutes(goal.todayProgress?.progressMinutes || 0)} / {formatMinutes(goal.targetMinutes)}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                  <div
-                    className={`h-3 rounded-full transition-all ${getProgressBarColor(
-                      goal.status
-                    )}`}
-                    style={{
-                      width: `${Math.min(goal.progressPercentage, 100)}%`,
-                    }}
-                  />
-                </div>
-                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                  <span>{goal.progressPercentage.toFixed(0)}%</span>
-                  {goal.timeRemaining > 0 && goal.operator === 'gte' && (
-                    <span>
-                      {formatMinutes(goal.timeRemaining)} {t('goals.timeRemaining')}
+                {/* Progress Bar */}
+                <div className="space-y-2 mt-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {t('goals.progress')}
                     </span>
-                  )}
-                  {goal.operator === 'lte' && goal.status !== 'exceeded' && (
-                    <span>
-                      {formatMinutes(goal.timeRemaining)} {t('goals.timeRemaining')}
+                    <span className="font-medium text-gray-900 dark:text-white">
+                      {formatMinutes(goal.todayProgress?.progressMinutes || 0)} / {formatMinutes(goal.targetMinutes)}
                     </span>
-                  )}
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min(goal.progressPercentage, 100)}%` }}
+                      transition={{ duration: 0.8, ease: 'easeOut' }}
+                      className={`h-3 rounded-full transition-colors ${getProgressBarColor(goal.status)}`}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <span className="font-medium">{goal.progressPercentage.toFixed(0)}%</span>
+                    {goal.timeRemaining > 0 && goal.operator === 'gte' && (
+                      <span>
+                        {formatMinutes(goal.timeRemaining)} {t('goals.timeRemaining')}
+                      </span>
+                    )}
+                    {goal.operator === 'lte' && goal.status !== 'exceeded' && (
+                      <span>
+                        {formatMinutes(goal.timeRemaining)} {t('goals.timeRemaining')}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
 
       {/* Create/Edit Modal */}
-      {showCreateModal && (
-        <GoalModal
-          goal={editingGoal}
-          onClose={() => {
-            setShowCreateModal(false);
-            setEditingGoal(null);
-          }}
-          onSave={async () => {
-            setShowCreateModal(false);
-            setEditingGoal(null);
-            await loadGoals();
-            await loadStats();
-          }}
-        />
-      )}
-    </div>
-  );
-};
+      <FormModal
+        isOpen={showCreateModal}
+        onClose={() => {
+          setShowCreateModal(false);
+          setEditingGoal(null);
+        }}
+        onSubmit={handleSubmit}
+        title={editingGoal ? t('goals.editGoal') : t('goals.createGoal')}
+        isLoading={isSaving}
+        size="lg"
+      >
+        <div className="space-y-4">
+          {/* Goal Name */}
+          <FormField
+            type="text"
+            label={`${t('goals.goalName')} *`}
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder={t('goals.goalNamePlaceholder')}
+            required
+          />
 
-interface GoalModalProps {
-  goal: GoalWithProgress | null;
-  onClose: () => void;
-  onSave: () => void;
-}
+          {/* Description */}
+          <FormField
+            as="textarea"
+            label={t('goals.description')}
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder={t('goals.descriptionPlaceholder')}
+            rows={2}
+          />
 
-const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose, onSave }) => {
-  const { t } = useTranslation();
-  const [formData, setFormData] = useState<{
-    name: string;
-    description: string;
-    goalType: GoalType;
-    category: string;
-    appName: string;
-    targetMinutes: number;
-    operator: GoalOperator;
-    period: GoalPeriod;
-    active: boolean;
-    notificationsEnabled: boolean;
-    notifyAtPercentage: number;
-  }>({
-    name: goal?.name || '',
-    description: goal?.description || '',
-    goalType: goal?.goalType || 'daily_time',
-    category: goal?.category || '',
-    appName: goal?.appName || '',
-    targetMinutes: goal?.targetMinutes || 60,
-    operator: goal?.operator || 'gte',
-    period: goal?.period || 'daily',
-    active: goal?.active !== undefined ? goal.active : true,
-    notificationsEnabled: goal?.notificationsEnabled !== undefined ? goal.notificationsEnabled : true,
-    notifyAtPercentage: goal?.notifyAtPercentage || 100,
-  });
-  const [isSaving, setIsSaving] = useState(false);
+          {/* Goal Type */}
+          <SelectField
+            label={`${t('goals.goalType')} *`}
+            value={formData.goalType}
+            onChange={(e) => setFormData({ ...formData, goalType: e.target.value as GoalType })}
+            options={[
+              { value: 'daily_time', label: t('goals.goalTypeDaily') },
+              { value: 'weekly_time', label: t('goals.goalTypeWeekly') },
+              { value: 'category', label: t('goals.goalTypeCategory') },
+              { value: 'app_limit', label: t('goals.goalTypeAppLimit') },
+            ]}
+            required
+          />
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-
-    try {
-      if (window.electronAPI) {
-        const goalData: Partial<ProductivityGoal> = {
-          name: formData.name,
-          description: formData.description || undefined,
-          goalType: formData.goalType,
-          category: formData.category || undefined,
-          appName: formData.appName || undefined,
-          targetMinutes: formData.targetMinutes,
-          operator: formData.operator,
-          period: formData.period,
-          active: formData.active,
-          notificationsEnabled: formData.notificationsEnabled,
-          notifyAtPercentage: formData.notifyAtPercentage,
-        };
-
-        if (goal?.id) {
-          await window.electronAPI.updateGoal(goal.id, goalData);
-        } else {
-          await window.electronAPI.addGoal(goalData as ProductivityGoal);
-        }
-
-        onSave();
-      }
-    } catch (error) {
-      console.error('Failed to save goal:', error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-            {goal ? t('goals.editGoal') : t('goals.createGoal')}
-          </h2>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Goal Name */}
-            <Input
+          {/* Category (for category goals) */}
+          {formData.goalType === 'category' && (
+            <FormField
               type="text"
-              label={`${t('goals.goalName')} *`}
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder={t('goals.goalNamePlaceholder')}
+              label={`${t('goals.category')} *`}
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              placeholder={t('goals.categoryPlaceholder')}
               required
             />
+          )}
 
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                {t('goals.description')}
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder={t('goals.descriptionPlaceholder')}
-                rows={2}
-                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:text-gray-100 transition-all"
+          {/* App Name (for app_limit goals) */}
+          {formData.goalType === 'app_limit' && (
+            <FormField
+              type="text"
+              label={`${t('goals.appName')} *`}
+              value={formData.appName}
+              onChange={(e) => setFormData({ ...formData, appName: e.target.value })}
+              placeholder={t('goals.appNamePlaceholder')}
+              required
+            />
+          )}
+
+          {/* Operator & Target */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <SelectField
+              label={`${t('goals.operator')} *`}
+              value={formData.operator}
+              onChange={(e) => setFormData({ ...formData, operator: e.target.value as GoalOperator })}
+              options={[
+                { value: 'gte', label: t('goals.operatorGte') },
+                { value: 'lte', label: t('goals.operatorLte') },
+                { value: 'eq', label: t('goals.operatorEq') },
+              ]}
+              required
+            />
+            <FormField
+              type="number"
+              label={`${t('goals.targetMinutes')} *`}
+              value={formData.targetMinutes.toString()}
+              onChange={(e) => setFormData({ ...formData, targetMinutes: parseInt(e.target.value, 10) || 0 })}
+              min={1}
+              required
+            />
+          </div>
+
+          {/* Notifications */}
+          <SelectField
+            label={t('goals.notifyAtPercentage')}
+            value={formData.notifyAtPercentage.toString()}
+            onChange={(e) => setFormData({ ...formData, notifyAtPercentage: parseInt(e.target.value, 10) })}
+            options={[
+              { value: '50', label: t('goals.notifyAt50') },
+              { value: '75', label: t('goals.notifyAt75') },
+              { value: '90', label: t('goals.notifyAt90') },
+              { value: '100', label: t('goals.notifyAt100') },
+            ]}
+          />
+
+          {/* Toggles */}
+          <div className="space-y-3 pt-2">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.active}
+                onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+                className="w-4 h-4 text-primary-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 transition-colors"
               />
-            </div>
-
-            {/* Goal Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t('goals.goalType')} *
-              </label>
-              <select
-                value={formData.goalType}
-                onChange={(e) => setFormData({ ...formData, goalType: e.target.value as GoalType })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="daily_time" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.goalTypeDaily')}</option>
-                <option value="weekly_time" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.goalTypeWeekly')}</option>
-                <option value="category" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.goalTypeCategory')}</option>
-                <option value="app_limit" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.goalTypeAppLimit')}</option>
-              </select>
-            </div>
-
-            {/* Category (for category goals) */}
-            {formData.goalType === 'category' && (
-              <Input
-                type="text"
-                label={`${t('goals.category')} *`}
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                placeholder={t('goals.categoryPlaceholder')}
-                required
+              <span className="ml-3 text-sm text-gray-700 dark:text-gray-300">
+                {t('goals.activeDesc')}
+              </span>
+            </label>
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.notificationsEnabled}
+                onChange={(e) => setFormData({ ...formData, notificationsEnabled: e.target.checked })}
+                className="w-4 h-4 text-primary-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 transition-colors"
               />
-            )}
-
-            {/* App Name (for app_limit goals) */}
-            {formData.goalType === 'app_limit' && (
-              <Input
-                type="text"
-                label={`${t('goals.appName')} *`}
-                value={formData.appName}
-                onChange={(e) => setFormData({ ...formData, appName: e.target.value })}
-                placeholder={t('goals.appNamePlaceholder')}
-                required
-              />
-            )}
-
-            {/* Operator & Target */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('goals.operator')} *
-                </label>
-                <select
-                  value={formData.operator}
-                  onChange={(e) => setFormData({ ...formData, operator: e.target.value as GoalOperator })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="gte" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.operatorGte')}</option>
-                  <option value="lte" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.operatorLte')}</option>
-                  <option value="eq" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.operatorEq')}</option>
-                </select>
-              </div>
-              <Input
-                type="number"
-                label={`${t('goals.targetMinutes')} *`}
-                value={formData.targetMinutes.toString()}
-                onChange={(e) => setFormData({ ...formData, targetMinutes: parseInt(e.target.value, 10) || 0 })}
-                min={1}
-                required
-              />
-            </div>
-
-            {/* Notifications */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t('goals.notifyAtPercentage')}
-              </label>
-              <select
-                value={formData.notifyAtPercentage}
-                onChange={(e) => setFormData({ ...formData, notifyAtPercentage: parseInt(e.target.value, 10) })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value={50} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.notifyAt50')}</option>
-                <option value={75} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.notifyAt75')}</option>
-                <option value={90} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.notifyAt90')}</option>
-                <option value={100} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.notifyAt100')}</option>
-              </select>
-            </div>
-
-            {/* Toggles */}
-            <div className="space-y-3">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.active}
-                  onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800"
-                />
-                <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                  {t('goals.activeDesc')}
-                </span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.notificationsEnabled}
-                  onChange={(e) => setFormData({ ...formData, notificationsEnabled: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800"
-                />
-                <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                  {t('goals.notificationsEnabledDesc')}
-                </span>
-              </label>
-            </div>
-
-            {/* Buttons */}
-            <div className="flex justify-end gap-3 pt-4">
-              <Button
-                type="button"
-                onClick={onClose}
-                variant="ghost"
-              >
-                {t('common.cancel')}
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSaving}
-                variant="primary"
-                loading={isSaving}
-              >
-                {t('common.save')}
-              </Button>
-            </div>
-          </form>
+              <span className="ml-3 text-sm text-gray-700 dark:text-gray-300">
+                {t('goals.notificationsEnabledDesc')}
+              </span>
+            </label>
+          </div>
         </div>
-      </div>
+      </FormModal>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setDeleteGoalId(null);
+        }}
+        onConfirm={confirmDelete}
+        title={t('goals.deleteGoal') || 'Delete Goal'}
+        message={t('goals.confirmDelete') || 'Are you sure you want to delete this goal? This action cannot be undone.'}
+        confirmText={t('common.delete') || 'Delete'}
+        cancelText={t('common.cancel') || 'Cancel'}
+        variant="danger"
+        isLoading={isSaving}
+      />
     </div>
   );
 };
