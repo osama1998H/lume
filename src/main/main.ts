@@ -210,7 +210,7 @@ class LumeApp {
       minimizeToTray: false,
       autoStartOnLogin: false,
       autoStartTracking: false,
-      defaultCategory: '',
+      defaultCategory: null,
       trackingInterval: 30,
     };
   }

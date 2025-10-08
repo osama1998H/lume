@@ -12,7 +12,9 @@
     "goals": "Goals",
     "settings": "Settings",
     "focus": "Focus Mode",
-    "categories": "Categories"
+    "categories": "Categories",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar"
   },
   "dashboard": {
     "title": "Dashboard",
