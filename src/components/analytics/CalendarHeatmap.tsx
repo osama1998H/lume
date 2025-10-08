@@ -64,7 +64,7 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({
       <div className="relative">
         {/* Month labels */}
         <div className="flex mb-2 text-xs text-text-tertiary">
-          {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month, i) => (
+          {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month) => (
             <div key={month} style={{ flex: 4.33 }} className="text-center">
               {t(`common.months.${month}`)}
             </div>

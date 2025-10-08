@@ -56,7 +56,7 @@ export const InsightCard: React.FC<InsightCardProps> = ({ insight }) => {
         const match = insight.description.match(/(.+) has (\d+) short sessions/);
         if (match) {
           const app = match[1];
-          const count = match[2];
+          const count = parseInt(match[2]);
           const description = t('analytics.insightTypes.distraction.description', { app, count });
           return { title, description };
         }

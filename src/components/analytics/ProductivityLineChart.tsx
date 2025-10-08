@@ -85,7 +85,7 @@ function formatDate(dateStr: string): string {
   // Handle different date formats (day, week, month)
   if (dateStr.includes('W')) {
     // Week format: 2025-W14
-    const [year, week] = dateStr.split('-W');
+    const [_year, week] = dateStr.split('-W');
     return `Week ${week}`;
   } else if (dateStr.match(/^\d{4}-\d{2}$/)) {
     // Month format: 2025-01

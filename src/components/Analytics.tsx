@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trophy, Clock, Sun, Flame } from 'lucide-react';
 import type {
   AnalyticsSummary,
-  DailyStats,
   HourlyPattern,
   HeatmapDay,
   WeeklySummary,
   ProductivityTrend,
-  BehavioralInsight,
-  DistractionMetric
+  BehavioralInsight
 } from '../types';
 import StatCard from './ui/StatCard';
 import { ProductivityLineChart } from './analytics/ProductivityLineChart';
@@ -31,12 +29,7 @@ export const Analytics: React.FC = () => {
   const [insights, setInsights] = useState<BehavioralInsight[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('month');
 
-  // Load analytics data
-  useEffect(() => {
-    loadAnalytics();
-  }, [selectedPeriod]);
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     try {
       setIsLoading(true);
 
@@ -91,7 +84,12 @@ export const Analytics: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedPeriod]);
+
+  // Load analytics data
+  useEffect(() => {
+    loadAnalytics();
+  }, [loadAnalytics]);
 
   // Format duration in hours
   const formatHours = (minutes: number): string => {

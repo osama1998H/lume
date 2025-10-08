@@ -1800,7 +1800,6 @@ export class DatabaseManager {
   getHourlyPatterns(days: number): import('../types').HourlyPattern[] {
     if (!this.db) return [];
 
-    const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
@@ -2198,7 +2197,6 @@ export class DatabaseManager {
     const last30Days = new Date();
     last30Days.setDate(last30Days.getDate() - 30);
     const last30DaysStr = last30Days.toISOString().split('T')[0];
-    const today = new Date().toISOString().split('T')[0];
 
     // 1. Peak Hour Insight
     const peakHourStmt = this.db.prepare(`
