@@ -86,6 +86,9 @@ export interface IElectronAPI {
   // Statistics API
   getCategoryStats: (startDate?: string, endDate?: string) => Promise<CategoryStats[]>;
   getTagStats: (startDate?: string, endDate?: string) => Promise<TagStats[]>;
+  // Timeline API
+  getTimelineActivities: (startDate: string, endDate: string) => Promise<any[]>;
+  getTimelineSummary: (startDate: string, endDate: string) => Promise<any>;
 }
 
 const electronAPI: IElectronAPI = {
@@ -159,6 +162,9 @@ const electronAPI: IElectronAPI = {
   // Statistics API
   getCategoryStats: (startDate, endDate) => ipcRenderer.invoke('get-category-stats', startDate, endDate),
   getTagStats: (startDate, endDate) => ipcRenderer.invoke('get-tag-stats', startDate, endDate),
+  // Timeline API
+  getTimelineActivities: (startDate, endDate) => ipcRenderer.invoke('get-timeline-activities', startDate, endDate),
+  getTimelineSummary: (startDate, endDate) => ipcRenderer.invoke('get-timeline-summary', startDate, endDate),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);

@@ -7,6 +7,7 @@
     "dashboard": "لوحة التحكم",
     "tracker": "متتبع الوقت",
     "reports": "التقارير",
+    "timeline": "الجدول الزمني",
     "goals": "الأهداف",
     "settings": "الإعدادات",
     "focus": "وضع التركيز",
@@ -344,6 +345,45 @@
     "noTags": "لا توجد وسوم بعد",
     "noTagsDesc": "أنشئ وسمك الأول لتصنيف وتصفية أنشطتك",
     "mappingsDesc": "عيّن التطبيقات والنطاقات إلى الفئات للتصنيف التلقائي"
+  },
+  "timeline": {
+    "title": "الجدول الزمني للأنشطة",
+    "subtitle": "تصور يومك من خلال جدول زمني للأنشطة",
+    "totalActivities": "إجمالي الأنشطة",
+    "totalTime": "إجمالي الوقت",
+    "averageDuration": "متوسط المدة",
+    "activityDetails": "تفاصيل النشاط",
+    "activityType": "نوع النشاط",
+    "noActivities": "لا توجد أنشطة للفترة المحددة",
+    "noActivitiesDesc": "ابدأ بتتبع وقتك لرؤية جدولك الزمني",
+    "tasks": "المهام",
+    "apps": "التطبيقات",
+    "websites": "المواقع",
+    "manualTasks": "المهام اليدوية",
+    "applications": "التطبيقات",
+    "webBrowsing": "تصفح الويب",
+    "previous": "السابق",
+    "next": "التالي",
+    "filters": {
+      "title": "التصفيات",
+      "activityTypes": "أنواع الأنشطة",
+      "categories": "الفئات",
+      "search": "بحث في الأنشطة",
+      "apps": "التطبيقات",
+      "websites": "المواقع",
+      "tasks": "المهام"
+    },
+    "zoom": {
+      "in": "تكبير",
+      "out": "تصغير",
+      "reset": "إعادة تعيين التكبير"
+    },
+    "dateRanges": {
+      "today": "اليوم",
+      "week": "آخر 7 أيام",
+      "month": "آخر 30 يومًا",
+      "custom": "نطاق مخصص"
+    }
   },
   "errors": {
     "somethingWentWrong": "حدث خطأ ما",
