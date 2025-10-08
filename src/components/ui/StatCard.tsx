@@ -65,7 +65,7 @@ const StatCard: React.FC<StatCardProps> = ({
   const colors = colorSchemes[colorScheme];
 
   return (
-    <div className={`card-hover group ${className}`}>
+    <div className={`card-hover group ${colors.bg} ${className}`}>
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4 flex-1">
           <div className={`p-3 rounded-xl ${colors.iconBg} shadow-lg group-hover:scale-110 transition-transform duration-200`}>

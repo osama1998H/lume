@@ -493,7 +493,7 @@ const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose, onSave }) => {
                 type="number"
                 label={`${t('goals.targetMinutes')} *`}
                 value={formData.targetMinutes.toString()}
-                onChange={(e) => setFormData({ ...formData, targetMinutes: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, targetMinutes: parseInt(e.target.value, 10) || 0 })}
                 min={1}
                 required
               />
@@ -506,7 +506,7 @@ const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose, onSave }) => {
               </label>
               <select
                 value={formData.notifyAtPercentage}
-                onChange={(e) => setFormData({ ...formData, notifyAtPercentage: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, notifyAtPercentage: parseInt(e.target.value, 10) })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value={50} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.notifyAt50')}</option>

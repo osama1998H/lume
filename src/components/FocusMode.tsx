@@ -172,6 +172,7 @@ const FocusMode: React.FC = () => {
                   value={taskInput}
                   onChange={(e) => setTaskInput(e.target.value)}
                   placeholder={t('focusMode.taskPlaceholder')}
+                  aria-label={t('focusMode.taskPlaceholder')}
                   icon={Coffee}
                   iconPosition="left"
                   onKeyDown={(e) => {

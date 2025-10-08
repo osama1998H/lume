@@ -21,10 +21,16 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       fullWidth = false,
       className = '',
       disabled,
+      id,
       ...props
     },
     ref
   ) => {
+    // Generate unique IDs for accessibility
+    const generatedId = React.useId();
+    const inputId = id || `input-${generatedId}`;
+    const errorId = `${inputId}-error`;
+    const hintId = `${inputId}-hint`;
     const inputClasses = `
       w-full px-4 py-2.5 rounded-lg
       border transition-all duration-200
@@ -45,33 +51,36 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={fullWidth ? 'w-full' : ''}>
         {label && (
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             {label}
           </label>
         )}
         <div className="relative">
           {Icon && iconPosition === 'left' && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" aria-hidden="true">
               <Icon className="h-5 w-5" />
             </div>
           )}
           <input
             ref={ref}
+            id={inputId}
             disabled={disabled}
             className={`${inputClasses} ${className}`}
+            aria-invalid={error ? 'true' : 'false'}
+            aria-describedby={error ? errorId : hint ? hintId : undefined}
             {...props}
           />
           {Icon && iconPosition === 'right' && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" aria-hidden="true">
               <Icon className="h-5 w-5" />
             </div>
           )}
         </div>
         {error && (
-          <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{error}</p>
+          <p id={errorId} className="mt-1.5 text-sm text-red-600 dark:text-red-400">{error}</p>
         )}
         {hint && !error && (
-          <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">{hint}</p>
+          <p id={hintId} className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">{hint}</p>
         )}
       </div>
     );
