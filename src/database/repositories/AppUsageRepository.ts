@@ -37,7 +37,8 @@ export class AppUsageRepository extends BaseRepository<AppUsage> {
    * Insert a new app usage record
    */
   insert(usage: Partial<AppUsage>): number {
-    const usageToInsert = {
+    // Convert booleans to integers for SQLite
+    const snakeEntity = this.toSnakeCase({
       appName: usage.appName,
       windowTitle: usage.windowTitle || undefined,
       startTime: usage.startTime,
@@ -49,8 +50,20 @@ export class AppUsageRepository extends BaseRepository<AppUsage> {
       url: usage.url || undefined,
       isBrowser: usage.isBrowser ? 1 : 0,
       isIdle: usage.isIdle ? 1 : 0,
-    };
-    return super.insert(usageToInsert);
+    } as any);
+
+    const columns = Object.keys(snakeEntity);
+    const placeholders = columns.map(() => '?').join(', ');
+    const values = Object.values(snakeEntity);
+
+    const query = `
+      INSERT INTO ${this.tableName} (${columns.join(', ')})
+      VALUES (${placeholders})
+    `;
+
+    const stmt = this.db.prepare(query);
+    const result = stmt.run(...values);
+    return result.lastInsertRowid as number;
   }
 
   /**

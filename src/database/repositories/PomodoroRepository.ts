@@ -42,7 +42,8 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
   insert(session: Partial<PomodoroSession>): number {
     console.log(`💾 DB: Inserting pomodoro session - ${session.task} (${session.sessionType})`);
 
-    const sessionToInsert = {
+    // Convert booleans to integers for SQLite
+    const snakeEntity = this.toSnakeCase({
       task: session.task,
       sessionType: session.sessionType,
       duration: session.duration,
@@ -50,9 +51,21 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
       endTime: session.endTime || undefined,
       completed: session.completed ? 1 : 0,
       interrupted: session.interrupted ? 1 : 0,
-    };
+    } as any);
 
-    const id = super.insert(sessionToInsert);
+    const columns = Object.keys(snakeEntity);
+    const placeholders = columns.map(() => '?').join(', ');
+    const values = Object.values(snakeEntity);
+
+    const query = `
+      INSERT INTO ${this.tableName} (${columns.join(', ')})
+      VALUES (${placeholders})
+    `;
+
+    const stmt = this.db.prepare(query);
+    const result = stmt.run(...values);
+    const id = result.lastInsertRowid as number;
+
     console.log(`✅ DB: Pomodoro session saved with ID: ${id}`);
     return id;
   }

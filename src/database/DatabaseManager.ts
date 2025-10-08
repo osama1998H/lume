@@ -38,13 +38,14 @@ import type {
   BehavioralInsight,
   AnalyticsSummary,
 } from '../types';
+import type { ActivitySession } from '../types/activity';
 
 /**
  * DatabaseManager - Facade/Coordinator for all database operations
  * Delegates to repositories and services for actual implementation
  * Maintains backward compatibility with existing interface
  */
-class DatabaseManager {
+export class DatabaseManager {
   private db: Database.Database | null = null;
   private dbPath: string | null = null;
 
@@ -565,6 +566,48 @@ class DatabaseManager {
   // Backward compatibility alias
   getCategoryById(id: number): Category | null {
     return this.getCategory(id);
+  }
+
+  // ==================== ACTIVITY SESSION (Backward Compatibility) ====================
+
+  /**
+   * Add activity session (backward compatibility wrapper for addAppUsage)
+   * Maps ActivitySession (snake_case) to AppUsage (camelCase)
+   */
+  addActivitySession(session: ActivitySession): number {
+    const appUsage: AppUsage = {
+      appName: session.app_name,
+      windowTitle: session.window_title,
+      category: session.category,
+      domain: session.domain,
+      url: session.url,
+      startTime: session.start_time,
+      endTime: session.end_time,
+      duration: session.duration,
+      isBrowser: session.is_browser,
+      isIdle: false,
+    };
+    return this.addAppUsage(appUsage);
+  }
+
+  /**
+   * Get activity sessions (backward compatibility wrapper for getAppUsage)
+   */
+  getActivitySessions(limit?: number): ActivitySession[] {
+    const appUsages = this.getAppUsage(limit);
+    return appUsages.map(usage => ({
+      id: usage.id,
+      app_name: usage.appName,
+      window_title: usage.windowTitle,
+      category: (usage.category as 'application' | 'website') || 'application',
+      domain: usage.domain,
+      url: usage.url,
+      start_time: usage.startTime,
+      end_time: usage.endTime,
+      duration: usage.duration,
+      is_browser: usage.isBrowser || false,
+      created_at: usage.createdAt,
+    }));
   }
 }
 

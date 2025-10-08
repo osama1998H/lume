@@ -13,10 +13,9 @@ jest.mock('../DatabaseManager', () => {
 
   resetState();
 
-  return {
-    DatabaseManager: jest.fn().mockImplementation(() => {
-      resetState(); // Reset state for each new instance
-      return {
+  const MockDatabaseManager = jest.fn().mockImplementation(() => {
+    resetState(); // Reset state for each new instance
+    return {
       addPomodoroSession: jest.fn((session: PomodoroSession) => {
         const id = nextId++;
         sessions.set(id, { ...session, id });
@@ -76,7 +75,11 @@ jest.mock('../DatabaseManager', () => {
       }),
       initialize: jest.fn(),
       };
-    }),
+    });
+
+  return {
+    DatabaseManager: MockDatabaseManager,
+    default: new MockDatabaseManager(),
   };
 });
 

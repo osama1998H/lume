@@ -59,7 +59,8 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
    * Insert a new goal
    */
   insert(goal: Partial<ProductivityGoal>): number {
-    const goalToInsert = {
+    // Convert booleans to integers for SQLite
+    const snakeEntity = this.toSnakeCase({
       name: goal.name,
       description: goal.description || undefined,
       goalType: goal.goalType,
@@ -71,9 +72,20 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
       active: goal.active ? 1 : 0,
       notificationsEnabled: goal.notificationsEnabled ? 1 : 0,
       notifyAtPercentage: goal.notifyAtPercentage,
-    };
+    } as any);
 
-    return super.insert(goalToInsert);
+    const columns = Object.keys(snakeEntity);
+    const placeholders = columns.map(() => '?').join(', ');
+    const values = Object.values(snakeEntity);
+
+    const query = `
+      INSERT INTO ${this.tableName} (${columns.join(', ')})
+      VALUES (${placeholders})
+    `;
+
+    const stmt = this.db.prepare(query);
+    const result = stmt.run(...values);
+    return result.lastInsertRowid as number;
   }
 
   /**
