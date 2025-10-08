@@ -122,6 +122,13 @@ class LumeApp {
       this.categoriesService = new CategoriesService(this.dbManager);
       console.log('✅ Categories service initialized');
 
+      // Initialize default categories for first-run users (async, non-blocking)
+      this.categoriesService.initializeDefaultCategories().then(() => {
+        console.log('✅ Default categories initialized');
+      }).catch((error) => {
+        console.error('⚠️ Failed to initialize default categories:', error);
+      });
+
       // Initialize activity tracking service (with goals service for integration)
       this.activityTracker = new ActivityTrackingService(this.dbManager, this.goalsService);
       console.log('✅ Activity tracking service initialized');

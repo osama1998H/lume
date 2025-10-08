@@ -266,8 +266,8 @@ export class DatabaseManager {
     if (!this.db) throw new Error('Database not initialized');
 
     const stmt = this.db.prepare(`
-      INSERT INTO time_entries (task, start_time, end_time, duration, category)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO time_entries (task, start_time, end_time, duration, category, category_id)
+      VALUES (?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -275,7 +275,8 @@ export class DatabaseManager {
       entry.startTime,
       entry.endTime || null,
       entry.duration || null,
-      entry.category || null
+      entry.category || null,
+      entry.categoryId || null
     );
 
     return result.lastInsertRowid as number;
@@ -371,8 +372,8 @@ export class DatabaseManager {
     if (!this.db) throw new Error('Database not initialized');
 
     const stmt = this.db.prepare(`
-      INSERT INTO app_usage (app_name, window_title, start_time, end_time, duration)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO app_usage (app_name, window_title, start_time, end_time, duration, category, category_id, domain, url, is_browser, is_idle)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -380,7 +381,13 @@ export class DatabaseManager {
       usage.windowTitle || null,
       usage.startTime,
       usage.endTime || null,
-      usage.duration || null
+      usage.duration || null,
+      usage.category || null,
+      usage.categoryId || null,
+      usage.domain || null,
+      usage.url || null,
+      usage.isBrowser ? 1 : 0,
+      usage.isIdle ? 1 : 0
     );
 
     return result.lastInsertRowid as number;
@@ -1262,6 +1269,13 @@ export class DatabaseManager {
   deleteCategory(id: number): boolean {
     if (!this.db) throw new Error('Database not initialized');
 
+    // Clear foreign key references before deletion to avoid constraint violations
+    this.db.prepare('UPDATE time_entries SET category_id = NULL WHERE category_id = ?').run(id);
+    this.db.prepare('UPDATE app_usage SET category_id = NULL WHERE category_id = ?').run(id);
+    this.db.prepare('DELETE FROM app_category_mappings WHERE category_id = ?').run(id);
+    this.db.prepare('DELETE FROM domain_category_mappings WHERE category_id = ?').run(id);
+
+    // Now safe to delete the category
     const stmt = this.db.prepare('DELETE FROM categories WHERE id = ?');
     const result = stmt.run(id);
     return result.changes > 0;
