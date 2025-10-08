@@ -68,8 +68,8 @@ class LumeApp {
     const iconPath = path.join(__dirname, '../../src/public/logo1.png');
 
     this.mainWindow = new BrowserWindow({
-      width: 1200,
-      height: 800,
+      width: 1600,
+      height: 1000,
       minWidth: 800,
       minHeight: 600,
       icon: iconPath,
