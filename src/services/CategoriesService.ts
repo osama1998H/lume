@@ -382,7 +382,7 @@ export class CategoriesService {
         { name: 'Work', color: '#3B82F6', icon: 'Briefcase', description: 'Work-related activities' },
         { name: 'Development', color: '#8B5CF6', icon: 'Code', description: 'Programming and development' },
         { name: 'Communication', color: '#10B981', icon: 'MessageSquare', description: 'Email, chat, meetings' },
-        { name: 'Design', color: '#F59E0B', icon: 'Palette', description: 'Design and creative work' },
+        { name: 'Design', color: '#F59E0B', icon: 'Edit2', description: 'Design and creative work' },
         { name: 'Learning', color: '#EF4444', icon: 'BookOpen', description: 'Educational activities' },
         { name: 'Entertainment', color: '#EC4899', icon: 'Tv', description: 'Leisure and entertainment' },
         { name: 'Social Media', color: '#06B6D4', icon: 'Share2', description: 'Social networking' },

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Play, Pause, Square, SkipForward, Coffee, TrendingUp, Award } from 'lucide-react';
-import { PomodoroStats } from '../types';
+import { PomodoroStats, Tag } from '../types';
 import { usePomodoro, SessionType } from '../contexts/PomodoroContext';
 import Button from './ui/Button';
 import Input from './ui/Input';
 import StatCard from './ui/StatCard';
 import Skeleton from './ui/Skeleton';
+import TagSelector from './ui/TagSelector';
 
 const FocusMode: React.FC = () => {
   const { t } = useTranslation();
@@ -21,6 +22,7 @@ const FocusMode: React.FC = () => {
   } = usePomodoro();
 
   const [taskInput, setTaskInput] = useState('');
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [stats, setStats] = useState<PomodoroStats | null>(null);
 
   // Load today's stats
@@ -41,10 +43,24 @@ const FocusMode: React.FC = () => {
   };
 
   // Handle start session
-  const handleStartSession = () => {
+  const handleStartSession = async () => {
     const task = taskInput.trim() || status.currentTask || 'Focus Session';
-    startSession(task, status.sessionType);
+    await startSession(task, status.sessionType);
+
+    // Save tags if any selected and session ID is available
+    if (selectedTags.length > 0 && status.currentSessionId && window.electronAPI) {
+      try {
+        const tagIds = selectedTags
+          .map((tag) => tag.id)
+          .filter((id): id is number => id != null);
+        await window.electronAPI.addPomodoroSessionTags(status.currentSessionId, tagIds);
+      } catch (error) {
+        console.error('Failed to add tags to pomodoro session:', error);
+      }
+    }
+
     setTaskInput('');
+    setSelectedTags([]);
   };
 
   // Format time as MM:SS
@@ -166,7 +182,7 @@ const FocusMode: React.FC = () => {
 
             {/* Task Display/Input */}
             {status.state === 'idle' && status.sessionType === 'focus' ? (
-              <div className="w-full max-w-md mb-6">
+              <div className="w-full max-w-md mb-6 space-y-4">
                 <Input
                   type="text"
                   value={taskInput}
@@ -181,6 +197,17 @@ const FocusMode: React.FC = () => {
                     }
                   }}
                 />
+                <div>
+                  <label htmlFor="focus-tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('focusMode.tags')}
+                  </label>
+                  <TagSelector
+                    selectedTags={selectedTags}
+                    onChange={setSelectedTags}
+                    allowCreate={true}
+                    placeholder={t('focusMode.tagsPlaceholder')}
+                  />
+                </div>
               </div>
             ) : (
               <div className="text-center mb-6">

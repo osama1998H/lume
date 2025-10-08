@@ -1,13 +1,16 @@
 import React from 'react';
 import Badge from './Badge';
 import EmptyState from './EmptyState';
+import TagDisplay from './TagDisplay';
 import { Clock } from 'lucide-react';
+import { Tag } from '../../types';
 
 export interface ActivityItem {
   key: string | number;
   mainLabel: string;
   subLabel?: string;
   category?: string;
+  tags?: Tag[];
   value: string;
   isActive?: boolean;
 }
@@ -41,22 +44,27 @@ const ActivityListCard: React.FC<ActivityListCardProps> = ({
                 <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
                   {item.mainLabel}
                 </p>
-                <div className="flex items-center gap-2 mt-1">
-                  {item.subLabel && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                      {item.subLabel}
-                      {showCategory && item.category && (
-                        <>
-                          <span className="text-gray-400 dark:text-gray-500">•</span>
-                          <span>{item.category}</span>
-                        </>
-                      )}
-                    </p>
-                  )}
-                  {!item.subLabel && showCategory && item.category && (
-                    <Badge variant="primary" size="sm">
-                      {item.category}
-                    </Badge>
+                <div className="flex flex-col gap-1.5 mt-1">
+                  <div className="flex items-center gap-2">
+                    {item.subLabel && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                        {item.subLabel}
+                        {showCategory && item.category && (
+                          <>
+                            <span className="text-gray-400 dark:text-gray-500">•</span>
+                            <span>{item.category}</span>
+                          </>
+                        )}
+                      </p>
+                    )}
+                    {!item.subLabel && showCategory && item.category && (
+                      <Badge variant="primary" size="sm">
+                        {item.category}
+                      </Badge>
+                    )}
+                  </div>
+                  {item.tags && item.tags.length > 0 && (
+                    <TagDisplay tags={item.tags} size="sm" maxDisplay={5} />
                   )}
                 </div>
               </div>

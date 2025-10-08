@@ -229,6 +229,30 @@ export class DatabaseManager {
       )
     `);
 
+    // Pomodoro Session to Tags junction table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS pomodoro_session_tags (
+        pomodoro_session_id INTEGER NOT NULL,
+        tag_id INTEGER NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (pomodoro_session_id, tag_id),
+        FOREIGN KEY (pomodoro_session_id) REFERENCES pomodoro_sessions(id) ON DELETE CASCADE,
+        FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Productivity Goal to Tags junction table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS productivity_goal_tags (
+        productivity_goal_id INTEGER NOT NULL,
+        tag_id INTEGER NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (productivity_goal_id, tag_id),
+        FOREIGN KEY (productivity_goal_id) REFERENCES productivity_goals(id) ON DELETE CASCADE,
+        FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+      )
+    `);
+
     // Add category_id column to time_entries if it doesn't exist
     try {
       this.db.exec(`ALTER TABLE time_entries ADD COLUMN category_id INTEGER REFERENCES categories(id)`);
@@ -1681,6 +1705,130 @@ export class DatabaseManager {
     `);
 
     return stmt.all(appUsageId) as import('../types').Tag[];
+  }
+
+  addPomodoroSessionTags(pomodoroSessionId: number, tagIds: number[]): void {
+    if (!this.db || tagIds.length === 0) return;
+
+    const stmt = this.db.prepare(`
+      INSERT OR IGNORE INTO pomodoro_session_tags (pomodoro_session_id, tag_id)
+      VALUES (?, ?)
+    `);
+
+    for (const tagId of tagIds) {
+      stmt.run(pomodoroSessionId, tagId);
+    }
+  }
+
+  /**
+   * Set (replace) all tags for a pomodoro session in a transaction
+   * Deletes existing associations and inserts new ones
+   */
+  setPomodoroSessionTags(pomodoroSessionId: number, tagIds: number[]): void {
+    if (!this.db) return;
+
+    const transaction = this.db.transaction(() => {
+      // Delete existing associations
+      const deleteStmt = this.db!.prepare(`
+        DELETE FROM pomodoro_session_tags
+        WHERE pomodoro_session_id = ?
+      `);
+      deleteStmt.run(pomodoroSessionId);
+
+      // Insert new associations if any
+      if (tagIds.length > 0) {
+        const insertStmt = this.db!.prepare(`
+          INSERT OR IGNORE INTO pomodoro_session_tags (pomodoro_session_id, tag_id)
+          VALUES (?, ?)
+        `);
+
+        for (const tagId of tagIds) {
+          insertStmt.run(pomodoroSessionId, tagId);
+        }
+      }
+    });
+
+    transaction();
+  }
+
+  getPomodoroSessionTags(pomodoroSessionId: number): import('../types').Tag[] {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT
+        t.id,
+        t.name,
+        t.color,
+        t.created_at AS createdAt
+      FROM tags t
+      JOIN pomodoro_session_tags pst ON t.id = pst.tag_id
+      WHERE pst.pomodoro_session_id = ?
+      ORDER BY t.name ASC
+    `);
+
+    return stmt.all(pomodoroSessionId) as import('../types').Tag[];
+  }
+
+  addProductivityGoalTags(productivityGoalId: number, tagIds: number[]): void {
+    if (!this.db || tagIds.length === 0) return;
+
+    const stmt = this.db.prepare(`
+      INSERT OR IGNORE INTO productivity_goal_tags (productivity_goal_id, tag_id)
+      VALUES (?, ?)
+    `);
+
+    for (const tagId of tagIds) {
+      stmt.run(productivityGoalId, tagId);
+    }
+  }
+
+  /**
+   * Set (replace) all tags for a productivity goal in a transaction
+   * Deletes existing associations and inserts new ones
+   */
+  setProductivityGoalTags(productivityGoalId: number, tagIds: number[]): void {
+    if (!this.db) return;
+
+    const transaction = this.db.transaction(() => {
+      // Delete existing associations
+      const deleteStmt = this.db!.prepare(`
+        DELETE FROM productivity_goal_tags
+        WHERE productivity_goal_id = ?
+      `);
+      deleteStmt.run(productivityGoalId);
+
+      // Insert new associations if any
+      if (tagIds.length > 0) {
+        const insertStmt = this.db!.prepare(`
+          INSERT OR IGNORE INTO productivity_goal_tags (productivity_goal_id, tag_id)
+          VALUES (?, ?)
+        `);
+
+        for (const tagId of tagIds) {
+          insertStmt.run(productivityGoalId, tagId);
+        }
+      }
+    });
+
+    transaction();
+  }
+
+  getProductivityGoalTags(productivityGoalId: number): import('../types').Tag[] {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT
+        t.id,
+        t.name,
+        t.color,
+        t.created_at AS createdAt
+      FROM tags t
+      JOIN productivity_goal_tags pgt ON t.id = pgt.tag_id
+      WHERE pgt.productivity_goal_id = ?
+      ORDER BY t.name ASC
+    `);
+
+    return stmt.all(productivityGoalId) as import('../types').Tag[];
   }
 
   // ==================== ANALYTICS METHODS ====================
