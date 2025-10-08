@@ -934,6 +934,73 @@ class LumeApp {
       }
     });
 
+    // ==================== TIMELINE IPC HANDLERS ====================
+
+    ipcMain.handle('get-timeline-activities', async (_, startDate: string, endDate: string) => {
+      try {
+        if (!this.dbManager) {
+          console.error('❌ Database manager not initialized');
+          return [];
+        }
+        const activities = this.dbManager.getTimelineActivities(startDate, endDate);
+        console.log(`📊 Retrieved ${activities.length} timeline activities`);
+        return activities;
+      } catch (error) {
+        console.error('Failed to get timeline activities:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('get-timeline-summary', async (_, startDate: string, endDate: string) => {
+      try {
+        if (!this.dbManager) {
+          console.error('❌ Database manager not initialized');
+          return {
+            totalActivities: 0,
+            totalDuration: 0,
+            averageDuration: 0,
+            longestActivity: null,
+            categoryBreakdown: []
+          };
+        }
+
+        const activities = this.dbManager.getTimelineActivities(startDate, endDate);
+
+        // Calculate summary statistics
+        const totalActivities = activities.length;
+        const totalDuration = activities.reduce((sum, a) => sum + (a.duration || 0), 0);
+        const averageDuration = totalActivities > 0 ? totalDuration / totalActivities : 0;
+
+        // Find longest activity
+        const longestActivity = activities.reduce((longest, current) => {
+          if (!longest || (current.duration || 0) > (longest.duration || 0)) {
+            return current;
+          }
+          return longest;
+        }, null as any);
+
+        // Get category breakdown using existing service
+        const categoryBreakdown = await this.categoriesService?.getCategoryStats(startDate, endDate) || [];
+
+        return {
+          totalActivities,
+          totalDuration,
+          averageDuration,
+          longestActivity,
+          categoryBreakdown
+        };
+      } catch (error) {
+        console.error('Failed to get timeline summary:', error);
+        return {
+          totalActivities: 0,
+          totalDuration: 0,
+          averageDuration: 0,
+          longestActivity: null,
+          categoryBreakdown: []
+        };
+      }
+    });
+
     // ==================== AUTO-START IPC HANDLERS ====================
 
     ipcMain.handle('get-auto-start-status', async () => {

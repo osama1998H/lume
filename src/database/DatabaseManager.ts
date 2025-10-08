@@ -448,6 +448,127 @@ export class DatabaseManager {
     return stmt.all(startDate, endDate) as AppUsage[];
   }
 
+  getTimeEntriesByDateRange(startDate: string, endDate: string): TimeEntry[] {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT
+        id,
+        task,
+        start_time AS startTime,
+        end_time AS endTime,
+        duration,
+        category,
+        created_at AS createdAt
+      FROM time_entries
+      WHERE DATE(start_time) BETWEEN ? AND ?
+      ORDER BY start_time DESC
+    `);
+
+    return stmt.all(startDate, endDate) as TimeEntry[];
+  }
+
+  getTimelineActivities(startDate: string, endDate: string): any[] {
+    if (!this.db) return [];
+
+    // Query time entries
+    const timeEntriesStmt = this.db.prepare(`
+      SELECT
+        te.id,
+        'time_entry' AS type,
+        te.task AS title,
+        te.start_time AS startTime,
+        te.end_time AS endTime,
+        te.duration,
+        te.category,
+        c.id AS categoryId,
+        c.name AS categoryName,
+        c.color AS categoryColor
+      FROM time_entries te
+      LEFT JOIN categories c ON te.category = c.name
+      WHERE datetime(te.start_time) BETWEEN datetime(?) AND datetime(?)
+        AND te.end_time IS NOT NULL
+      ORDER BY te.start_time ASC
+    `);
+
+    // Query app usage
+    const appUsageStmt = this.db.prepare(`
+      SELECT
+        au.id,
+        CASE
+          WHEN au.is_browser = 1 THEN 'browser'
+          ELSE 'app'
+        END AS type,
+        CASE
+          WHEN au.is_browser = 1 THEN COALESCE(au.domain, au.app_name)
+          ELSE au.app_name
+        END AS title,
+        au.start_time AS startTime,
+        au.end_time AS endTime,
+        au.duration,
+        au.category,
+        c.id AS categoryId,
+        c.name AS categoryName,
+        c.color AS categoryColor,
+        au.app_name AS appName,
+        au.window_title AS windowTitle,
+        au.domain,
+        au.url,
+        au.is_idle AS isIdle
+      FROM app_usage au
+      LEFT JOIN categories c ON au.category = c.name
+      WHERE datetime(au.start_time) BETWEEN datetime(?) AND datetime(?)
+        AND au.end_time IS NOT NULL
+      ORDER BY au.start_time ASC
+    `);
+
+    const timeEntries = timeEntriesStmt.all(startDate, endDate);
+    const appUsage = appUsageStmt.all(startDate, endDate);
+
+    // Combine and transform to TimelineActivity format
+    const activities = [
+      ...timeEntries.map((entry: any) => ({
+        id: entry.id,
+        type: entry.type,
+        title: entry.title,
+        startTime: entry.startTime,
+        endTime: entry.endTime,
+        duration: entry.duration || 0,
+        categoryId: entry.categoryId,
+        categoryName: entry.categoryName,
+        categoryColor: entry.categoryColor,
+        tags: [], // Tags will be fetched separately if needed
+        metadata: {}
+      })),
+      ...appUsage.map((usage: any) => ({
+        id: usage.id,
+        type: usage.type,
+        title: usage.title,
+        startTime: usage.startTime,
+        endTime: usage.endTime,
+        duration: usage.duration || 0,
+        categoryId: usage.categoryId,
+        categoryName: usage.categoryName,
+        categoryColor: usage.categoryColor,
+        tags: [], // Tags will be fetched separately if needed
+        metadata: {
+          appName: usage.appName,
+          windowTitle: usage.windowTitle,
+          domain: usage.domain,
+          url: usage.url,
+          isIdle: usage.isIdle === 1
+        }
+      }))
+    ];
+
+    // Sort by start time
+    activities.sort((a, b) =>
+      new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    );
+
+    return activities;
+  }
+
   // Activity tracking methods
   addActivitySession(session: ActivitySession): number {
     if (!this.db) throw new Error('Database not initialized');

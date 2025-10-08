@@ -7,6 +7,7 @@
     "dashboard": "Dashboard",
     "tracker": "Time Tracker",
     "reports": "Reports",
+    "timeline": "Timeline",
     "goals": "Goals",
     "settings": "Settings",
     "focus": "Focus Mode",
@@ -344,6 +345,37 @@
     "noTags": "No tags yet",
     "noTagsDesc": "Create your first tag to label and filter your activities",
     "mappingsDesc": "Map applications and domains to categories for automatic categorization"
+  },
+  "timeline": {
+    "title": "Activity Timeline",
+    "subtitle": "Visualize your day with a timeline of activities",
+    "totalActivities": "Total Activities",
+    "totalTime": "Total Time",
+    "averageDuration": "Average Duration",
+    "activityDetails": "Activity Details",
+    "activityType": "Activity Type",
+    "noActivities": "No activities for selected period",
+    "noActivitiesDesc": "Start tracking your time to see your timeline",
+    "filters": {
+      "title": "Filters",
+      "activityTypes": "Activity Types",
+      "categories": "Categories",
+      "search": "Search activities",
+      "apps": "Applications",
+      "websites": "Websites",
+      "tasks": "Tasks"
+    },
+    "zoom": {
+      "in": "Zoom In",
+      "out": "Zoom Out",
+      "reset": "Reset Zoom"
+    },
+    "dateRanges": {
+      "today": "Today",
+      "week": "Last 7 Days",
+      "month": "Last 30 Days",
+      "custom": "Custom Range"
+    }
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",
