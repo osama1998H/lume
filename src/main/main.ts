@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
@@ -23,6 +23,7 @@ initializeSentry();
 
 class LumeApp {
   private mainWindow: BrowserWindow | null = null;
+  private tray: Tray | null = null;
   private dbManager: DatabaseManager | null = null;
   private activityTracker: ActivityTrackingService | null = null;
   private pomodoroService: PomodoroService | null = null;
@@ -30,6 +31,7 @@ class LumeApp {
   private goalsService: GoalsService | null = null;
   private categoriesService: CategoriesService | null = null;
   private settingsPath: string;
+  private isQuitting = false;
 
   constructor() {
     const userDataPath = app.getPath('userData');
@@ -38,6 +40,11 @@ class LumeApp {
   }
 
   private setupApp(): void {
+    // Handle app lifecycle events
+    app.on('before-quit', () => {
+      this.isQuitting = true;
+    });
+
     app.whenReady().then(() => {
       // Set dock icon on macOS
       if (process.platform === 'darwin' && app.dock) {
@@ -47,17 +54,25 @@ class LumeApp {
 
       this.createWindow();
       this.setupDatabase();
+      this.setupTray();
       this.setupIPC();
+
+      // Apply auto-start setting
+      this.applyAutoStartSetting();
 
       app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
           this.createWindow();
+        } else if (this.mainWindow) {
+          this.showWindow();
         }
       });
     });
 
     app.on('window-all-closed', () => {
-      if (process.platform !== 'darwin') {
+      const settings = this.getSettings();
+      // Only quit if not using minimize to tray or on macOS
+      if (!settings.minimizeToTray && process.platform !== 'darwin') {
         app.quit();
       }
     });
@@ -93,6 +108,15 @@ class LumeApp {
 
     this.mainWindow.once('ready-to-show', () => {
       this.mainWindow?.show();
+    });
+
+    // Handle window close event for tray mode
+    this.mainWindow.on('close', (event) => {
+      const settings = this.getSettings();
+      if (!this.isQuitting && settings.minimizeToTray) {
+        event.preventDefault();
+        this.hideWindow();
+      }
     });
 
     this.mainWindow.on('closed', () => {
@@ -184,6 +208,7 @@ class LumeApp {
       autoTrackApps: true,
       showNotifications: true,
       minimizeToTray: false,
+      autoStartOnLogin: false,
       autoStartTracking: false,
       defaultCategory: '',
       trackingInterval: 30,
@@ -273,6 +298,9 @@ class LumeApp {
     ipcMain.handle('save-settings', async (_, settings) => {
       try {
         console.log('💾 Saving settings:', JSON.stringify(settings, null, 2));
+
+        // Get previous settings before saving
+        const previousSettings = this.getSettings();
         const success = this.saveSettings(settings);
 
         // Update activity tracking settings if present
@@ -282,6 +310,17 @@ class LumeApp {
 
           const isTracking = this.activityTracker.isTracking();
           console.log(`📊 Activity tracking status after settings update: ${isTracking ? 'ACTIVE' : 'STOPPED'}`);
+        }
+
+        // Update tray when minimizeToTray setting changes
+        if (success && settings.minimizeToTray !== previousSettings.minimizeToTray) {
+          if (settings.minimizeToTray) {
+            this.setupTray();
+          } else if (this.tray) {
+            this.tray.destroy();
+            this.tray = null;
+            console.log('✅ System tray removed');
+          }
         }
 
         return success;
@@ -881,6 +920,164 @@ class LumeApp {
         return [];
       }
     });
+
+    // ==================== AUTO-START IPC HANDLERS ====================
+
+    ipcMain.handle('get-auto-start-status', async () => {
+      try {
+        const loginItemSettings = app.getLoginItemSettings();
+        return loginItemSettings.openAtLogin;
+      } catch (error) {
+        console.error('Failed to get auto-start status:', error);
+        return false;
+      }
+    });
+
+    ipcMain.handle('set-auto-start', async (_, enabled: boolean) => {
+      try {
+        app.setLoginItemSettings({
+          openAtLogin: enabled,
+          openAsHidden: false,
+        });
+
+        // Update settings file
+        const settings = this.getSettings();
+        settings.autoStartOnLogin = enabled;
+        this.saveSettings(settings);
+
+        console.log(`✅ Auto-start ${enabled ? 'enabled' : 'disabled'}`);
+        return true;
+      } catch (error) {
+        console.error('Failed to set auto-start:', error);
+        return false;
+      }
+    });
+  }
+
+  // ==================== TRAY METHODS ====================
+
+  private setupTray(): void {
+    try {
+      const settings = this.getSettings();
+
+      // Always create tray if minimize to tray is enabled
+      if (!settings.minimizeToTray) {
+        return;
+      }
+
+      const iconPath = path.join(__dirname, '../../src/public/logo1.png');
+      const icon = nativeImage.createFromPath(iconPath);
+
+      // Resize icon for tray (16x16 for most platforms)
+      const trayIcon = icon.resize({ width: 16, height: 16 });
+
+      this.tray = new Tray(trayIcon);
+      this.tray.setToolTip('Lume - Time Tracking');
+
+      this.updateTrayMenu();
+
+      // Show/hide window on tray icon click (platform specific)
+      this.tray.on('click', () => {
+        if (this.mainWindow?.isVisible()) {
+          this.hideWindow();
+        } else {
+          this.showWindow();
+        }
+      });
+
+      console.log('✅ System tray initialized');
+    } catch (error) {
+      console.error('Failed to setup tray:', error);
+    }
+  }
+
+  private updateTrayMenu(): void {
+    if (!this.tray) return;
+
+    const isTracking = this.activityTracker?.isTracking() || false;
+    const isVisible = this.mainWindow?.isVisible() || false;
+
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: isVisible ? 'Hide Lume' : 'Show Lume',
+        click: () => {
+          if (isVisible) {
+            this.hideWindow();
+          } else {
+            this.showWindow();
+          }
+        },
+      },
+      { type: 'separator' },
+      {
+        label: `Tracking: ${isTracking ? 'Active' : 'Stopped'}`,
+        enabled: false,
+      },
+      { type: 'separator' },
+      {
+        label: 'Quit',
+        click: () => {
+          this.isQuitting = true;
+          app.quit();
+        },
+      },
+    ]);
+
+    this.tray.setContextMenu(contextMenu);
+  }
+
+  private showWindow(): void {
+    if (!this.mainWindow) {
+      this.createWindow();
+      return;
+    }
+
+    if (this.mainWindow.isMinimized()) {
+      this.mainWindow.restore();
+    }
+
+    this.mainWindow.show();
+    this.mainWindow.focus();
+
+    // Update tray menu
+    this.updateTrayMenu();
+
+    // On macOS, show in dock
+    if (process.platform === 'darwin' && app.dock) {
+      app.dock.show();
+    }
+  }
+
+  private hideWindow(): void {
+    if (!this.mainWindow) return;
+
+    this.mainWindow.hide();
+
+    // Update tray menu
+    this.updateTrayMenu();
+
+    // On macOS, hide from dock when in tray mode
+    if (process.platform === 'darwin' && app.dock) {
+      const settings = this.getSettings();
+      if (settings.minimizeToTray) {
+        app.dock.hide();
+      }
+    }
+  }
+
+  private applyAutoStartSetting(): void {
+    try {
+      const settings = this.getSettings();
+      if (settings.autoStartOnLogin !== undefined) {
+        app.setLoginItemSettings({
+          openAtLogin: settings.autoStartOnLogin,
+          openAsHidden: false,
+        });
+        console.log(`✅ Auto-start setting applied: ${settings.autoStartOnLogin}`);
+      }
+    } catch (error) {
+      console.error('Failed to apply auto-start setting:', error);
+    }
   }
 }
 

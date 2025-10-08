@@ -15,6 +15,7 @@ const Settings: React.FC = () => {
     autoTrackApps: true,
     showNotifications: true,
     minimizeToTray: false,
+    autoStartOnLogin: false,
     autoStartTracking: false,
     defaultCategory: '',
     trackingInterval: 30,
@@ -269,6 +270,22 @@ const Settings: React.FC = () => {
                   type="checkbox"
                   checked={settings.minimizeToTray}
                   onChange={(e) => handleSettingChange('minimizeToTray', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600 dark:peer-checked:bg-primary-500"></div>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="font-medium text-gray-900 dark:text-gray-100">{t('settings.autoStartOnLogin')}</label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.autoStartOnLoginDesc')}</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.autoStartOnLogin}
+                  onChange={(e) => handleSettingChange('autoStartOnLogin', e.target.checked)}
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600 dark:peer-checked:bg-primary-500"></div>

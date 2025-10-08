@@ -179,6 +179,9 @@ export interface ElectronAPI {
   getRecentActivitySessions: (limit?: number) => Promise<any[]>;
   getTopApplications: (limit?: number) => Promise<any[]>;
   getTopWebsites: (limit?: number) => Promise<any[]>;
+  // Auto-start API
+  getAutoStartStatus: () => Promise<boolean>;
+  setAutoStart: (enabled: boolean) => Promise<boolean>;
   // Pomodoro API
   getPomodoroSettings: () => Promise<PomodoroSettings>;
   savePomodoroSettings: (settings: PomodoroSettings) => Promise<boolean>;
