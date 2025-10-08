@@ -1972,52 +1972,106 @@ export class DatabaseManager {
     const weekStart = currentWeekStart.toISOString().split('T')[0];
     const weekEnd = currentWeekEnd.toISOString().split('T')[0];
 
-    // Get total minutes for the week
+    // Get total minutes for the week (combining time_entries and app_usage)
     const totalStmt = this.db.prepare(`
-      SELECT
-        SUM(CASE WHEN duration IS NOT NULL THEN duration ELSE
-          CAST((JULIANDAY(COALESCE(end_time, start_time)) - JULIANDAY(start_time)) * 86400 AS INTEGER)
-        END) / 60.0 as total_minutes
-      FROM time_entries
-      WHERE DATE(start_time) BETWEEN ? AND ?
+      WITH combined_data AS (
+        SELECT
+          SUM(CASE WHEN duration IS NOT NULL THEN duration ELSE
+            CAST((JULIANDAY(COALESCE(end_time, start_time)) - JULIANDAY(start_time)) * 86400 AS INTEGER)
+          END) / 60.0 as total_minutes
+        FROM time_entries
+        WHERE DATE(start_time) BETWEEN ? AND ?
+
+        UNION ALL
+
+        SELECT
+          SUM(CASE WHEN duration IS NOT NULL THEN duration ELSE
+            CAST((JULIANDAY(COALESCE(end_time, start_time)) - JULIANDAY(start_time)) * 86400 AS INTEGER)
+          END) / 60.0 as total_minutes
+        FROM app_usage
+        WHERE DATE(start_time) BETWEEN ? AND ?
+      )
+      SELECT SUM(total_minutes) as total_minutes FROM combined_data
     `);
-    const totalRow = totalStmt.get(weekStart, weekEnd) as any;
+    const totalRow = totalStmt.get(weekStart, weekEnd, weekStart, weekEnd) as any;
     const totalMinutes = Math.round(totalRow?.total_minutes || 0);
 
-    // Get daily breakdown to find top day
+    // Get daily breakdown to find top day (combining time_entries and app_usage)
     const dailyStmt = this.db.prepare(`
+      WITH daily_combined AS (
+        SELECT
+          DATE(start_time) as date,
+          SUM(CASE WHEN duration IS NOT NULL THEN duration ELSE
+            CAST((JULIANDAY(COALESCE(end_time, start_time)) - JULIANDAY(start_time)) * 86400 AS INTEGER)
+          END) / 60.0 as minutes
+        FROM time_entries
+        WHERE DATE(start_time) BETWEEN ? AND ?
+        GROUP BY DATE(start_time)
+
+        UNION ALL
+
+        SELECT
+          DATE(start_time) as date,
+          SUM(CASE WHEN duration IS NOT NULL THEN duration ELSE
+            CAST((JULIANDAY(COALESCE(end_time, start_time)) - JULIANDAY(start_time)) * 86400 AS INTEGER)
+          END) / 60.0 as minutes
+        FROM app_usage
+        WHERE DATE(start_time) BETWEEN ? AND ?
+        GROUP BY DATE(start_time)
+      )
       SELECT
-        DATE(start_time) as date,
-        SUM(CASE WHEN duration IS NOT NULL THEN duration ELSE
-          CAST((JULIANDAY(COALESCE(end_time, start_time)) - JULIANDAY(start_time)) * 86400 AS INTEGER)
-        END) / 60.0 as minutes
-      FROM time_entries
-      WHERE DATE(start_time) BETWEEN ? AND ?
-      GROUP BY DATE(start_time)
+        date,
+        SUM(minutes) as minutes
+      FROM daily_combined
+      GROUP BY date
       ORDER BY minutes DESC
       LIMIT 1
     `);
-    const dailyRow = dailyStmt.get(weekStart, weekEnd) as any;
+    const dailyRow = dailyStmt.get(weekStart, weekEnd, weekStart, weekEnd) as any;
     const topDay = dailyRow ? { date: dailyRow.date, minutes: Math.round(dailyRow.minutes) } : null;
 
-    // Get top categories
+    // Get top categories (combining time_entries and app_usage)
     const catStmt = this.db.prepare(`
+      WITH category_combined AS (
+        SELECT
+          c.id as categoryId,
+          c.name as categoryName,
+          c.color as categoryColor,
+          SUM(CASE WHEN te.duration IS NOT NULL THEN te.duration ELSE
+            CAST((JULIANDAY(COALESCE(te.end_time, te.start_time)) - JULIANDAY(te.start_time)) * 86400 AS INTEGER)
+          END) / 60.0 as minutes
+        FROM time_entries te
+        LEFT JOIN categories c ON te.category = c.name
+        WHERE DATE(te.start_time) BETWEEN ? AND ?
+          AND c.id IS NOT NULL
+        GROUP BY c.id
+
+        UNION ALL
+
+        SELECT
+          c.id as categoryId,
+          c.name as categoryName,
+          c.color as categoryColor,
+          SUM(CASE WHEN au.duration IS NOT NULL THEN au.duration ELSE
+            CAST((JULIANDAY(COALESCE(au.end_time, au.start_time)) - JULIANDAY(au.start_time)) * 86400 AS INTEGER)
+          END) / 60.0 as minutes
+        FROM app_usage au
+        LEFT JOIN categories c ON au.category = c.name
+        WHERE DATE(au.start_time) BETWEEN ? AND ?
+          AND c.id IS NOT NULL
+        GROUP BY c.id
+      )
       SELECT
-        c.id as categoryId,
-        c.name as categoryName,
-        c.color as categoryColor,
-        SUM(CASE WHEN te.duration IS NOT NULL THEN te.duration ELSE
-          CAST((JULIANDAY(COALESCE(te.end_time, te.start_time)) - JULIANDAY(te.start_time)) * 86400 AS INTEGER)
-        END) / 60.0 as minutes
-      FROM time_entries te
-      LEFT JOIN categories c ON te.category = c.name
-      WHERE DATE(te.start_time) BETWEEN ? AND ?
-        AND c.id IS NOT NULL
-      GROUP BY c.id
+        categoryId,
+        categoryName,
+        categoryColor,
+        SUM(minutes) as minutes
+      FROM category_combined
+      GROUP BY categoryId
       ORDER BY minutes DESC
       LIMIT 5
     `);
-    const catRows = catStmt.all(weekStart, weekEnd) as any[];
+    const catRows = catStmt.all(weekStart, weekEnd, weekStart, weekEnd) as any[];
     const catTotal = catRows.reduce((sum, r) => sum + r.minutes, 0);
     const topCategories = catRows.map(row => ({
       categoryId: row.categoryId,
@@ -2044,24 +2098,35 @@ export class DatabaseManager {
     const goalsAchieved = goalsRow?.achieved || 0;
     const totalGoals = goalsRow?.total || 0;
 
-    // Get previous week for comparison
+    // Get previous week for comparison (combining time_entries and app_usage)
     const prevWeekStart = new Date(currentWeekStart);
     prevWeekStart.setDate(prevWeekStart.getDate() - 7);
     const prevWeekEnd = new Date(currentWeekEnd);
     prevWeekEnd.setDate(prevWeekEnd.getDate() - 7);
 
     const prevStmt = this.db.prepare(`
-      SELECT
-        SUM(CASE WHEN duration IS NOT NULL THEN duration ELSE
-          CAST((JULIANDAY(COALESCE(end_time, start_time)) - JULIANDAY(start_time)) * 86400 AS INTEGER)
-        END) / 60.0 as total_minutes
-      FROM time_entries
-      WHERE DATE(start_time) BETWEEN ? AND ?
+      WITH prev_combined_data AS (
+        SELECT
+          SUM(CASE WHEN duration IS NOT NULL THEN duration ELSE
+            CAST((JULIANDAY(COALESCE(end_time, start_time)) - JULIANDAY(start_time)) * 86400 AS INTEGER)
+          END) / 60.0 as total_minutes
+        FROM time_entries
+        WHERE DATE(start_time) BETWEEN ? AND ?
+
+        UNION ALL
+
+        SELECT
+          SUM(CASE WHEN duration IS NOT NULL THEN duration ELSE
+            CAST((JULIANDAY(COALESCE(end_time, start_time)) - JULIANDAY(start_time)) * 86400 AS INTEGER)
+          END) / 60.0 as total_minutes
+        FROM app_usage
+        WHERE DATE(start_time) BETWEEN ? AND ?
+      )
+      SELECT SUM(total_minutes) as total_minutes FROM prev_combined_data
     `);
-    const prevRow = prevStmt.get(
-      prevWeekStart.toISOString().split('T')[0],
-      prevWeekEnd.toISOString().split('T')[0]
-    ) as any;
+    const prevWeekStartStr = prevWeekStart.toISOString().split('T')[0];
+    const prevWeekEndStr = prevWeekEnd.toISOString().split('T')[0];
+    const prevRow = prevStmt.get(prevWeekStartStr, prevWeekEndStr, prevWeekStartStr, prevWeekEndStr) as any;
     const prevMinutes = prevRow?.total_minutes || 0;
     const comparisonToPrevious = prevMinutes > 0
       ? Math.round(((totalMinutes - prevMinutes) / prevMinutes) * 100)
