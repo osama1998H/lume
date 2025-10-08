@@ -483,6 +483,14 @@
         "descriptionShort": "استمر! سلسلة {{days}} يوم",
         "descriptionShortPlural": "استمر! سلسلة {{days}} أيام"
       }
+    },
+    "weeklyInsights": {
+      "greatProgress": "تقدم رائع! أنت أكثر إنتاجية بنسبة {{percentage}}٪ من الأسبوع الماضي.",
+      "activityDecreased": "انخفض النشاط بنسبة {{percentage}}٪ عن الأسبوع الماضي. لنعد إلى المسار الصحيح!",
+      "mostProductiveDay": "{{dayName}} كان يومك الأكثر إنتاجية بـ {{minutes}} دقيقة مسجلة.",
+      "focusedMostOn": "ركزت أكثر على {{category}} هذا الأسبوع.",
+      "excellentAverage": "ممتاز! بلغ متوسطك {{minutes}} دقيقة في اليوم.",
+      "increaseTracking": "حاول زيادة وقت التتبع اليومي - المتوسط الحالي {{minutes}} دقيقة."
     }
   },
   "errors": {

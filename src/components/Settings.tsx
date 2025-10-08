@@ -4,8 +4,8 @@ import { Download, Upload, Trash2 } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
 import { useTheme, Theme } from '../contexts/ThemeContext';
 import Button from './ui/Button';
-import Input from './ui/Input';
 import Skeleton from './ui/Skeleton';
+import type { Category } from '../types';
 
 const Settings: React.FC = () => {
   const { t } = useTranslation();
@@ -17,7 +17,7 @@ const Settings: React.FC = () => {
     minimizeToTray: false,
     autoStartOnLogin: false,
     autoStartTracking: false,
-    defaultCategory: '',
+    defaultCategory: null as number | null,
     trackingInterval: 30,
     activityTracking: {
       enabled: false,
@@ -30,6 +30,7 @@ const Settings: React.FC = () => {
       dataRetentionDays: 90
     }
   });
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
@@ -38,6 +39,7 @@ const Settings: React.FC = () => {
   useEffect(() => {
     loadSettings();
     loadTrackingStatus();
+    loadCategories();
   }, []);
 
   const loadSettings = async () => {
@@ -68,6 +70,17 @@ const Settings: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to load tracking status:', error);
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      if (window.electronAPI) {
+        const fetchedCategories = await window.electronAPI.getCategories();
+        setCategories(fetchedCategories);
+      }
+    } catch (error) {
+      console.error('Failed to load categories:', error);
     }
   };
 
@@ -292,14 +305,28 @@ const Settings: React.FC = () => {
               </label>
             </div>
 
-            <Input
-              label={t('settings.defaultCategory')}
-              type="text"
-              value={settings.defaultCategory}
-              onChange={(e) => handleSettingChange('defaultCategory', e.target.value)}
-              placeholder={t('settings.defaultCategoryPlaceholder')}
-              hint={t('settings.defaultCategoryDesc')}
-            />
+            <div>
+              <label className="block font-medium text-gray-900 dark:text-gray-100 mb-2">{t('settings.defaultCategory')}</label>
+              <select
+                value={settings.defaultCategory || ''}
+                onChange={(e) => handleSettingChange('defaultCategory', e.target.value ? parseInt(e.target.value) : null)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                <option value="" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                  {t('settings.defaultCategoryPlaceholder')}
+                </option>
+                {categories.map((category) => (
+                  <option
+                    key={category.id}
+                    value={category.id}
+                    className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  >
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('settings.defaultCategoryDesc')}</p>
+            </div>
 
             <div>
               <label className="block font-medium text-gray-900 dark:text-gray-100 mb-2">

@@ -29,6 +29,52 @@ export const Analytics: React.FC = () => {
   const [insights, setInsights] = useState<BehavioralInsight[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('month');
 
+  // Helper function to translate weekly insights
+  const translateInsight = (insight: string): string => {
+    // Pattern 1: "Great progress! You're X% more productive than last week."
+    const greatProgressMatch = insight.match(/Great progress! You're (\d+)% more productive than last week\./);
+    if (greatProgressMatch) {
+      return t('analytics.weeklyInsights.greatProgress', { percentage: greatProgressMatch[1] });
+    }
+
+    // Pattern 2: "Activity decreased X% from last week. Let's get back on track!"
+    const decreasedMatch = insight.match(/Activity decreased (\d+)% from last week\. Let's get back on track!/);
+    if (decreasedMatch) {
+      return t('analytics.weeklyInsights.activityDecreased', { percentage: decreasedMatch[1] });
+    }
+
+    // Pattern 3: "DayName was your most productive day with X minutes tracked."
+    const productiveDayMatch = insight.match(/(.+) was your most productive day with (\d+) minutes tracked\./);
+    if (productiveDayMatch) {
+      const dayName = productiveDayMatch[1];
+      const minutes = productiveDayMatch[2];
+      // Translate the day name
+      const translatedDay = t(`common.daysOfWeek.${dayName}`, dayName);
+      return t('analytics.weeklyInsights.mostProductiveDay', { dayName: translatedDay, minutes });
+    }
+
+    // Pattern 4: "You focused most on CategoryName this week."
+    const focusedMostMatch = insight.match(/You focused most on (.+) this week\./);
+    if (focusedMostMatch) {
+      return t('analytics.weeklyInsights.focusedMostOn', { category: focusedMostMatch[1] });
+    }
+
+    // Pattern 5: "Excellent! You averaged X minutes per day."
+    const excellentMatch = insight.match(/Excellent! You averaged (\d+) minutes per day\./);
+    if (excellentMatch) {
+      return t('analytics.weeklyInsights.excellentAverage', { minutes: excellentMatch[1] });
+    }
+
+    // Pattern 6: "Try to increase your daily tracking time - currently averaging X minutes."
+    const increaseMatch = insight.match(/Try to increase your daily tracking time - currently averaging (\d+) minutes\./);
+    if (increaseMatch) {
+      return t('analytics.weeklyInsights.increaseTracking', { minutes: increaseMatch[1] });
+    }
+
+    // Return original if no pattern matches (fallback)
+    return insight;
+  };
+
   const loadAnalytics = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -231,7 +277,7 @@ export const Analytics: React.FC = () => {
                         {weeklySummary.insights.slice(0, 3).map((insight, i) => (
                           <li key={i} className="text-sm text-text-secondary flex items-start gap-2">
                             <span className="text-primary mt-0.5">•</span>
-                            <span>{insight}</span>
+                            <span>{translateInsight(insight)}</span>
                           </li>
                         ))}
                       </ul>
