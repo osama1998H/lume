@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Clock, CheckCircle2, Target } from 'lucide-react';
 import { TimeEntry, AppUsage } from '../types';
 import GoalProgressWidget from './GoalProgressWidget';
 import StatCard from './ui/StatCard';
 import ActivityListCard from './ui/ActivityListCard';
+import Skeleton from './ui/Skeleton';
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -90,34 +92,42 @@ const Dashboard: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-8 flex items-center justify-center h-full">
-        <div className="animate-pulse-slow text-lg text-gray-600 dark:text-gray-400">{t('common.loading')}</div>
+      <div className="p-8 overflow-y-auto space-y-8">
+        <div className="space-y-2">
+          <Skeleton width="200px" height="32px" />
+          <Skeleton width="300px" height="20px" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Skeleton variant="rectangular" height="120px" />
+          <Skeleton variant="rectangular" height="120px" />
+          <Skeleton variant="rectangular" height="120px" />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="p-8 overflow-y-auto">
-      <div className="mb-8">
+      <div className="mb-8 animate-fade-in">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('dashboard.title')}</h2>
         <p className="text-gray-600 dark:text-gray-400">{t('dashboard.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <StatCard
-          icon="⏰"
+          icon={Clock}
           title={t('dashboard.todayTime')}
           value={formatDuration(stats.totalTime)}
           colorScheme="primary"
         />
         <StatCard
-          icon="✅"
+          icon={CheckCircle2}
           title={t('dashboard.tasksDone')}
           value={stats.tasksCompleted}
           colorScheme="green"
         />
         <StatCard
-          icon="🎯"
+          icon={Target}
           title={t('dashboard.activeTask')}
           value={stats.activeTask || t('dashboard.noActiveTask')}
           colorScheme="orange"

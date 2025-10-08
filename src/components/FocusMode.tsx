@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Play, Pause, Square, SkipForward, Coffee, TrendingUp, Award } from 'lucide-react';
 import { PomodoroStats } from '../types';
 import { usePomodoro, SessionType } from '../contexts/PomodoroContext';
+import Button from './ui/Button';
+import Input from './ui/Input';
+import StatCard from './ui/StatCard';
+import Skeleton from './ui/Skeleton';
 
 const FocusMode: React.FC = () => {
   const { t } = useTranslation();
@@ -91,9 +96,16 @@ const FocusMode: React.FC = () => {
 
   if (!settings) {
     return (
-      <div className="p-8 flex items-center justify-center h-full">
-        <div className="animate-pulse text-lg text-gray-600 dark:text-gray-400">
-          {t('common.loading')}
+      <div className="p-8 overflow-y-auto space-y-8">
+        <div className="space-y-2">
+          <Skeleton width="200px" height="32px" />
+          <Skeleton width="300px" height="20px" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Skeleton variant="rectangular" height="400px" />
+          </div>
+          <Skeleton variant="rectangular" height="400px" />
         </div>
       </div>
     );
@@ -101,7 +113,7 @@ const FocusMode: React.FC = () => {
 
   return (
     <div className="p-8 overflow-y-auto h-full">
-      <div className="mb-8">
+      <div className="mb-8 animate-fade-in">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           {t('focusMode.title')}
         </h2>
@@ -155,14 +167,13 @@ const FocusMode: React.FC = () => {
             {/* Task Display/Input */}
             {status.state === 'idle' && status.sessionType === 'focus' ? (
               <div className="w-full max-w-md mb-6">
-                <input
+                <Input
                   type="text"
                   value={taskInput}
                   onChange={(e) => setTaskInput(e.target.value)}
                   placeholder={t('focusMode.taskPlaceholder')}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600
-                           bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                           focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent"
+                  icon={Coffee}
+                  iconPosition="left"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && (taskInput.trim() || status.currentTask)) {
                       handleStartSession();
@@ -181,82 +192,84 @@ const FocusMode: React.FC = () => {
             {/* Controls */}
             <div className="flex gap-3">
               {status.state === 'idle' && (
-                <button
+                <Button
                   onClick={handleStartSession}
                   disabled={status.sessionType === 'focus' && !taskInput.trim() && !status.currentTask}
-                  className="px-8 py-3 rounded-lg font-medium bg-primary-600 hover:bg-primary-700
-                           text-white disabled:opacity-50 disabled:cursor-not-allowed
-                           transition-colors"
+                  variant="primary"
+                  size="lg"
+                  icon={Play}
+                  className="px-8"
                 >
                   {t('focusMode.startFocus')}
-                </button>
+                </Button>
               )}
 
               {status.state === 'running' && (
                 <>
-                  <button
+                  <Button
                     onClick={pauseSession}
-                    className="px-6 py-3 rounded-lg font-medium bg-orange-600 hover:bg-orange-700
-                             text-white transition-colors"
+                    variant="secondary"
+                    size="lg"
+                    icon={Pause}
                   >
                     {t('focusMode.pause')}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={stopSession}
-                    className="px-6 py-3 rounded-lg font-medium bg-red-600 hover:bg-red-700
-                             text-white transition-colors"
+                    variant="danger"
+                    size="lg"
+                    icon={Square}
                   >
                     {t('focusMode.stop')}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={skipSession}
-                    className="px-6 py-3 rounded-lg font-medium bg-gray-600 hover:bg-gray-700
-                             text-white transition-colors"
+                    variant="ghost"
+                    size="lg"
+                    icon={SkipForward}
                   >
                     {t('focusMode.skip')}
-                  </button>
+                  </Button>
                 </>
               )}
 
               {status.state === 'paused' && (
                 <>
-                  <button
+                  <Button
                     onClick={resumeSession}
-                    className="px-6 py-3 rounded-lg font-medium bg-green-600 hover:bg-green-700
-                             text-white transition-colors"
+                    variant="primary"
+                    size="lg"
+                    icon={Play}
                   >
                     {t('focusMode.resume')}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={stopSession}
-                    className="px-6 py-3 rounded-lg font-medium bg-red-600 hover:bg-red-700
-                             text-white transition-colors"
+                    variant="danger"
+                    size="lg"
+                    icon={Square}
                   >
                     {t('focusMode.stop')}
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
           </div>
 
           {/* Session Info */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="card">
-              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                {t('focusMode.sessionsCompleted')}
-              </h3>
-              <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">
-                {status.sessionsCompleted}
-              </p>
-            </div>
-            <div className="card">
-              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                {t('focusMode.stats.dailyGoal')}
-              </h3>
-              <p className="text-3xl font-bold text-green-600 dark:text-green-400">
-                {stats?.completedSessions || 0} / {settings.dailyGoal}
-              </p>
-            </div>
+          <div className="grid grid-cols-2 gap-6">
+            <StatCard
+              icon={Award}
+              title={t('focusMode.sessionsCompleted')}
+              value={status.sessionsCompleted}
+              colorScheme="primary"
+            />
+            <StatCard
+              icon={TrendingUp}
+              title={t('focusMode.stats.dailyGoal')}
+              value={`${stats?.completedSessions || 0} / ${settings.dailyGoal}`}
+              colorScheme="green"
+            />
           </div>
         </div>
 

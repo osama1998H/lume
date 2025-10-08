@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Play, Square, Clock, Tag, FileText } from 'lucide-react';
 import { TimeEntry } from '../types';
 import ActivityListCard from './ui/ActivityListCard';
+import Button from './ui/Button';
+import Input from './ui/Input';
 
 const TimeTracker: React.FC = () => {
   const { t } = useTranslation();
@@ -149,7 +152,7 @@ const TimeTracker: React.FC = () => {
 
   return (
     <div className="p-8 overflow-y-auto">
-      <div className="mb-8">
+      <div className="mb-8 animate-fade-in">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('timeTracker.title')}</h2>
         <p className="text-gray-600 dark:text-gray-400">{t('timeTracker.subtitle')}</p>
       </div>
@@ -157,61 +160,64 @@ const TimeTracker: React.FC = () => {
       <div className="max-w-2xl mx-auto">
         <div className="card mb-8">
           <div className="text-center mb-6">
-            <div className="text-6xl font-mono font-bold text-primary-600 dark:text-primary-400 mb-4">
-              {formatTime(elapsedTime)}
+            <div className="inline-flex items-center justify-center gap-3 mb-4 px-8 py-4 bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-2xl">
+              <Clock className={`h-8 w-8 ${isTracking ? 'text-primary-600 dark:text-primary-400 animate-pulse' : 'text-gray-400'}`} />
+              <div className="text-6xl font-mono font-bold text-primary-600 dark:text-primary-400 tracking-tight">
+                {formatTime(elapsedTime)}
+              </div>
             </div>
             {isTracking && currentTask && (
-              <p className="text-lg text-gray-900 dark:text-gray-100">{t('timeTracker.workingOn')} <span className="font-semibold">{currentTask}</span></p>
+              <p className="text-lg text-gray-700 dark:text-gray-300 animate-fade-in">
+                {t('timeTracker.workingOn')} <span className="font-semibold text-gray-900 dark:text-gray-100">{currentTask}</span>
+              </p>
             )}
           </div>
 
           <div className="space-y-4">
-            <div>
-              <label htmlFor="task" className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                {t('timeTracker.taskName')}
-              </label>
-              <input
-                type="text"
-                id="task"
-                value={currentTask}
-                onChange={(e) => setCurrentTask(e.target.value)}
-                disabled={isTracking}
-                placeholder={t('timeTracker.taskPlaceholder')}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-              />
-            </div>
+            <Input
+              id="task"
+              label={t('timeTracker.taskName')}
+              value={currentTask}
+              onChange={(e) => setCurrentTask(e.target.value)}
+              disabled={isTracking}
+              placeholder={t('timeTracker.taskPlaceholder')}
+              icon={FileText}
+              iconPosition="left"
+            />
 
-            <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                {t('timeTracker.category')}
-              </label>
-              <input
-                type="text"
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                disabled={isTracking}
-                placeholder={t('timeTracker.categoryPlaceholder')}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-              />
-            </div>
+            <Input
+              id="category"
+              label={t('timeTracker.category')}
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              disabled={isTracking}
+              placeholder={t('timeTracker.categoryPlaceholder')}
+              icon={Tag}
+              iconPosition="left"
+            />
 
             <div className="flex justify-center pt-4">
               {!isTracking ? (
-                <button
+                <Button
                   onClick={startTracking}
                   disabled={!currentTask.trim()}
-                  className="btn-primary px-8 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  variant="primary"
+                  size="lg"
+                  icon={Play}
+                  className="px-8"
                 >
                   {t('timeTracker.startTracking')}
-                </button>
+                </Button>
               ) : (
-                <button
+                <Button
                   onClick={stopTracking}
-                  className="bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white px-8 py-3 text-lg rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
+                  variant="danger"
+                  size="lg"
+                  icon={Square}
+                  className="px-8"
                 >
                   {t('timeTracker.stopTracking')}
-                </button>
+                </Button>
               )}
             </div>
           </div>
