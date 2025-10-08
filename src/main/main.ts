@@ -127,7 +127,7 @@ class LumeApp {
   private setupDatabase(): void {
     try {
       this.dbManager = new DatabaseManager();
-      this.dbManager.initialize();
+      this.dbManager.initialize(app.getPath('userData'));
       console.log('✅ Database initialized successfully');
 
       // Initialize notification service

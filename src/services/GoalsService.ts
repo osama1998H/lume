@@ -106,7 +106,7 @@ export class GoalsService {
   async getGoalById(id: number): Promise<ProductivityGoal | null> {
     try {
       const goals = await this.db.getGoals();
-      return goals.find(g => g.id === id) || null;
+      return goals.find((g: ProductivityGoal) => g.id === id) || null;
     } catch (error) {
       console.error('Failed to get goal by id:', error);
       return null;
