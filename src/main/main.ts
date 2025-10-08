@@ -933,6 +933,16 @@ class LumeApp {
       }
     });
 
+    ipcMain.handle('set-pomodoro-session-tags', async (_, pomodoroSessionId: number, tagIds: number[]) => {
+      try {
+        this.dbManager?.setPomodoroSessionTags(pomodoroSessionId, tagIds);
+        return true;
+      } catch (error) {
+        console.error('Failed to set pomodoro session tags:', error);
+        return false;
+      }
+    });
+
     ipcMain.handle('get-productivity-goal-tags', async (_, productivityGoalId: number) => {
       try {
         return this.dbManager?.getProductivityGoalTags(productivityGoalId) || [];
@@ -948,6 +958,16 @@ class LumeApp {
         return true;
       } catch (error) {
         console.error('Failed to add productivity goal tags:', error);
+        return false;
+      }
+    });
+
+    ipcMain.handle('set-productivity-goal-tags', async (_, productivityGoalId: number, tagIds: number[]) => {
+      try {
+        this.dbManager?.setProductivityGoalTags(productivityGoalId, tagIds);
+        return true;
+      } catch (error) {
+        console.error('Failed to set productivity goal tags:', error);
         return false;
       }
     });

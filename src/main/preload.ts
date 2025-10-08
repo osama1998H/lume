@@ -85,8 +85,10 @@ export interface IElectronAPI {
   addAppUsageTags: (appUsageId: number, tagIds: number[]) => Promise<void>;
   getPomodoroSessionTags: (pomodoroSessionId: number) => Promise<Tag[]>;
   addPomodoroSessionTags: (pomodoroSessionId: number, tagIds: number[]) => Promise<void>;
+  setPomodoroSessionTags: (pomodoroSessionId: number, tagIds: number[]) => Promise<void>;
   getProductivityGoalTags: (productivityGoalId: number) => Promise<Tag[]>;
   addProductivityGoalTags: (productivityGoalId: number, tagIds: number[]) => Promise<void>;
+  setProductivityGoalTags: (productivityGoalId: number, tagIds: number[]) => Promise<void>;
   // Statistics API
   getCategoryStats: (startDate?: string, endDate?: string) => Promise<CategoryStats[]>;
   getTagStats: (startDate?: string, endDate?: string) => Promise<TagStats[]>;
@@ -174,8 +176,10 @@ const electronAPI: IElectronAPI = {
   addAppUsageTags: (appUsageId, tagIds) => ipcRenderer.invoke('add-app-usage-tags', appUsageId, tagIds),
   getPomodoroSessionTags: (pomodoroSessionId: number) => ipcRenderer.invoke('get-pomodoro-session-tags', pomodoroSessionId),
   addPomodoroSessionTags: (pomodoroSessionId: number, tagIds: number[]) => ipcRenderer.invoke('add-pomodoro-session-tags', pomodoroSessionId, tagIds),
+  setPomodoroSessionTags: (pomodoroSessionId: number, tagIds: number[]) => ipcRenderer.invoke('set-pomodoro-session-tags', pomodoroSessionId, tagIds),
   getProductivityGoalTags: (productivityGoalId: number) => ipcRenderer.invoke('get-productivity-goal-tags', productivityGoalId),
   addProductivityGoalTags: (productivityGoalId: number, tagIds: number[]) => ipcRenderer.invoke('add-productivity-goal-tags', productivityGoalId, tagIds),
+  setProductivityGoalTags: (productivityGoalId: number, tagIds: number[]) => ipcRenderer.invoke('set-productivity-goal-tags', productivityGoalId, tagIds),
   // Statistics API
   getCategoryStats: (startDate, endDate) => ipcRenderer.invoke('get-category-stats', startDate, endDate),
   getTagStats: (startDate, endDate) => ipcRenderer.invoke('get-tag-stats', startDate, endDate),

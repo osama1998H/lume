@@ -137,7 +137,9 @@ const TimeTracker: React.FC = () => {
 
         // Save tags if any selected
         if (selectedTags.length > 0) {
-          const tagIds = selectedTags.map((tag) => tag.id!).filter((id) => id !== undefined);
+          const tagIds = selectedTags
+            .map((tag) => tag.id)
+            .filter((id): id is number => id != null);
           await window.electronAPI.addTimeEntryTags(id, tagIds);
         }
 

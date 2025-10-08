@@ -167,11 +167,11 @@ const Goals: React.FC = () => {
           showToast.success(t('goals.createSuccess') || 'Goal created successfully');
         }
 
-        // Save tags
-        if (formData.tags.length > 0) {
-          const tagIds = formData.tags.map((tag) => tag.id!).filter((id) => id !== undefined);
-          await window.electronAPI.addProductivityGoalTags(goalId, tagIds);
-        }
+        // Save tags (use set to replace existing tags)
+        const tagIds = formData.tags
+          .map((tag) => tag.id)
+          .filter((id): id is number => id != null);
+        await window.electronAPI.setProductivityGoalTags(goalId, tagIds);
 
         setShowCreateModal(false);
         setEditingGoal(null);

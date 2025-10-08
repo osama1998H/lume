@@ -50,7 +50,9 @@ const FocusMode: React.FC = () => {
     // Save tags if any selected and session ID is available
     if (selectedTags.length > 0 && status.currentSessionId && window.electronAPI) {
       try {
-        const tagIds = selectedTags.map((tag) => tag.id!).filter((id) => id !== undefined);
+        const tagIds = selectedTags
+          .map((tag) => tag.id)
+          .filter((id): id is number => id != null);
         await window.electronAPI.addPomodoroSessionTags(status.currentSessionId, tagIds);
       } catch (error) {
         console.error('Failed to add tags to pomodoro session:', error);

@@ -38,14 +38,17 @@ const TagSelector: React.FC<TagSelectorProps> = ({
     }
   }, [availableTags]);
 
-  const loadTags = async () => {
+  const loadTags = async (): Promise<Tag[]> => {
     try {
       if (window.electronAPI) {
         const tags = await window.electronAPI.getTags();
         setAllTags(tags);
+        return tags;
       }
+      return [];
     } catch (error) {
       console.error('Failed to load tags:', error);
+      return [];
     }
   };
 
@@ -89,8 +92,8 @@ const TagSelector: React.FC<TagSelectorProps> = ({
       });
 
       // Reload tags and select the new one
-      await loadTags();
-      const newTag = allTags.find((t) => t.id === newTagId);
+      const tags = await loadTags();
+      const newTag = tags.find((t) => t.id === newTagId);
       if (newTag) {
         handleTagSelect(newTag);
       }

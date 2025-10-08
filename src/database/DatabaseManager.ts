@@ -1720,6 +1720,37 @@ export class DatabaseManager {
     }
   }
 
+  /**
+   * Set (replace) all tags for a pomodoro session in a transaction
+   * Deletes existing associations and inserts new ones
+   */
+  setPomodoroSessionTags(pomodoroSessionId: number, tagIds: number[]): void {
+    if (!this.db) return;
+
+    const transaction = this.db.transaction(() => {
+      // Delete existing associations
+      const deleteStmt = this.db!.prepare(`
+        DELETE FROM pomodoro_session_tags
+        WHERE pomodoro_session_id = ?
+      `);
+      deleteStmt.run(pomodoroSessionId);
+
+      // Insert new associations if any
+      if (tagIds.length > 0) {
+        const insertStmt = this.db!.prepare(`
+          INSERT OR IGNORE INTO pomodoro_session_tags (pomodoro_session_id, tag_id)
+          VALUES (?, ?)
+        `);
+
+        for (const tagId of tagIds) {
+          insertStmt.run(pomodoroSessionId, tagId);
+        }
+      }
+    });
+
+    transaction();
+  }
+
   getPomodoroSessionTags(pomodoroSessionId: number): import('../types').Tag[] {
     if (!this.db) return [];
 
@@ -1749,6 +1780,37 @@ export class DatabaseManager {
     for (const tagId of tagIds) {
       stmt.run(productivityGoalId, tagId);
     }
+  }
+
+  /**
+   * Set (replace) all tags for a productivity goal in a transaction
+   * Deletes existing associations and inserts new ones
+   */
+  setProductivityGoalTags(productivityGoalId: number, tagIds: number[]): void {
+    if (!this.db) return;
+
+    const transaction = this.db.transaction(() => {
+      // Delete existing associations
+      const deleteStmt = this.db!.prepare(`
+        DELETE FROM productivity_goal_tags
+        WHERE productivity_goal_id = ?
+      `);
+      deleteStmt.run(productivityGoalId);
+
+      // Insert new associations if any
+      if (tagIds.length > 0) {
+        const insertStmt = this.db!.prepare(`
+          INSERT OR IGNORE INTO productivity_goal_tags (productivity_goal_id, tag_id)
+          VALUES (?, ?)
+        `);
+
+        for (const tagId of tagIds) {
+          insertStmt.run(productivityGoalId, tagId);
+        }
+      }
+    });
+
+    transaction();
   }
 
   getProductivityGoalTags(productivityGoalId: number): import('../types').Tag[] {

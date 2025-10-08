@@ -390,8 +390,10 @@ export interface ElectronAPI {
   addAppUsageTags: (appUsageId: number, tagIds: number[]) => Promise<void>;
   getPomodoroSessionTags: (pomodoroSessionId: number) => Promise<Tag[]>;
   addPomodoroSessionTags: (pomodoroSessionId: number, tagIds: number[]) => Promise<void>;
+  setPomodoroSessionTags: (pomodoroSessionId: number, tagIds: number[]) => Promise<void>;
   getProductivityGoalTags: (productivityGoalId: number) => Promise<Tag[]>;
   addProductivityGoalTags: (productivityGoalId: number, tagIds: number[]) => Promise<void>;
+  setProductivityGoalTags: (productivityGoalId: number, tagIds: number[]) => Promise<void>;
   // Statistics API
   getCategoryStats: (startDate?: string, endDate?: string) => Promise<CategoryStats[]>;
   getTagStats: (startDate?: string, endDate?: string) => Promise<TagStats[]>;
