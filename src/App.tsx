@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import TimeTracker from './components/TimeTracker';
 import Reports from './components/Reports';
+import { Analytics } from './components/Analytics';
 import Goals from './components/Goals';
 import FocusMode from './components/FocusMode';
 import Settings from './components/Settings';
@@ -13,7 +14,7 @@ import Timeline from './components/Timeline';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PomodoroProvider } from './contexts/PomodoroContext';
 
-type View = 'dashboard' | 'tracker' | 'reports' | 'timeline' | 'goals' | 'focus' | 'categories' | 'settings';
+type View = 'dashboard' | 'tracker' | 'reports' | 'analytics' | 'timeline' | 'goals' | 'focus' | 'categories' | 'settings';
 
 /**
  * Top-level application component that initializes theming, manages the active view, and composes the main layout with a title bar, sidebar, and view content.
@@ -31,6 +32,8 @@ function App() {
         return <TimeTracker />;
       case 'reports':
         return <Reports />;
+      case 'analytics':
+        return <Analytics />;
       case 'timeline':
         return <Timeline />;
       case 'goals':

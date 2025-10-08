@@ -1001,6 +1001,164 @@ class LumeApp {
       }
     });
 
+    // ==================== ANALYTICS IPC HANDLERS ====================
+
+    ipcMain.handle('get-daily-productivity-stats', async (_, startDate: string, endDate: string) => {
+      try {
+        if (!this.dbManager) {
+          console.error('❌ Database manager not initialized');
+          return [];
+        }
+        const stats = this.dbManager.getDailyProductivityStats(startDate, endDate);
+        console.log(`📊 Retrieved daily productivity stats for ${startDate} to ${endDate}`);
+        return stats;
+      } catch (error) {
+        console.error('Failed to get daily productivity stats:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('get-hourly-patterns', async (_, days: number) => {
+      try {
+        if (!this.dbManager) {
+          console.error('❌ Database manager not initialized');
+          return [];
+        }
+        const patterns = this.dbManager.getHourlyPatterns(days);
+        console.log(`📊 Retrieved hourly patterns for last ${days} days`);
+        return patterns;
+      } catch (error) {
+        console.error('Failed to get hourly patterns:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('get-heatmap-data', async (_, year: number) => {
+      try {
+        if (!this.dbManager) {
+          console.error('❌ Database manager not initialized');
+          return [];
+        }
+        const heatmapData = this.dbManager.getHeatmapData(year);
+        console.log(`📊 Retrieved heatmap data for year ${year}`);
+        return heatmapData;
+      } catch (error) {
+        console.error('Failed to get heatmap data:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('get-weekly-summary', async (_, weekOffset: number) => {
+      try {
+        if (!this.dbManager) {
+          console.error('❌ Database manager not initialized');
+          return {
+            weekStart: '',
+            weekEnd: '',
+            totalMinutes: 0,
+            avgDailyMinutes: 0,
+            topDay: null,
+            topCategories: [],
+            goalsAchieved: 0,
+            totalGoals: 0,
+            comparisonToPrevious: 0,
+            insights: []
+          };
+        }
+        const summary = this.dbManager.getWeeklySummary(weekOffset);
+        console.log(`📊 Retrieved weekly summary for week offset ${weekOffset}`);
+        return summary;
+      } catch (error) {
+        console.error('Failed to get weekly summary:', error);
+        return {
+          weekStart: '',
+          weekEnd: '',
+          totalMinutes: 0,
+          avgDailyMinutes: 0,
+          topDay: null,
+          topCategories: [],
+          goalsAchieved: 0,
+          totalGoals: 0,
+          comparisonToPrevious: 0,
+          insights: []
+        };
+      }
+    });
+
+    ipcMain.handle('get-productivity-trends', async (_, startDate: string, endDate: string, groupBy: 'day' | 'week' | 'month') => {
+      try {
+        if (!this.dbManager) {
+          console.error('❌ Database manager not initialized');
+          return [];
+        }
+        const trends = this.dbManager.getProductivityTrends(startDate, endDate, groupBy);
+        console.log(`📊 Retrieved productivity trends for ${startDate} to ${endDate} grouped by ${groupBy}`);
+        return trends;
+      } catch (error) {
+        console.error('Failed to get productivity trends:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('get-behavioral-insights', async () => {
+      try {
+        if (!this.dbManager) {
+          console.error('❌ Database manager not initialized');
+          return [];
+        }
+        const insights = this.dbManager.getBehavioralInsights();
+        console.log(`📊 Retrieved ${insights.length} behavioral insights`);
+        return insights;
+      } catch (error) {
+        console.error('Failed to get behavioral insights:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('get-analytics-summary', async () => {
+      try {
+        if (!this.dbManager) {
+          console.error('❌ Database manager not initialized');
+          return {
+            productivityScore: 0,
+            totalProductiveMinutes: 0,
+            avgDailyFocusHours: 0,
+            peakHour: 9,
+            mostProductiveDay: 'Monday',
+            weeklyStreak: 0
+          };
+        }
+        const summary = this.dbManager.getAnalyticsSummary();
+        console.log(`📊 Retrieved analytics summary - Score: ${summary.productivityScore}`);
+        return summary;
+      } catch (error) {
+        console.error('Failed to get analytics summary:', error);
+        return {
+          productivityScore: 0,
+          totalProductiveMinutes: 0,
+          avgDailyFocusHours: 0,
+          peakHour: 9,
+          mostProductiveDay: 'Monday',
+          weeklyStreak: 0
+        };
+      }
+    });
+
+    ipcMain.handle('get-distraction-analysis', async (_, days: number) => {
+      try {
+        if (!this.dbManager) {
+          console.error('❌ Database manager not initialized');
+          return [];
+        }
+        const analysis = this.dbManager.getDistractionAnalysis(days);
+        console.log(`📊 Retrieved distraction analysis for last ${days} days`);
+        return analysis;
+      } catch (error) {
+        console.error('Failed to get distraction analysis:', error);
+        return [];
+      }
+    });
+
     // ==================== AUTO-START IPC HANDLERS ====================
 
     ipcMain.handle('get-auto-start-status', async () => {

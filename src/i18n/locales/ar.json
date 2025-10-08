@@ -7,6 +7,7 @@
     "dashboard": "لوحة التحكم",
     "tracker": "متتبع الوقت",
     "reports": "التقارير",
+    "analytics": "التحليلات",
     "timeline": "الجدول الزمني",
     "goals": "الأهداف",
     "settings": "الإعدادات",
@@ -174,7 +175,45 @@
     "seconds": "ثواني",
     "h": "س",
     "m": "د",
-    "s": "ث"
+    "s": "ث",
+    "min": "دقيقة",
+    "avg": "متوسط",
+    "day": "يوم",
+    "days": "أيام",
+    "daysOfWeek": {
+      "Monday": "الإثنين",
+      "Tuesday": "الثلاثاء",
+      "Wednesday": "الأربعاء",
+      "Thursday": "الخميس",
+      "Friday": "الجمعة",
+      "Saturday": "السبت",
+      "Sunday": "الأحد"
+    },
+    "daysOfWeekShort": {
+      "Mon": "إث",
+      "Tue": "ثل",
+      "Wed": "أرب",
+      "Thu": "خم",
+      "Fri": "جم",
+      "Sat": "سبت",
+      "Sun": "أحد"
+    },
+    "months": {
+      "Jan": "يناير",
+      "Feb": "فبراير",
+      "Mar": "مارس",
+      "Apr": "أبريل",
+      "May": "مايو",
+      "Jun": "يونيو",
+      "Jul": "يوليو",
+      "Aug": "أغسطس",
+      "Sep": "سبتمبر",
+      "Oct": "أكتوبر",
+      "Nov": "نوفمبر",
+      "Dec": "ديسمبر"
+    },
+    "less": "أقل",
+    "more": "أكثر"
   },
   "focusMode": {
     "title": "وضع التركيز",
@@ -383,6 +422,64 @@
       "week": "آخر 7 أيام",
       "month": "آخر 30 يومًا",
       "custom": "نطاق مخصص"
+    }
+  },
+  "analytics": {
+    "title": "التحليلات",
+    "subtitle": "افهم أنماط إنتاجيتك وحسّنها مع مرور الوقت",
+    "lastWeek": "آخر 7 أيام",
+    "lastMonth": "آخر 30 يومًا",
+    "lastYear": "السنة الماضية",
+    "productivityScore": "نقاط الإنتاجية",
+    "totalProductiveTime": "إجمالي الوقت المنتج",
+    "peakHour": "ساعة الذروة",
+    "weeklyStreak": "السلسلة الأسبوعية",
+    "productivityTrends": "اتجاهات الإنتاجية",
+    "trendsDescription": "تتبع إنتاجيتك مع مرور الوقت",
+    "hourlyPatterns": "أنماط النشاط الساعية",
+    "patternsDescription": "اكتشف ساعات ذروة إنتاجيتك",
+    "weeklySummary": "الملخص الأسبوعي",
+    "totalTime": "إجمالي الوقت",
+    "avgDaily": "المتوسط اليومي",
+    "goalsAchieved": "الأهداف المحققة",
+    "vsLastWeek": "مقارنة بالأسبوع الماضي",
+    "insights": "الرؤى",
+    "yearlyActivity": "النشاط السنوي",
+    "heatmapDescription": "تقويم المساهمات على نمط GitHub",
+    "behavioralInsights": "رؤى سلوكية",
+    "noData": "لا توجد بيانات متاحة",
+    "loading": "جاري تحميل التحليلات...",
+    "insightTypes": {
+      "peakHour": {
+        "title": "ساعة الذروة للإنتاجية",
+        "morning": "الصباح",
+        "afternoon": "بعد الظهر",
+        "evening": "المساء",
+        "description": "أنت أكثر إنتاجية حوالي الساعة {{hour}}:00 في {{period}}"
+      },
+      "productiveDay": {
+        "title": "اليوم الأكثر إنتاجية",
+        "description": "{{day}} هو يومك الأكثر إنتاجية"
+      },
+      "categoryTrend": {
+        "title": "مجال التركيز الرئيسي",
+        "description": "لقد أمضيت معظم الوقت في {{category}}"
+      },
+      "distraction": {
+        "title": "تشتيت محتمل",
+        "description": "{{app}} لديه {{count}} جلسات قصيرة"
+      },
+      "focusQuality": {
+        "title": "جودة التركيز",
+        "descriptionGood": "تركيز رائع! تكمل {{rate}}٪ من جلسات التركيز",
+        "descriptionPoor": "حاول تحسين التركيز - معدل إكمال {{rate}}٪"
+      },
+      "streak": {
+        "title": "سلسلة النشاط",
+        "descriptionLong": "مذهل! {{days}} يومًا من التتبع المستمر",
+        "descriptionShort": "استمر! سلسلة {{days}} يوم",
+        "descriptionShortPlural": "استمر! سلسلة {{days}} أيام"
+      }
     }
   },
   "errors": {
