@@ -27,8 +27,9 @@ const mockElectronAPI = {
   getStats: jest.fn(),
 };
 
-(global as typeof global & { window: Window & { electron: typeof mockElectronAPI } }).window = {
-  ...(global as unknown as { window: Window }).window,
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(global as any).window = {
+  ...global.window,
   electron: mockElectronAPI,
 };
 
