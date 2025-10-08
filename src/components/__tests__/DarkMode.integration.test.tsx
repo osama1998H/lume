@@ -53,15 +53,16 @@ const renderWithTheme = (component: React.ReactElement) => {
 
 describe('Dark Mode Integration Tests', () => {
   beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).electronAPI = mockElectronAPI;
-    
+
     // Setup default mocks
     mockElectronAPI.getTodayStats.mockResolvedValue({
       totalTime: 3600000,
       tasksCompleted: 5,
       activeTask: 'Test Task'
     });
-    
+
     mockElectronAPI.getRecentTimeEntries.mockResolvedValue([]);
     mockElectronAPI.getRecentAppUsage.mockResolvedValue([]);
     mockElectronAPI.getStats.mockResolvedValue({
@@ -75,6 +76,7 @@ describe('Dark Mode Integration Tests', () => {
   });
 
   afterEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window as any).electronAPI;
     jest.clearAllMocks();
   });

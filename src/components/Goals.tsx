@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Target, TrendingUp, Award, Flame, Edit2, Trash2, Plus } from 'lucide-react';
 import { ProductivityGoal, GoalWithProgress, GoalStats, GoalType, GoalOperator, GoalPeriod, GoalStatus } from '../types';
+import StatCard from './ui/StatCard';
+import Button from './ui/Button';
+import Input from './ui/Input';
+import Badge from './ui/Badge';
+import EmptyState from './ui/EmptyState';
+import Skeleton from './ui/Skeleton';
 
 const Goals: React.FC = () => {
   const { t } = useTranslation();
@@ -89,18 +96,16 @@ const Goals: React.FC = () => {
     return `${mins}${t('common.m')}`;
   };
 
-  const getStatusColor = (status: GoalStatus): string => {
+  const getStatusVariant = (status: GoalStatus): 'success' | 'primary' | 'danger' | 'gray' => {
     switch (status) {
       case 'achieved':
-        return 'text-green-600 bg-green-100';
+        return 'success';
       case 'in_progress':
-        return 'text-blue-600 bg-blue-100';
+        return 'primary';
       case 'exceeded':
-        return 'text-red-600 bg-red-100';
-      case 'failed':
-        return 'text-gray-600 bg-gray-100';
+        return 'danger';
       default:
-        return 'text-gray-400 bg-gray-50';
+        return 'gray';
     }
   };
 
@@ -119,89 +124,85 @@ const Goals: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg text-gray-600">{t('goals.loadingGoals')}</div>
+      <div className="p-8 overflow-y-auto space-y-8">
+        <div className="space-y-2">
+          <Skeleton width="200px" height="32px" />
+          <Skeleton width="300px" height="20px" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Skeleton variant="rectangular" height="120px" />
+          <Skeleton variant="rectangular" height="120px" />
+          <Skeleton variant="rectangular" height="120px" />
+          <Skeleton variant="rectangular" height="120px" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="p-8 overflow-y-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+      <div className="mb-8 animate-fade-in">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           {t('goals.title')}
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400">
           {t('goals.subtitle')}
         </p>
       </div>
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              {t('goals.stats.totalGoals')}
-            </div>
-            <div className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-              {stats.totalGoals}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              {t('goals.stats.activeGoals')}
-            </div>
-            <div className="text-3xl font-bold text-blue-600 mt-2">
-              {stats.activeGoals}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              {t('goals.stats.achievedToday')}
-            </div>
-            <div className="text-3xl font-bold text-green-600 mt-2">
-              {stats.achievedToday}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              {t('goals.stats.currentStreak')}
-            </div>
-            <div className="text-3xl font-bold text-purple-600 mt-2">
-              {stats.currentStreak} {t('goals.stats.days')}
-            </div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatCard
+            icon={Target}
+            title={t('goals.stats.totalGoals')}
+            value={stats.totalGoals}
+            colorScheme="primary"
+          />
+          <StatCard
+            icon={TrendingUp}
+            title={t('goals.stats.activeGoals')}
+            value={stats.activeGoals}
+            colorScheme="primary"
+          />
+          <StatCard
+            icon={Award}
+            title={t('goals.stats.achievedToday')}
+            value={stats.achievedToday}
+            colorScheme="green"
+          />
+          <StatCard
+            icon={Flame}
+            title={t('goals.stats.currentStreak')}
+            value={`${stats.currentStreak} ${t('goals.stats.days')}`}
+            colorScheme="orange"
+          />
         </div>
       )}
 
       {/* Create Goal Button */}
       <div className="mb-6">
-        <button
+        <Button
           onClick={handleCreateGoal}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+          variant="primary"
+          icon={Plus}
         >
-          + {t('goals.createGoal')}
-        </button>
+          {t('goals.createGoal')}
+        </Button>
       </div>
 
       {/* Goals List */}
       {goals.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center">
-          <div className="text-gray-400 text-lg mb-4">📊</div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            {t('goals.noGoals')}
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {t('goals.noGoalsPrompt')}
-          </p>
-          <button
-            onClick={handleCreateGoal}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
-          >
-            {t('goals.createGoal')}
-          </button>
-        </div>
+        <EmptyState
+          icon={Target}
+          title={t('goals.noGoals')}
+          description={t('goals.noGoalsPrompt')}
+          action={{
+            label: t('goals.createGoal'),
+            onClick: handleCreateGoal,
+          }}
+        />
       ) : (
         <div className="space-y-4">
           {goals.map((goal) => (
@@ -215,13 +216,9 @@ const Goals: React.FC = () => {
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                       {goal.name}
                     </h3>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        goal.status
-                      )}`}
-                    >
+                    <Badge variant={getStatusVariant(goal.status)} size="sm">
                       {t(`goals.status${goal.status.charAt(0).toUpperCase() + goal.status.slice(1)}`)}
-                    </span>
+                    </Badge>
                   </div>
                   {goal.description && (
                     <p className="text-gray-600 dark:text-gray-400 text-sm">
@@ -251,27 +248,24 @@ const Goals: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
+                  <Button
                     onClick={() => handleToggleActive(goal)}
-                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                      goal.active
-                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                    variant={goal.active ? 'secondary' : 'ghost'}
+                    size="sm"
                   >
                     {goal.active ? t('goals.active') : t('settings.stopped')}
-                  </button>
+                  </Button>
                   <button
                     onClick={() => handleEditGoal(goal)}
-                    className="p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                    className="p-2 text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
-                    ✏️
+                    <Edit2 className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => goal.id && handleDeleteGoal(goal.id)}
-                    className="p-2 text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
+                    className="p-2 text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
-                    🗑️
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -415,23 +409,18 @@ const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose, onSave }) => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Goal Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t('goals.goalName')} *
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder={t('goals.goalNamePlaceholder')}
-                required
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
+            <Input
+              type="text"
+              label={`${t('goals.goalName')} *`}
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder={t('goals.goalNamePlaceholder')}
+              required
+            />
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                 {t('goals.description')}
               </label>
               <textarea
@@ -439,7 +428,7 @@ const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose, onSave }) => {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder={t('goals.descriptionPlaceholder')}
                 rows={2}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:text-gray-100 transition-all"
               />
             </div>
 
@@ -451,47 +440,37 @@ const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose, onSave }) => {
               <select
                 value={formData.goalType}
                 onChange={(e) => setFormData({ ...formData, goalType: e.target.value as GoalType })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
               >
-                <option value="daily_time">{t('goals.goalTypeDaily')}</option>
-                <option value="weekly_time">{t('goals.goalTypeWeekly')}</option>
-                <option value="category">{t('goals.goalTypeCategory')}</option>
-                <option value="app_limit">{t('goals.goalTypeAppLimit')}</option>
+                <option value="daily_time" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.goalTypeDaily')}</option>
+                <option value="weekly_time" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.goalTypeWeekly')}</option>
+                <option value="category" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.goalTypeCategory')}</option>
+                <option value="app_limit" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.goalTypeAppLimit')}</option>
               </select>
             </div>
 
             {/* Category (for category goals) */}
             {formData.goalType === 'category' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('goals.category')} *
-                </label>
-                <input
-                  type="text"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder={t('goals.categoryPlaceholder')}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
+              <Input
+                type="text"
+                label={`${t('goals.category')} *`}
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                placeholder={t('goals.categoryPlaceholder')}
+                required
+              />
             )}
 
             {/* App Name (for app_limit goals) */}
             {formData.goalType === 'app_limit' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('goals.appName')} *
-                </label>
-                <input
-                  type="text"
-                  value={formData.appName}
-                  onChange={(e) => setFormData({ ...formData, appName: e.target.value })}
-                  placeholder={t('goals.appNamePlaceholder')}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
+              <Input
+                type="text"
+                label={`${t('goals.appName')} *`}
+                value={formData.appName}
+                onChange={(e) => setFormData({ ...formData, appName: e.target.value })}
+                placeholder={t('goals.appNamePlaceholder')}
+                required
+              />
             )}
 
             {/* Operator & Target */}
@@ -503,26 +482,21 @@ const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose, onSave }) => {
                 <select
                   value={formData.operator}
                   onChange={(e) => setFormData({ ...formData, operator: e.target.value as GoalOperator })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="gte">{t('goals.operatorGte')}</option>
-                  <option value="lte">{t('goals.operatorLte')}</option>
-                  <option value="eq">{t('goals.operatorEq')}</option>
+                  <option value="gte" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.operatorGte')}</option>
+                  <option value="lte" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.operatorLte')}</option>
+                  <option value="eq" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.operatorEq')}</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('goals.targetMinutes')} *
-                </label>
-                <input
-                  type="number"
-                  value={formData.targetMinutes}
-                  onChange={(e) => setFormData({ ...formData, targetMinutes: parseInt(e.target.value) })}
-                  min={1}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
+              <Input
+                type="number"
+                label={`${t('goals.targetMinutes')} *`}
+                value={formData.targetMinutes.toString()}
+                onChange={(e) => setFormData({ ...formData, targetMinutes: parseInt(e.target.value, 10) || 0 })}
+                min={1}
+                required
+              />
             </div>
 
             {/* Notifications */}
@@ -532,13 +506,13 @@ const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose, onSave }) => {
               </label>
               <select
                 value={formData.notifyAtPercentage}
-                onChange={(e) => setFormData({ ...formData, notifyAtPercentage: parseInt(e.target.value) })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                onChange={(e) => setFormData({ ...formData, notifyAtPercentage: parseInt(e.target.value, 10) })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
               >
-                <option value={50}>{t('goals.notifyAt50')}</option>
-                <option value={75}>{t('goals.notifyAt75')}</option>
-                <option value={90}>{t('goals.notifyAt90')}</option>
-                <option value={100}>{t('goals.notifyAt100')}</option>
+                <option value={50} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.notifyAt50')}</option>
+                <option value={75} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.notifyAt75')}</option>
+                <option value={90} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.notifyAt90')}</option>
+                <option value={100} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{t('goals.notifyAt100')}</option>
               </select>
             </div>
 
@@ -549,7 +523,7 @@ const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose, onSave }) => {
                   type="checkbox"
                   checked={formData.active}
                   onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800"
                 />
                 <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                   {t('goals.activeDesc')}
@@ -560,7 +534,7 @@ const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose, onSave }) => {
                   type="checkbox"
                   checked={formData.notificationsEnabled}
                   onChange={(e) => setFormData({ ...formData, notificationsEnabled: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800"
                 />
                 <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                   {t('goals.notificationsEnabledDesc')}
@@ -570,20 +544,21 @@ const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose, onSave }) => {
 
             {/* Buttons */}
             <div className="flex justify-end gap-3 pt-4">
-              <button
+              <Button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                variant="ghost"
               >
                 {t('common.cancel')}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
                 disabled={isSaving}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                variant="primary"
+                loading={isSaving}
               >
-                {isSaving ? t('settings.saving') : t('common.save')}
-              </button>
+                {t('common.save')}
+              </Button>
             </div>
           </form>
         </div>

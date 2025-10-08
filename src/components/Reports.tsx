@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Clock, CheckCircle2, Timer, Smartphone } from 'lucide-react';
 import { TimeEntry, AppUsage } from '../types';
+import { ActivitySession } from '../types/activity';
 import StatCard from './ui/StatCard';
 import ProgressListCard from './ui/ProgressListCard';
+import Badge from './ui/Badge';
 
 const Reports: React.FC = () => {
   const { t } = useTranslation();
@@ -10,7 +13,7 @@ const Reports: React.FC = () => {
   const [appUsage, setAppUsage] = useState<AppUsage[]>([]);
   const [topApplications, setTopApplications] = useState<Array<{name: string, totalDuration: number}>>([]);
   const [topWebsites, setTopWebsites] = useState<Array<{domain: string, totalDuration: number}>>([]);
-  const [activitySessions, setActivitySessions] = useState<any[]>([]);
+  const [activitySessions, setActivitySessions] = useState<ActivitySession[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<'day' | 'week' | 'month'>('week');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -208,12 +211,12 @@ const Reports: React.FC = () => {
           <div>
             <select
               value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value as any)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
+              onChange={(e) => setSelectedPeriod(e.target.value as 'day' | 'week' | 'month')}
+              className="px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm transition-all"
             >
-              <option value="day">{t('reports.today')}</option>
-              <option value="week">{t('reports.week')}</option>
-              <option value="month">{t('reports.month')}</option>
+              <option value="day" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">{t('reports.today')}</option>
+              <option value="week" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">{t('reports.week')}</option>
+              <option value="month" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">{t('reports.month')}</option>
             </select>
           </div>
         </div>
@@ -221,25 +224,25 @@ const Reports: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <StatCard
-          icon="⏱️"
+          icon={Clock}
           title={t('reports.totalTrackedTime')}
           value={formatDuration(stats.totalTrackedTime)}
           colorScheme="primary"
         />
         <StatCard
-          icon="✅"
+          icon={CheckCircle2}
           title={t('reports.tasksCompleted')}
           value={stats.completedTasks}
           colorScheme="green"
         />
         <StatCard
-          icon="⏰"
+          icon={Timer}
           title={t('reports.avgTaskDuration')}
           value={formatDuration(stats.averageTaskTime)}
           colorScheme="orange"
         />
         <StatCard
-          icon="📱"
+          icon={Smartphone}
           title={t('reports.totalAppUsage')}
           value={formatDuration(stats.totalAppTime)}
           colorScheme="purple"
@@ -328,13 +331,9 @@ const Reports: React.FC = () => {
                     {session.app_name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      session.category === 'website'
-                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400'
-                        : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400'
-                    }`}>
+                    <Badge variant={session.category === 'website' ? 'primary' : 'info'} size="sm">
                       {session.category}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {session.domain || session.window_title || '-'}
