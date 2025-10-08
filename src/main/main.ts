@@ -971,6 +971,12 @@ class LumeApp {
       // Resize icon for tray (16x16 for most platforms)
       const trayIcon = icon.resize({ width: 16, height: 16 });
 
+      // Destroy previous tray instance if it exists
+      if (this.tray) {
+        this.tray.destroy();
+        this.tray = null;
+      }
+
       this.tray = new Tray(trayIcon);
       this.tray.setToolTip('Lume - Time Tracking');
 
