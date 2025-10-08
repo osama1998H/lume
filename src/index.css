@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Configure class-based dark mode for Tailwind v4 */
+@variant dark (.dark &);
+
 @theme {
   --color-primary-50: #f0f9ff;
   --color-primary-100: #e0f2fe;
@@ -44,17 +47,125 @@
 
   --font-size-5xl: 3rem;        /* 48px */
   --line-height-5xl: 1;         /* 1 */
+
+  /* Enhanced Shadow System */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+
+  /* Dark Mode Shadows */
+  --shadow-dark-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --shadow-dark-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+  --shadow-dark-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+  --shadow-dark-xl: 0 20px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 / 0.6);
+
+  /* Border Radius Scale */
+  --radius-xs: 0.25rem;    /* 4px */
+  --radius-sm: 0.375rem;   /* 6px */
+  --radius-md: 0.5rem;     /* 8px */
+  --radius-lg: 0.75rem;    /* 12px */
+  --radius-xl: 1rem;       /* 16px */
+  --radius-2xl: 1.5rem;    /* 24px */
+  --radius-full: 9999px;
+
+  /* Animation Tokens */
+  --animate-fade-in: fadeIn 0.3s ease-in-out;
+  --animate-slide-up: slideUp 0.3s ease-out;
+  --animate-slide-down: slideDown 0.3s ease-out;
+  --animate-scale-in: scaleIn 0.2s ease-out;
+  --animate-pulse-slow: pulse 3s infinite;
+
+  /* Gradient Utilities */
+  --gradient-primary: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --gradient-purple: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+  --gradient-blue: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-bg-dark: rgba(31, 41, 55, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-border-dark: rgba(255, 255, 255, 0.1);
+  --backdrop-blur: blur(10px);
 }
 
 @layer base {
+  /* Animation Keyframes */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      transform: translateY(-10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
   body {
-    @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 font-sans;
+    background-color: rgb(249 250 251); /* gray-50 */
+    color: rgb(17 24 39); /* gray-900 */
     transition: background-color 0.3s ease, color 0.3s ease;
     font-family: var(--font-sans);
   }
 
+  html.dark body {
+    background-color: rgb(17 24 39); /* gray-900 */
+    color: rgb(243 244 246); /* gray-100 */
+  }
+
   * {
-    @apply border-gray-300 dark:border-gray-700;
+    border-color: rgb(209 213 219); /* gray-300 */
+  }
+
+  html.dark * {
+    border-color: rgb(55 65 81); /* gray-700 */
   }
 
   /* RTL Support */
@@ -67,10 +178,6 @@
   }
 
   /* RTL-specific adjustments */
-  [dir="rtl"] .card {
-    text-align: right;
-  }
-
   [dir="rtl"] input,
   [dir="rtl"] textarea,
   [dir="rtl"] select {
@@ -78,62 +185,179 @@
   }
 }
 
-@layer components {
-  .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 focus:ring-primary-500 dark:bg-primary-500 dark:hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-colors;
-  }
+/* Custom Components - Regular CSS (not @layer) for Tailwind v4 compatibility */
+.btn-primary {
+  background-color: rgb(2 132 199);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
 
-  .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 focus:ring-gray-500 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-400 text-gray-900 dark:text-gray-100 px-4 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-colors;
-  }
+.btn-primary:hover {
+  background-color: rgb(3 105 161);
+}
 
-  .card {
-    @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 p-6 transition-colors;
-  }
+.btn-primary:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(14 165 233 / 0.5);
+}
 
-  /* Title Bar - Draggable Window Region */
-  .titlebar {
-    -webkit-app-region: drag;
-    @apply bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2 flex items-center justify-center;
-    height: 40px;
-    user-select: none;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-  }
+.dark .btn-primary {
+  background-color: rgb(14 165 233);
+}
 
-  .titlebar-content {
-    @apply flex items-center space-x-2;
-  }
+.dark .btn-primary:hover {
+  background-color: rgb(2 132 199);
+}
 
-  .titlebar-logo {
-    @apply flex items-center space-x-2;
-  }
+.btn-secondary {
+  background-color: rgb(229 231 235);
+  color: rgb(17 24 39);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
 
-  .titlebar-title {
-    @apply text-sm font-semibold text-primary-600 dark:text-primary-400;
-  }
+.btn-secondary:hover {
+  background-color: rgb(209 213 219);
+}
 
-  .titlebar-separator {
-    @apply text-gray-400 dark:text-gray-500 text-xs;
-  }
+.dark .btn-secondary {
+  background-color: rgb(55 65 81);
+  color: rgb(243 244 246);
+}
 
-  .titlebar-tagline {
-    @apply text-xs text-gray-500 dark:text-gray-400;
-  }
+.dark .btn-secondary:hover {
+  background-color: rgb(75 85 99);
+}
 
-  /* Make interactive elements in title bar non-draggable */
-  .titlebar button,
-  .titlebar input,
-  .titlebar select,
-  .titlebar a {
-    -webkit-app-region: no-drag;
-  }
+.card {
+  background-color: white;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(243 244 246);
+  padding: 1.5rem;
+  transition: all 0.3s;
+  box-shadow: var(--shadow-md);
+}
 
-  /* RTL support for title bar */
-  [dir="rtl"] .titlebar-content {
-    @apply space-x-reverse;
-  }
+.dark .card {
+  background-color: rgb(31 41 55);
+  border-color: rgb(55 65 81);
+  box-shadow: var(--shadow-dark-md);
+}
 
-  [dir="rtl"] .titlebar-logo {
-    @apply space-x-reverse;
-  }
+.card-hover {
+  background-color: white;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(243 244 246);
+  padding: 1.5rem;
+  transition: all 0.3s;
+  box-shadow: var(--shadow-md);
+}
+
+.dark .card-hover {
+  background-color: rgb(31 41 55);
+  border-color: rgb(55 65 81);
+  box-shadow: var(--shadow-dark-md);
+}
+
+.card-hover:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.dark .card-hover:hover {
+  box-shadow: var(--shadow-dark-lg);
+}
+
+/* Title Bar - Draggable Window Region */
+.titlebar {
+  -webkit-app-region: drag;
+  background-color: white;
+  border-bottom: 1px solid rgb(229 231 235);
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  user-select: none;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.dark .titlebar {
+  background-color: rgb(31 41 55);
+  border-bottom-color: rgb(55 65 81);
+}
+
+.titlebar-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.titlebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.titlebar-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(2 132 199);
+}
+
+.dark .titlebar-title {
+  color: rgb(56 189 248);
+}
+
+.titlebar-separator {
+  color: rgb(156 163 175);
+  font-size: 0.75rem;
+}
+
+.dark .titlebar-separator {
+  color: rgb(107 114 128);
+}
+
+.titlebar-tagline {
+  font-size: 0.75rem;
+  color: rgb(107 114 128);
+}
+
+.dark .titlebar-tagline {
+  color: rgb(156 163 175);
+}
+
+/* Make interactive elements in title bar non-draggable */
+.titlebar button,
+.titlebar input,
+.titlebar select,
+.titlebar a {
+  -webkit-app-region: no-drag;
+}
+
+/* RTL support for title bar */
+[dir="rtl"] .titlebar-content,
+[dir="rtl"] .titlebar-logo {
+  flex-direction: row-reverse;
+}
+
+/* RTL support for card */
+[dir="rtl"] .card,
+[dir="rtl"] .card-hover {
+  text-align: right;
+}
+
+/* Dark mode support for select and option elements */
+.dark select {
+  color-scheme: dark;
+}
+
+.dark select option {
+  background-color: rgb(55 65 81);
+  color: rgb(243 244 246);
 }
