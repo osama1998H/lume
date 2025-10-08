@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, CheckCircle2, Timer, Smartphone } from 'lucide-react';
 import { TimeEntry, AppUsage } from '../types';
+import { ActivitySession } from '../types/activity';
 import StatCard from './ui/StatCard';
 import ProgressListCard from './ui/ProgressListCard';
 import Badge from './ui/Badge';
@@ -12,7 +13,7 @@ const Reports: React.FC = () => {
   const [appUsage, setAppUsage] = useState<AppUsage[]>([]);
   const [topApplications, setTopApplications] = useState<Array<{name: string, totalDuration: number}>>([]);
   const [topWebsites, setTopWebsites] = useState<Array<{domain: string, totalDuration: number}>>([]);
-  const [activitySessions, setActivitySessions] = useState<any[]>([]);
+  const [activitySessions, setActivitySessions] = useState<ActivitySession[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<'day' | 'week' | 'month'>('week');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -210,7 +211,7 @@ const Reports: React.FC = () => {
           <div>
             <select
               value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value as any)}
+              onChange={(e) => setSelectedPeriod(e.target.value as 'day' | 'week' | 'month')}
               className="px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm transition-all"
             >
               <option value="day" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">{t('reports.today')}</option>

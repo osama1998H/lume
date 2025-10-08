@@ -27,8 +27,8 @@ const mockElectronAPI = {
   getStats: jest.fn(),
 };
 
-(global as any).window = {
-  ...global.window,
+(global as typeof global & { window: Window & { electron: typeof mockElectronAPI } }).window = {
+  ...(global as unknown as { window: Window }).window,
   electron: mockElectronAPI,
 };
 

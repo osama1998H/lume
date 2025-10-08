@@ -53,7 +53,7 @@ const renderWithTheme = (component: React.ReactElement) => {
 
 describe('Dark Mode Integration Tests', () => {
   beforeEach(() => {
-    (window as any).electronAPI = mockElectronAPI;
+    window.electronAPI = mockElectronAPI;
     
     // Setup default mocks
     mockElectronAPI.getTodayStats.mockResolvedValue({
@@ -75,7 +75,7 @@ describe('Dark Mode Integration Tests', () => {
   });
 
   afterEach(() => {
-    delete (window as any).electronAPI;
+    delete (window as Window & { electronAPI?: typeof mockElectronAPI }).electronAPI;
     jest.clearAllMocks();
   });
 

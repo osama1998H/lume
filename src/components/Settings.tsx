@@ -70,14 +70,14 @@ const Settings: React.FC = () => {
     }
   };
 
-  const handleSettingChange = (key: string, value: any) => {
+  const handleSettingChange = (key: string, value: unknown) => {
     setSettings(prev => ({
       ...prev,
       [key]: value,
     }));
   };
 
-  const handleActivityTrackingChange = (key: string, value: any) => {
+  const handleActivityTrackingChange = (key: string, value: unknown) => {
     setSettings(prev => ({
       ...prev,
       activityTracking: {
