@@ -104,6 +104,8 @@
     "showNotificationsDesc": "Get notified about tracking milestones and reminders",
     "minimizeToTray": "Minimize to Tray",
     "minimizeToTrayDesc": "Keep the app running in the system tray when closed",
+    "autoStartOnLogin": "Auto-start on Login",
+    "autoStartOnLoginDesc": "Launch Lume automatically when you log in to your computer",
     "autoStartTracking": "Auto-start Tracking",
     "autoStartTrackingDesc": "Start tracking when app launches",
     "defaultCategory": "Default Category",

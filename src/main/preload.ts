@@ -31,6 +31,9 @@ export interface IElectronAPI {
   getRecentActivitySessions: (limit?: number) => Promise<any[]>;
   getTopApplications: (limit?: number) => Promise<any[]>;
   getTopWebsites: (limit?: number) => Promise<any[]>;
+  // Auto-start API
+  getAutoStartStatus: () => Promise<boolean>;
+  setAutoStart: (enabled: boolean) => Promise<boolean>;
   getLastCrashReport: () => Promise<any>;
   getUploadedCrashReports: () => Promise<any[]>;
   testCrashReporting: () => Promise<boolean>;
@@ -101,6 +104,9 @@ const electronAPI: IElectronAPI = {
   getRecentActivitySessions: (limit) => ipcRenderer.invoke('get-recent-activity-sessions', limit),
   getTopApplications: (limit) => ipcRenderer.invoke('get-top-applications', limit),
   getTopWebsites: (limit) => ipcRenderer.invoke('get-top-websites', limit),
+  // Auto-start API
+  getAutoStartStatus: () => ipcRenderer.invoke('get-auto-start-status'),
+  setAutoStart: (enabled) => ipcRenderer.invoke('set-auto-start', enabled),
   getLastCrashReport: () => ipcRenderer.invoke('get-last-crash-report'),
   getUploadedCrashReports: () => ipcRenderer.invoke('get-uploaded-crash-reports'),
   testCrashReporting: () => ipcRenderer.invoke('test-crash-reporting'),

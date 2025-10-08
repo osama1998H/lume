@@ -104,6 +104,8 @@
     "showNotificationsDesc": "احصل على إشعارات حول مراحل التتبع والتذكيرات",
     "minimizeToTray": "التصغير إلى شريط المهام",
     "minimizeToTrayDesc": "إبقاء التطبيق يعمل في شريط المهام عند الإغلاق",
+    "autoStartOnLogin": "البدء التلقائي عند تسجيل الدخول",
+    "autoStartOnLoginDesc": "تشغيل Lume تلقائياً عند تسجيل الدخول إلى الكمبيوتر",
     "autoStartTracking": "بدء التتبع التلقائي",
     "autoStartTrackingDesc": "بدء التتبع عند تشغيل التطبيق",
     "defaultCategory": "الفئة الافتراضية",
