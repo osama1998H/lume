@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FolderOpen, Plus, Tag, Link, Trash2, Edit2, Check, X, Palette } from 'lucide-react';
+import { FolderOpen, Plus, Tag, Link, Trash2, Edit2, Check, X } from 'lucide-react';
 import { Category, Tag as TagType, AppCategoryMapping, DomainCategoryMapping } from '../types';
 import Button from './ui/Button';
 import Skeleton from './ui/Skeleton';
@@ -39,11 +39,7 @@ const Categories: React.FC = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       if (window.electronAPI) {
         const [categoriesData, tagsData, appMappingsData, domainMappingsData] = await Promise.all([
@@ -63,7 +59,11 @@ const Categories: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // Category handlers
   const handleAddCategory = async (e: React.FormEvent) => {

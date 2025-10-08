@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Target, TrendingUp, Award, Flame, Edit2, Trash2, Plus } from 'lucide-react';
 import { ProductivityGoal, GoalWithProgress, GoalStats, GoalType, GoalOperator, GoalPeriod, GoalStatus, Tag } from '../types';
@@ -54,12 +54,7 @@ const Goals: React.FC = () => {
     tags: [],
   });
 
-  useEffect(() => {
-    loadGoals();
-    loadStats();
-  }, []);
-
-  const loadGoals = async () => {
+  const loadGoals = useCallback(async () => {
     try {
       if (window.electronAPI) {
         const goalsData = await window.electronAPI.getTodayGoalsWithProgress();
@@ -81,9 +76,9 @@ const Goals: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [t]);
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       if (window.electronAPI) {
         const statsData = await window.electronAPI.getGoalStats();
@@ -92,7 +87,12 @@ const Goals: React.FC = () => {
     } catch (error) {
       console.error('Failed to load stats:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadGoals();
+    loadStats();
+  }, [loadGoals, loadStats]);
 
   const handleCreateGoal = () => {
     setEditingGoal(null);

@@ -6,7 +6,6 @@ import ActivityListCard from './ui/ActivityListCard';
 import Button from './ui/Button';
 import Input from './ui/Input';
 import TagSelector from './ui/TagSelector';
-import TagDisplay from './ui/TagDisplay';
 
 const TimeTracker: React.FC = () => {
   const { t } = useTranslation();

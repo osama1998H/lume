@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Plus, Tag as TagIcon } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 import { Tag } from '../../types';
 
 export interface TagSelectorProps {
