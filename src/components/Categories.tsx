@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FolderOpen, Plus, Tag, Link } from 'lucide-react';
-import { Category, Tag as TagType } from '../types';
+import { FolderOpen, Plus, Tag, Link, Trash2 } from 'lucide-react';
+import { Category, Tag as TagType, AppCategoryMapping, DomainCategoryMapping } from '../types';
 import Button from './ui/Button';
 import Skeleton from './ui/Skeleton';
 import EmptyState from './ui/EmptyState';
@@ -10,6 +10,8 @@ const Categories: React.FC = () => {
   const { t } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<TagType[]>([]);
+  const [appMappings, setAppMappings] = useState<AppCategoryMapping[]>([]);
+  const [domainMappings, setDomainMappings] = useState<DomainCategoryMapping[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'categories' | 'tags' | 'mappings'>('categories');
 
@@ -30,12 +32,16 @@ const Categories: React.FC = () => {
   const loadData = async () => {
     try {
       if (window.electronAPI) {
-        const [categoriesData, tagsData] = await Promise.all([
+        const [categoriesData, tagsData, appMappingsData, domainMappingsData] = await Promise.all([
           window.electronAPI.getCategories(),
           window.electronAPI.getTags(),
+          window.electronAPI.getAppCategoryMappings(),
+          window.electronAPI.getDomainCategoryMappings(),
         ]);
         setCategories(categoriesData);
         setTags(tagsData);
+        setAppMappings(appMappingsData);
+        setDomainMappings(domainMappingsData);
       }
     } catch (error) {
       console.error('Failed to load categories and tags:', error);
@@ -102,13 +108,45 @@ const Categories: React.FC = () => {
         } else {
           await window.electronAPI.addDomainCategoryMapping(mappingForm.value, mappingForm.categoryId);
         }
+        await loadData(); // Reload data to show new mapping
         setShowMappingModal(false);
         setMappingForm({ type: 'app', value: '', categoryId: 0 });
-        alert('Mapping added successfully');
       }
     } catch (error) {
       console.error('Failed to add mapping:', error);
       alert('Failed to add mapping');
+    }
+  };
+
+  const handleDeleteAppMapping = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this mapping?')) {
+      return;
+    }
+
+    try {
+      if (window.electronAPI) {
+        await window.electronAPI.deleteAppCategoryMapping(id);
+        await loadData(); // Reload data to reflect deletion
+      }
+    } catch (error) {
+      console.error('Failed to delete app mapping:', error);
+      alert('Failed to delete mapping');
+    }
+  };
+
+  const handleDeleteDomainMapping = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this mapping?')) {
+      return;
+    }
+
+    try {
+      if (window.electronAPI) {
+        await window.electronAPI.deleteDomainCategoryMapping(id);
+        await loadData(); // Reload data to reflect deletion
+      }
+    } catch (error) {
+      console.error('Failed to delete domain mapping:', error);
+      alert('Failed to delete mapping');
     }
   };
 
@@ -282,10 +320,130 @@ const Categories: React.FC = () => {
             </Button>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-            <p className="text-gray-600 dark:text-gray-400">
-              {t('categories.mappingsDesc')}
-            </p>
+          {/* App Mappings Section */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Application Mappings
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Map applications to categories for automatic categorization
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              {appMappings.length === 0 ? (
+                <div className="p-6 text-center text-gray-500 dark:text-gray-400">
+                  No application mappings yet
+                </div>
+              ) : (
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-700/50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Application
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Category
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {appMappings.map((mapping) => (
+                      <tr key={mapping.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {mapping.appName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          <div className="flex items-center gap-2">
+                            {mapping.categoryColor && (
+                              <div
+                                className="w-3 h-3 rounded-full border border-gray-300 dark:border-gray-600"
+                                style={{ backgroundColor: mapping.categoryColor }}
+                              />
+                            )}
+                            <span>{mapping.categoryName || 'Unknown'}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                          <button
+                            onClick={() => mapping.id && handleDeleteAppMapping(mapping.id)}
+                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+
+          {/* Domain Mappings Section */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Domain Mappings
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Map website domains to categories for automatic categorization
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              {domainMappings.length === 0 ? (
+                <div className="p-6 text-center text-gray-500 dark:text-gray-400">
+                  No domain mappings yet
+                </div>
+              ) : (
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-700/50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Domain
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Category
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {domainMappings.map((mapping) => (
+                      <tr key={mapping.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {mapping.domain}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          <div className="flex items-center gap-2">
+                            {mapping.categoryColor && (
+                              <div
+                                className="w-3 h-3 rounded-full border border-gray-300 dark:border-gray-600"
+                                style={{ backgroundColor: mapping.categoryColor }}
+                              />
+                            )}
+                            <span>{mapping.categoryName || 'Unknown'}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                          <button
+                            onClick={() => mapping.id && handleDeleteDomainMapping(mapping.id)}
+                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
         </div>
       )}

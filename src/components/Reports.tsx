@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, CheckCircle2, Timer, Smartphone } from 'lucide-react';
-import { TimeEntry, AppUsage } from '../types';
+import { TimeEntry, AppUsage, Category } from '../types';
 import { ActivitySession } from '../types/activity';
 import StatCard from './ui/StatCard';
 import ProgressListCard from './ui/ProgressListCard';
@@ -11,6 +11,7 @@ const Reports: React.FC = () => {
   const { t } = useTranslation();
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [appUsage, setAppUsage] = useState<AppUsage[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [topApplications, setTopApplications] = useState<Array<{name: string, totalDuration: number}>>([]);
   const [topWebsites, setTopWebsites] = useState<Array<{domain: string, totalDuration: number}>>([]);
   const [activitySessions, setActivitySessions] = useState<ActivitySession[]>([]);
@@ -24,9 +25,10 @@ const Reports: React.FC = () => {
   const loadData = async () => {
     try {
       if (window.electronAPI) {
-        const [entries, usage, sessions, topApps, topSites] = await Promise.all([
+        const [entries, usage, cats, sessions, topApps, topSites] = await Promise.all([
           window.electronAPI.getTimeEntries(),
           window.electronAPI.getAppUsage(),
+          window.electronAPI.getCategories(),
           window.electronAPI.getRecentActivitySessions(100),
           window.electronAPI.getTopApplications(10),
           window.electronAPI.getTopWebsites(10),
@@ -36,9 +38,11 @@ const Reports: React.FC = () => {
         console.log('📊 Reports - Sample time entry:', entries[0]);
         console.log('📊 Reports - Loaded app usage:', usage.length);
         console.log('📊 Reports - Sample app usage:', usage[0]);
+        console.log('📊 Reports - Loaded categories:', cats.length);
 
         setTimeEntries(entries);
         setAppUsage(usage);
+        setCategories(cats);
         setActivitySessions(sessions);
         setTopApplications(topApps);
         setTopWebsites(topSites);
@@ -107,10 +111,32 @@ const Reports: React.FC = () => {
 
   const getTimeByCategory = () => {
     const { filteredEntries } = getFilteredData();
-    const categoryTimes: Record<string, number> = {};
+    const categoryTimes: Record<number | string, { name: string; color: string; time: number }> = {};
 
     filteredEntries.forEach(entry => {
-      const category = entry.category || 'Uncategorized';
+      // Use categoryId to lookup actual category data
+      let categoryKey: number | string;
+      let categoryName: string;
+      let categoryColor: string;
+
+      if (entry.categoryId) {
+        const category = categories.find(c => c.id === entry.categoryId);
+        if (category) {
+          categoryKey = entry.categoryId;
+          categoryName = category.name;
+          categoryColor = category.color;
+        } else {
+          // CategoryId exists but category not found (deleted?)
+          categoryKey = 'uncategorized';
+          categoryName = 'Uncategorized';
+          categoryColor = '#6B7280';
+        }
+      } else {
+        // No categoryId - backward compatibility or truly uncategorized
+        categoryKey = 'uncategorized';
+        categoryName = 'Uncategorized';
+        categoryColor = '#6B7280';
+      }
 
       // Calculate duration if missing
       let {duration} = entry;
@@ -120,11 +146,15 @@ const Reports: React.FC = () => {
         duration = Math.floor((end - start) / 1000);
       }
 
-      categoryTimes[category] = (categoryTimes[category] || 0) + (duration || 0);
+      // Initialize or update category time
+      if (!categoryTimes[categoryKey]) {
+        categoryTimes[categoryKey] = { name: categoryName, color: categoryColor, time: 0 };
+      }
+      categoryTimes[categoryKey].time += duration || 0;
     });
 
-    return Object.entries(categoryTimes)
-      .sort(([, a], [, b]) => b - a)
+    return Object.values(categoryTimes)
+      .sort((a, b) => b.time - a.time)
       .slice(0, 10);
   };
 
@@ -252,11 +282,12 @@ const Reports: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ProgressListCard
           title={t('reports.timeByCategory')}
-          items={categoryData.map(([category, time]) => ({
-            key: category,
-            label: category,
-            value: time,
-            formattedValue: formatDuration(time),
+          items={categoryData.map((cat) => ({
+            key: cat.name,
+            label: cat.name,
+            value: cat.time,
+            formattedValue: formatDuration(cat.time),
+            color: cat.color,
           }))}
           colorScheme="primary"
           emptyStateText={t('reports.noData')}
