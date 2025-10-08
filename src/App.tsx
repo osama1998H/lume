@@ -1,19 +1,21 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import TitleBar from './components/TitleBar';
 import Sidebar from './components/Sidebar';
-import Dashboard from './components/Dashboard';
-import TimeTracker from './components/TimeTracker';
-import Reports from './components/Reports';
-import { Analytics } from './components/Analytics';
-import Goals from './components/Goals';
-import FocusMode from './components/FocusMode';
-import Settings from './components/Settings';
-import Categories from './components/Categories';
-import Timeline from './components/Timeline';
 import ToastContainer from './components/ui/Toast';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PomodoroProvider } from './contexts/PomodoroContext';
+
+// Lazy load view components for better startup performance
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const TimeTracker = lazy(() => import('./components/TimeTracker'));
+const Reports = lazy(() => import('./components/Reports'));
+const Analytics = lazy(() => import('./components/Analytics').then(module => ({ default: module.Analytics })));
+const Goals = lazy(() => import('./components/Goals'));
+const FocusMode = lazy(() => import('./components/FocusMode'));
+const Settings = lazy(() => import('./components/Settings'));
+const Categories = lazy(() => import('./components/Categories'));
+const Timeline = lazy(() => import('./components/Timeline'));
 
 type View = 'dashboard' | 'tracker' | 'reports' | 'analytics' | 'timeline' | 'goals' | 'focus' | 'categories' | 'settings';
 
@@ -60,7 +62,13 @@ function App() {
               <Sidebar currentView={currentView} onViewChange={setCurrentView} />
               <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
                 <ErrorBoundary>
-                  {renderView()}
+                  <Suspense fallback={
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-gray-500 dark:text-gray-400">Loading...</div>
+                    </div>
+                  }>
+                    {renderView()}
+                  </Suspense>
                 </ErrorBoundary>
               </main>
             </div>
