@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 export interface TimeEntry {
   id?: number;
   task: string;
@@ -196,7 +198,7 @@ export interface TimelineItem {
   canChangeGroup: boolean;
   itemProps?: {
     className?: string;
-    style?: React.CSSProperties;
+    style?: CSSProperties;
   };
 }
 

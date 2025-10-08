@@ -486,8 +486,9 @@ export class DatabaseManager {
         c.color AS categoryColor
       FROM time_entries te
       LEFT JOIN categories c ON te.category = c.name
-      WHERE datetime(te.start_time) BETWEEN datetime(?) AND datetime(?)
-        AND te.end_time IS NOT NULL
+      WHERE te.end_time IS NOT NULL
+        AND datetime(te.start_time) < datetime(?)
+        AND datetime(te.end_time) > datetime(?)
       ORDER BY te.start_time ASC
     `);
 
@@ -517,13 +518,14 @@ export class DatabaseManager {
         au.is_idle AS isIdle
       FROM app_usage au
       LEFT JOIN categories c ON au.category = c.name
-      WHERE datetime(au.start_time) BETWEEN datetime(?) AND datetime(?)
-        AND au.end_time IS NOT NULL
+      WHERE au.end_time IS NOT NULL
+        AND datetime(au.start_time) < datetime(?)
+        AND datetime(au.end_time) > datetime(?)
       ORDER BY au.start_time ASC
     `);
 
-    const timeEntries = timeEntriesStmt.all(startDate, endDate);
-    const appUsage = appUsageStmt.all(startDate, endDate);
+    const timeEntries = timeEntriesStmt.all(endDate, startDate);
+    const appUsage = appUsageStmt.all(endDate, startDate);
 
     // Combine and transform to TimelineActivity format
     const activities = [

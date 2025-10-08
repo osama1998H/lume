@@ -221,7 +221,7 @@ const TimelineView: React.FC = () => {
             <button
               onClick={() => navigateDate('prev')}
               className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              title="Previous"
+              title={t('timeline.previous')}
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -246,7 +246,7 @@ const TimelineView: React.FC = () => {
             <button
               onClick={() => navigateDate('next')}
               className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              title="Next"
+              title={t('timeline.next')}
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -340,7 +340,7 @@ const TimelineView: React.FC = () => {
                   className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 focus:ring-offset-0 transition-colors"
                 />
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
-                  {type === 'time_entry' ? 'Tasks' : type === 'app' ? 'Apps' : 'Websites'}
+                  {type === 'time_entry' ? t('timeline.tasks') : type === 'app' ? t('timeline.apps') : t('timeline.websites')}
                 </span>
               </label>
             ))}
@@ -365,10 +365,10 @@ const TimelineView: React.FC = () => {
         ) : (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Time Header */}
-            <div className="sticky top-0 z-10 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-750">
+            <div className="sticky top-0 z-10 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
               <div className="flex h-12">
                 <div className="w-40 flex-shrink-0 px-4 py-3 border-r border-gray-200 dark:border-gray-700">
-                  <span className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Activity Type</span>
+                  <span className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{t('timeline.activityType')}</span>
                 </div>
                 <div className="flex-1 relative">
                   {hourMarkers.map((marker, i) => (
@@ -388,11 +388,11 @@ const TimelineView: React.FC = () => {
 
             {/* Timeline Rows */}
             {Object.entries(groupedActivities).map(([type, typeActivities]) => (
-              <div key={type} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0 hover:bg-gray-50/50 dark:hover:bg-gray-750/50 transition-colors">
+              <div key={type} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0 hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors">
                 <div className="flex min-h-[70px]">
                   <div className="w-40 flex-shrink-0 px-4 py-4 border-r border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
                     <span className="text-sm font-semibold text-gray-800 dark:text-gray-200 block">
-                      {type === 'time_entry' ? 'Manual Tasks' : type === 'app' ? 'Applications' : 'Web Browsing'}
+                      {type === 'time_entry' ? t('timeline.manualTasks') : type === 'app' ? t('timeline.applications') : t('timeline.webBrowsing')}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
                       {typeActivities.length} {typeActivities.length === 1 ? 'item' : 'items'}
