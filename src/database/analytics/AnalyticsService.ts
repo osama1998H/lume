@@ -453,11 +453,8 @@ export class AnalyticsService {
     // Get goals achievement
     const goalsStmt = this.db.prepare(`
       SELECT
-        COUNT(*) as total,
-        SUM(CASE
-          WHEN gp.achieved = 1 THEN 1
-          ELSE 0
-        END) as achieved
+        COUNT(DISTINCT pg.id) as total,
+        COUNT(DISTINCT CASE WHEN gp.achieved = 1 THEN gp.goal_id END) as achieved
       FROM productivity_goals pg
       LEFT JOIN goal_progress gp ON pg.id = gp.goal_id
         AND DATE(gp.date) BETWEEN ? AND ?

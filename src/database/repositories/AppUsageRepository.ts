@@ -26,9 +26,10 @@ export class AppUsageRepository extends BaseRepository<AppUsage> {
    */
   getAll(options?: QueryOptions & { limit?: number }): AppUsage[] {
     const queryOptions: QueryOptions = {
-      orderBy: 'created_at',
-      orderDirection: 'DESC',
-      limit: options?.limit || 100,
+      orderBy: options?.orderBy ?? 'created_at',
+      orderDirection: options?.orderDirection ?? 'DESC',
+      limit: options?.limit ?? 100,
+      offset: options?.offset,
     };
     return super.getAll(queryOptions);
   }
@@ -40,14 +41,14 @@ export class AppUsageRepository extends BaseRepository<AppUsage> {
     // Convert booleans to integers for SQLite
     const snakeEntity = this.toSnakeCase({
       appName: usage.appName,
-      windowTitle: usage.windowTitle || undefined,
+      windowTitle: usage.windowTitle ?? undefined,
       startTime: usage.startTime,
-      endTime: usage.endTime || undefined,
-      duration: usage.duration || undefined,
-      category: usage.category || undefined,
-      categoryId: usage.categoryId || undefined,
-      domain: usage.domain || undefined,
-      url: usage.url || undefined,
+      endTime: usage.endTime ?? undefined,
+      duration: usage.duration ?? undefined,
+      category: usage.category ?? undefined,
+      categoryId: usage.categoryId ?? undefined,
+      domain: usage.domain ?? undefined,
+      url: usage.url ?? undefined,
       isBrowser: usage.isBrowser ? 1 : 0,
       isIdle: usage.isIdle ? 1 : 0,
     } as any);

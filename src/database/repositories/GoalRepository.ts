@@ -62,10 +62,10 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
     // Convert booleans to integers for SQLite
     const snakeEntity = this.toSnakeCase({
       name: goal.name,
-      description: goal.description || undefined,
+      description: goal.description ?? undefined,
       goalType: goal.goalType,
-      category: goal.category || undefined,
-      appName: goal.appName || undefined,
+      category: goal.category ?? undefined,
+      appName: goal.appName ?? undefined,
       targetMinutes: goal.targetMinutes,
       operator: goal.operator,
       period: goal.period,
@@ -111,14 +111,19 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
     }
 
     // Add updated_at timestamp
+    const snakeUpdates = this.toSnakeCase(allowedUpdates);
+    const setClause = Object.keys(snakeUpdates)
+      .map(column => `${column} = ?`)
+      .join(', ');
+
     const query = `
       UPDATE productivity_goals
-      SET ${Object.keys(allowedUpdates).map(k => `${this.toSnakeCase({[k]: null})[Object.keys(this.toSnakeCase({[k]: null}))[0]]} = ?`).join(', ')},
+      SET ${setClause},
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `;
 
-    const values = [...Object.values(allowedUpdates), id];
+    const values = [...Object.values(snakeUpdates), id];
     const stmt = this.db.prepare(query);
     const result = stmt.run(...values);
     return result.changes > 0;
@@ -350,22 +355,21 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
     const dates = this.executeQuery<{ date: string }>(streakQuery);
 
     let currentStreak = 0;
-    if (dates.length > 0) {
-      currentStreak = 1;
-      const todayDate = new Date();
-      todayDate.setHours(0, 0, 0, 0);
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
 
-      for (let i = 0; i < dates.length - 1; i++) {
-        const currentDate = new Date(dates[i].date);
-        const nextDate = new Date(dates[i + 1].date);
-        const diffTime = currentDate.getTime() - nextDate.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    for (let i = 0; i < dates.length; i++) {
+      const streakDate = new Date(dates[i].date);
+      streakDate.setHours(0, 0, 0, 0);
 
-        if (diffDays === 1) {
-          currentStreak++;
-        } else {
-          break;
-        }
+      const expectedDate = new Date(todayDate);
+      expectedDate.setDate(todayDate.getDate() - i);
+      expectedDate.setHours(0, 0, 0, 0);
+
+      if (streakDate.getTime() === expectedDate.getTime()) {
+        currentStreak++;
+      } else {
+        break;
       }
     }
 

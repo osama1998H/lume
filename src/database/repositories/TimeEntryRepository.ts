@@ -22,9 +22,10 @@ export class TimeEntryRepository extends BaseRepository<TimeEntry> {
    */
   getAll(options?: QueryOptions & { limit?: number }): TimeEntry[] {
     const queryOptions: QueryOptions = {
-      orderBy: 'created_at',
-      orderDirection: 'DESC',
-      limit: options?.limit || 100,
+      orderBy: options?.orderBy ?? 'created_at',
+      orderDirection: options?.orderDirection ?? 'DESC',
+      limit: options?.limit ?? 100,
+      offset: options?.offset,
     };
     return super.getAll(queryOptions);
   }
@@ -36,10 +37,10 @@ export class TimeEntryRepository extends BaseRepository<TimeEntry> {
     const entryToInsert = {
       task: entry.task,
       startTime: entry.startTime,
-      endTime: entry.endTime || undefined,
-      duration: entry.duration || undefined,
-      category: entry.category || undefined,
-      categoryId: entry.categoryId || undefined,
+      endTime: entry.endTime ?? undefined,
+      duration: entry.duration ?? undefined,
+      category: entry.category ?? undefined,
+      categoryId: entry.categoryId ?? undefined,
     };
     return super.insert(entryToInsert);
   }

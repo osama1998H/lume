@@ -22,9 +22,10 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
    */
   getAll(options?: QueryOptions & { limit?: number }): PomodoroSession[] {
     const queryOptions: QueryOptions = {
-      orderBy: 'created_at',
-      orderDirection: 'DESC',
-      limit: options?.limit || 100,
+      orderBy: options?.orderBy ?? 'created_at',
+      orderDirection: options?.orderDirection ?? 'DESC',
+      limit: options?.limit ?? 100,
+      offset: options?.offset,
     };
 
     const sessions = super.getAll(queryOptions);
@@ -48,7 +49,7 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
       sessionType: session.sessionType,
       duration: session.duration,
       startTime: session.startTime,
-      endTime: session.endTime || undefined,
+      endTime: session.endTime ?? undefined,
       completed: session.completed ? 1 : 0,
       interrupted: session.interrupted ? 1 : 0,
     } as any);

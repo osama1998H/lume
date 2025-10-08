@@ -33,10 +33,12 @@ export abstract class BaseRepository<T extends BaseEntity> implements IRepositor
 
   /**
    * Convert camelCase keys to snake_case for database
+   * Skips undefined values to prevent SQLite binding errors
    */
   protected toSnakeCase(obj: Record<string, any>): Record<string, any> {
     const result: Record<string, any> = {};
     for (const [key, value] of Object.entries(obj)) {
+      if (value === undefined) continue;
       const snakeKey = this.columnMapping[key] || this.camelToSnake(key);
       result[snakeKey] = value;
     }

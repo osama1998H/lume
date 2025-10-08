@@ -34,8 +34,8 @@ export class CategoryRepository extends BaseRepository<Category> {
     const categoryToInsert = {
       name: category.name,
       color: category.color || '#3B82F6',
-      icon: category.icon || undefined,
-      description: category.description || undefined,
+      icon: category.icon ?? undefined,
+      description: category.description ?? undefined,
     };
     return super.insert(categoryToInsert);
   }
@@ -56,14 +56,19 @@ export class CategoryRepository extends BaseRepository<Category> {
     }
 
     // Add updated_at timestamp
+    const snakeUpdates = this.toSnakeCase(allowedUpdates);
+    const setClause = Object.keys(snakeUpdates)
+      .map(column => `${column} = ?`)
+      .join(', ');
+
     const query = `
       UPDATE categories
-      SET ${Object.keys(allowedUpdates).map(k => `${this.toSnakeCase({[k]: null})[Object.keys(this.toSnakeCase({[k]: null}))[0]]} = ?`).join(', ')},
+      SET ${setClause},
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `;
 
-    const values = [...Object.values(allowedUpdates), id];
+    const values = [...Object.values(snakeUpdates), id];
     const stmt = this.db.prepare(query);
     const result = stmt.run(...values);
     return result.changes > 0;
