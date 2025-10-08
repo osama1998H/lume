@@ -12,7 +12,9 @@
     "goals": "الأهداف",
     "settings": "الإعدادات",
     "focus": "وضع التركيز",
-    "categories": "الفئات"
+    "categories": "الفئات",
+    "collapseSidebar": "طي الشريط الجانبي",
+    "expandSidebar": "توسيع الشريط الجانبي"
   },
   "dashboard": {
     "title": "لوحة التحكم",
