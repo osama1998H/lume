@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { Target, TrendingUp, Award, Flame, Edit2, Trash2, Plus } from 'lucide-react';
 import { ProductivityGoal, GoalWithProgress, GoalStats, GoalType, GoalOperator, GoalPeriod, GoalStatus } from '../types';
 import StatCard from './ui/StatCard';
-import Button from './ui/Button';
-import Input from './ui/Input';
-import Badge from './ui/Badge';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Badge } from './ui/badge';
 import EmptyState from './ui/EmptyState';
-import Skeleton from './ui/Skeleton';
+import { Skeleton } from './ui/skeleton';
 
 const Goals: React.FC = () => {
   const { t } = useTranslation();

@@ -1,9 +1,55 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 /* Configure class-based dark mode for Tailwind v4 */
 @variant dark (.dark &);
 
 @theme {
+  /* Shadcn UI Design Tokens */
+  --color-background: 0 0% 100%;
+  --color-foreground: 0 0% 3.9%;
+  --color-card: 0 0% 100%;
+  --color-card-foreground: 0 0% 3.9%;
+  --color-popover: 0 0% 100%;
+  --color-popover-foreground: 0 0% 3.9%;
+  --color-primary: 199 89% 48%;  /* Using your primary-500 #0ea5e9 */
+  --color-primary-foreground: 0 0% 98%;
+  --color-secondary: 0 0% 96.1%;
+  --color-secondary-foreground: 0 0% 9%;
+  --color-muted: 0 0% 96.1%;
+  --color-muted-foreground: 0 0% 45.1%;
+  --color-accent: 0 0% 96.1%;
+  --color-accent-foreground: 0 0% 9%;
+  --color-destructive: 0 84.2% 60.2%;
+  --color-destructive-foreground: 0 0% 98%;
+  --color-border: 0 0% 89.8%;
+  --color-input: 0 0% 89.8%;
+  --color-ring: 199 89% 48%;  /* Using your primary-500 */
+  --radius: 0.5rem;
+
+  /* Dark mode Shadcn UI tokens */
+  --color-dark-background: 0 0% 3.9%;
+  --color-dark-foreground: 0 0% 98%;
+  --color-dark-card: 0 0% 3.9%;
+  --color-dark-card-foreground: 0 0% 98%;
+  --color-dark-popover: 0 0% 3.9%;
+  --color-dark-popover-foreground: 0 0% 98%;
+  --color-dark-primary: 199 89% 48%;
+  --color-dark-primary-foreground: 0 0% 9%;
+  --color-dark-secondary: 0 0% 14.9%;
+  --color-dark-secondary-foreground: 0 0% 98%;
+  --color-dark-muted: 0 0% 14.9%;
+  --color-dark-muted-foreground: 0 0% 63.9%;
+  --color-dark-accent: 0 0% 14.9%;
+  --color-dark-accent-foreground: 0 0% 98%;
+  --color-dark-destructive: 0 62.8% 30.6%;
+  --color-dark-destructive-foreground: 0 0% 98%;
+  --color-dark-border: 0 0% 14.9%;
+  --color-dark-input: 0 0% 14.9%;
+  --color-dark-ring: 0 0% 83.1%;
+
+  /* Original Primary Colors - Preserved */
   --color-primary-50: #f0f9ff;
   --color-primary-100: #e0f2fe;
   --color-primary-200: #bae6fd;
@@ -14,6 +60,7 @@
   --color-primary-700: #0369a1;
   --color-primary-800: #075985;
   --color-primary-900: #0c4a6e;
+  --color-primary-950: #082f49;
 
   --animate-pulse-slow: pulse 3s infinite;
 
@@ -96,6 +143,53 @@
 }
 
 @layer base {
+  /* Shadcn UI CSS Variables for Light Mode */
+  :root {
+    --background: var(--color-background);
+    --foreground: var(--color-foreground);
+    --card: var(--color-card);
+    --card-foreground: var(--color-card-foreground);
+    --popover: var(--color-popover);
+    --popover-foreground: var(--color-popover-foreground);
+    --primary: var(--color-primary);
+    --primary-foreground: var(--color-primary-foreground);
+    --secondary: var(--color-secondary);
+    --secondary-foreground: var(--color-secondary-foreground);
+    --muted: var(--color-muted);
+    --muted-foreground: var(--color-muted-foreground);
+    --accent: var(--color-accent);
+    --accent-foreground: var(--color-accent-foreground);
+    --destructive: var(--color-destructive);
+    --destructive-foreground: var(--color-destructive-foreground);
+    --border: var(--color-border);
+    --input: var(--color-input);
+    --ring: var(--color-ring);
+    --radius: var(--radius);
+  }
+
+  /* Shadcn UI CSS Variables for Dark Mode */
+  .dark {
+    --background: var(--color-dark-background);
+    --foreground: var(--color-dark-foreground);
+    --card: var(--color-dark-card);
+    --card-foreground: var(--color-dark-card-foreground);
+    --popover: var(--color-dark-popover);
+    --popover-foreground: var(--color-dark-popover-foreground);
+    --primary: var(--color-dark-primary);
+    --primary-foreground: var(--color-dark-primary-foreground);
+    --secondary: var(--color-dark-secondary);
+    --secondary-foreground: var(--color-dark-secondary-foreground);
+    --muted: var(--color-dark-muted);
+    --muted-foreground: var(--color-dark-muted-foreground);
+    --accent: var(--color-dark-accent);
+    --accent-foreground: var(--color-dark-accent-foreground);
+    --destructive: var(--color-dark-destructive);
+    --destructive-foreground: var(--color-dark-destructive-foreground);
+    --border: var(--color-dark-border);
+    --input: var(--color-dark-input);
+    --ring: var(--color-dark-ring);
+  }
+
   /* Animation Keyframes */
   @keyframes fadeIn {
     from {
@@ -149,23 +243,14 @@
   }
 
   body {
-    background-color: rgb(249 250 251); /* gray-50 */
-    color: rgb(17 24 39); /* gray-900 */
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     transition: background-color 0.3s ease, color 0.3s ease;
     font-family: var(--font-sans);
   }
 
-  html.dark body {
-    background-color: rgb(17 24 39); /* gray-900 */
-    color: rgb(243 244 246); /* gray-100 */
-  }
-
   * {
-    border-color: rgb(209 213 219); /* gray-300 */
-  }
-
-  html.dark * {
-    border-color: rgb(55 65 81); /* gray-700 */
+    border-color: hsl(var(--border));
   }
 
   /* RTL Support */
@@ -360,4 +445,46 @@
 .dark select option {
   background-color: rgb(55 65 81);
   color: rgb(243 244 246);
+}
+
+:root {
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+.dark {
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+@theme inline {
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

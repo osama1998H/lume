@@ -5,7 +5,17 @@ import { TimeEntry, AppUsage, Category } from '../types';
 import { ActivitySession } from '../types/activity';
 import StatCard from './ui/StatCard';
 import ProgressListCard from './ui/ProgressListCard';
-import Badge from './ui/Badge';
+import { Badge } from './ui/badge';
+import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './ui/table';
 
 const Reports: React.FC = () => {
   const { t } = useTranslation();
@@ -225,30 +235,26 @@ const Reports: React.FC = () => {
   if (isLoading) {
     return (
       <div className="p-8 flex items-center justify-center h-full">
-        <div className="animate-pulse-slow text-lg text-gray-600 dark:text-gray-400">{t('reports.loading')}</div>
+        <div className="animate-pulse-slow text-lg text-muted-foreground">{t('reports.loading')}</div>
       </div>
     );
   }
 
   return (
     <div className="p-8 overflow-y-auto">
-      <div className="mb-8">
+      <div className="mb-8 animate-fade-in">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('reports.title')}</h2>
-            <p className="text-gray-600 dark:text-gray-400">{t('reports.subtitle')}</p>
+            <h2 className="text-3xl font-bold text-foreground mb-2">{t('reports.title')}</h2>
+            <p className="text-muted-foreground">{t('reports.subtitle')}</p>
           </div>
-          <div>
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value as 'day' | 'week' | 'month')}
-              className="px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm transition-all"
-            >
-              <option value="day" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">{t('reports.today')}</option>
-              <option value="week" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">{t('reports.week')}</option>
-              <option value="month" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">{t('reports.month')}</option>
-            </select>
-          </div>
+          <Tabs value={selectedPeriod} onValueChange={(value) => setSelectedPeriod(value as 'day' | 'week' | 'month')}>
+            <TabsList>
+              <TabsTrigger value="day">{t('reports.today')}</TabsTrigger>
+              <TabsTrigger value="week">{t('reports.week')}</TabsTrigger>
+              <TabsTrigger value="month">{t('reports.month')}</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </div>
 
@@ -332,62 +338,48 @@ const Reports: React.FC = () => {
         />
       </div>
 
-      <div className="card mt-8">
-        <h3 className="text-xl font-semibold mb-4 dark:text-gray-100">{t('reports.recentActivitySessions')}</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700/50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('reports.application')}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('reports.category')}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('reports.domain')}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('reports.duration')}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('reports.startTime')}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {activitySessions.slice(0, 20).map((session, index) => (
-                <tr key={session.id || index} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {session.app_name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    <Badge variant={session.category === 'website' ? 'primary' : 'info'} size="sm">
-                      {session.category}
-                    </Badge>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {session.domain || session.window_title || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {session.duration ? formatDuration(session.duration) : '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {session.start_time ? new Date(session.start_time).toLocaleString() : '-'}
-                  </td>
-                </tr>
-              ))}
-              {activitySessions.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                    {t('reports.noActivityData')}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle>{t('reports.recentActivitySessions')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('reports.application')}</TableHead>
+                  <TableHead>{t('reports.category')}</TableHead>
+                  <TableHead>{t('reports.domain')}</TableHead>
+                  <TableHead>{t('reports.duration')}</TableHead>
+                  <TableHead>{t('reports.startTime')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activitySessions.slice(0, 20).map((session, index) => (
+                  <TableRow key={session.id || index}>
+                    <TableCell className="font-medium">{session.app_name}</TableCell>
+                    <TableCell>
+                      <Badge variant={session.category === 'website' ? 'default' : 'secondary'} className="text-xs">
+                        {session.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{session.domain || session.window_title || '-'}</TableCell>
+                    <TableCell>{session.duration ? formatDuration(session.duration) : '-'}</TableCell>
+                    <TableCell>{session.start_time ? new Date(session.start_time).toLocaleString() : '-'}</TableCell>
+                  </TableRow>
+                ))}
+                {activitySessions.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      {t('reports.noActivityData')}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

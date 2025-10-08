@@ -14,7 +14,9 @@ import { ProductivityLineChart } from './analytics/ProductivityLineChart';
 import { HourlyHeatmap } from './analytics/HourlyHeatmap';
 import { CalendarHeatmap } from './analytics/CalendarHeatmap';
 import { InsightCard } from './analytics/InsightCard';
-import Skeleton from './ui/Skeleton';
+import { Skeleton } from './ui/skeleton';
+import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
+import { Card, CardContent } from './ui/card';
 
 export const Analytics: React.FC = () => {
   const { t } = useTranslation();
@@ -147,35 +149,25 @@ export const Analytics: React.FC = () => {
   return (
     <div className="flex flex-col h-full overflow-hidden bg-background">
       {/* Header */}
-      <div className="flex-shrink-0 px-8 pt-8 pb-4">
+      <div className="flex-shrink-0 px-8 pt-8 pb-4 animate-fade-in">
         <div className="flex items-center justify-between mb-2">
           <div>
-            <h1 className="text-3xl font-bold text-text-primary mb-2">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
               {t('navigation.analytics', 'Analytics')}
             </h1>
-            <p className="text-text-secondary">
+            <p className="text-muted-foreground">
               {t('analytics.subtitle', 'Understand your productivity patterns and improve over time')}
             </p>
           </div>
 
           {/* Period Selector */}
-          <div className="flex gap-2">
-            {(['week', 'month', 'year'] as const).map(period => (
-              <button
-                key={period}
-                onClick={() => setSelectedPeriod(period)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  selectedPeriod === period
-                    ? 'bg-primary text-white shadow-lg'
-                    : 'bg-surface-secondary text-text-secondary hover:bg-surface-tertiary'
-                }`}
-              >
-                {period === 'week' && t('analytics.lastWeek', 'Last 7 Days')}
-                {period === 'month' && t('analytics.lastMonth', 'Last 30 Days')}
-                {period === 'year' && t('analytics.lastYear', 'Last Year')}
-              </button>
-            ))}
-          </div>
+          <Tabs value={selectedPeriod} onValueChange={(value) => setSelectedPeriod(value as 'week' | 'month' | 'year')}>
+            <TabsList>
+              <TabsTrigger value="week">{t('analytics.lastWeek', 'Last 7 Days')}</TabsTrigger>
+              <TabsTrigger value="month">{t('analytics.lastMonth', 'Last 30 Days')}</TabsTrigger>
+              <TabsTrigger value="year">{t('analytics.lastYear', 'Last Year')}</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </div>
 
@@ -238,53 +230,55 @@ export const Analytics: React.FC = () => {
 
             {/* Weekly Summary */}
             {weeklySummary && !isLoading && (
-              <div className="bg-surface-primary rounded-xl border border-border p-6 shadow-card">
-                <h3 className="text-lg font-semibold text-text-primary mb-4">
-                  {t('analytics.weeklySummary', 'Weekly Summary')}
-                </h3>
+              <Card>
+                <CardContent className="pt-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">
+                    {t('analytics.weeklySummary', 'Weekly Summary')}
+                  </h3>
 
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-text-secondary">{t('analytics.totalTime', 'Total Time')}</span>
-                    <span className="text-text-primary font-bold">{formatHours(weeklySummary.totalMinutes)}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-text-secondary">{t('analytics.avgDaily', 'Avg Daily')}</span>
-                    <span className="text-text-primary font-bold">{formatHours(weeklySummary.avgDailyMinutes)}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-text-secondary">{t('analytics.goalsAchieved', 'Goals Achieved')}</span>
-                    <span className="text-text-primary font-bold">
-                      {weeklySummary.goalsAchieved} / {weeklySummary.totalGoals}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-text-secondary">{t('analytics.vsLastWeek', 'vs Last Week')}</span>
-                    <span className={`font-bold ${weeklySummary.comparisonToPrevious >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {weeklySummary.comparisonToPrevious >= 0 ? '+' : ''}{weeklySummary.comparisonToPrevious.toFixed(0)}%
-                    </span>
-                  </div>
-
-                  {weeklySummary.insights.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-border">
-                      <h4 className="text-sm font-semibold text-text-primary mb-2">
-                        {t('analytics.insights', 'Insights')}
-                      </h4>
-                      <ul className="space-y-2">
-                        {weeklySummary.insights.slice(0, 3).map((insight, i) => (
-                          <li key={i} className="text-sm text-text-secondary flex items-start gap-2">
-                            <span className="text-primary mt-0.5">•</span>
-                            <span>{translateInsight(insight)}</span>
-                          </li>
-                        ))}
-                      </ul>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">{t('analytics.totalTime', 'Total Time')}</span>
+                      <span className="text-foreground font-bold">{formatHours(weeklySummary.totalMinutes)}</span>
                     </div>
-                  )}
-                </div>
-              </div>
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">{t('analytics.avgDaily', 'Avg Daily')}</span>
+                      <span className="text-foreground font-bold">{formatHours(weeklySummary.avgDailyMinutes)}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">{t('analytics.goalsAchieved', 'Goals Achieved')}</span>
+                      <span className="text-foreground font-bold">
+                        {weeklySummary.goalsAchieved} / {weeklySummary.totalGoals}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">{t('analytics.vsLastWeek', 'vs Last Week')}</span>
+                      <span className={`font-bold ${weeklySummary.comparisonToPrevious >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {weeklySummary.comparisonToPrevious >= 0 ? '+' : ''}{weeklySummary.comparisonToPrevious.toFixed(0)}%
+                      </span>
+                    </div>
+
+                    {weeklySummary.insights.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-border">
+                        <h4 className="text-sm font-semibold text-foreground mb-2">
+                          {t('analytics.insights', 'Insights')}
+                        </h4>
+                        <ul className="space-y-2">
+                          {weeklySummary.insights.slice(0, 3).map((insight, i) => (
+                            <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                              <span className="text-primary mt-0.5">•</span>
+                              <span>{translateInsight(insight)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </div>
 
@@ -300,7 +294,7 @@ export const Analytics: React.FC = () => {
           {/* Behavioral Insights */}
           {insights.length > 0 && !isLoading && (
             <div className="space-y-4">
-              <h2 className="text-xl font-bold text-text-primary">
+              <h2 className="text-xl font-bold text-foreground">
                 {t('analytics.behavioralInsights', 'Behavioral Insights')}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

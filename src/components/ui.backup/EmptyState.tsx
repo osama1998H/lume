@@ -1,7 +1,6 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
-import { Button } from './button';
-import { cn } from '@/lib/utils';
+import Button, { ButtonProps } from './Button';
 
 export interface EmptyStateProps {
   icon?: LucideIcon;
@@ -10,7 +9,7 @@ export interface EmptyStateProps {
   action?: {
     label: string;
     onClick: () => void;
-    variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+    variant?: ButtonProps['variant'];
     icon?: LucideIcon;
   };
   className?: string;
@@ -24,26 +23,26 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   className = '',
 }) => {
   return (
-    <div className={cn('flex flex-col items-center justify-center py-12 px-4 text-center', className)}>
+    <div className={`flex flex-col items-center justify-center py-12 px-4 text-center ${className}`}>
       {Icon && (
-        <div className="mb-4 p-4 rounded-full bg-muted">
-          <Icon className="h-12 w-12 text-muted-foreground" />
+        <div className="mb-4 p-4 rounded-full bg-gray-100 dark:bg-gray-800">
+          <Icon className="h-12 w-12 text-gray-400 dark:text-gray-500" />
         </div>
       )}
-      <h3 className="text-lg font-semibold text-foreground mb-2">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
         {title}
       </h3>
       {description && (
-        <p className="text-muted-foreground mb-6 max-w-sm">
+        <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-sm">
           {description}
         </p>
       )}
       {action && (
         <Button
-          variant={action.variant || 'default'}
+          variant={action.variant || 'primary'}
           onClick={action.onClick}
+          icon={action.icon}
         >
-          {action.icon && <action.icon className="mr-2 h-4 w-4" />}
           {action.label}
         </Button>
       )}

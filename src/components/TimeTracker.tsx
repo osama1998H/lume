@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Play, Square, Clock, Tag, FileText } from 'lucide-react';
+import { Play, Square, Clock, FileText } from 'lucide-react';
 import { TimeEntry, Category } from '../types';
 import ActivityListCard from './ui/ActivityListCard';
-import Button from './ui/Button';
-import Input from './ui/Input';
+import { Button } from './ui/button';
+import InputWithIcon from './ui/InputWithIcon';
+import { CategorySelect } from './ui/CategorySelect';
+import { Card, CardContent } from './ui/card';
 
 const TimeTracker: React.FC = () => {
   const { t } = useTranslation();
@@ -186,44 +188,32 @@ const TimeTracker: React.FC = () => {
     }
   };
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const categoryId = e.target.value ? Number(e.target.value) : null;
-    setSelectedCategoryId(categoryId);
-
-    // Update category name for backward compatibility
-    if (categoryId) {
-      const selectedCategory = categories.find(c => c.id === categoryId);
-      setCategory(selectedCategory?.name || '');
-    } else {
-      setCategory('');
-    }
-  };
-
   return (
     <div className="p-8 overflow-y-auto">
       <div className="mb-8 animate-fade-in">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('timeTracker.title')}</h2>
-        <p className="text-gray-600 dark:text-gray-400">{t('timeTracker.subtitle')}</p>
+        <h2 className="text-3xl font-bold text-foreground mb-2">{t('timeTracker.title')}</h2>
+        <p className="text-muted-foreground">{t('timeTracker.subtitle')}</p>
       </div>
 
       <div className="max-w-2xl mx-auto">
-        <div className="card mb-8">
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center gap-3 mb-4 px-8 py-4 bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-2xl">
-              <Clock className={`h-8 w-8 ${isTracking ? 'text-primary-600 dark:text-primary-400 animate-pulse' : 'text-gray-400'}`} />
-              <div className="text-6xl font-mono font-bold text-primary-600 dark:text-primary-400 tracking-tight">
+        <Card className="mb-8">
+          <CardContent className="pt-6">
+            <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center gap-3 mb-4 px-8 py-4 bg-gradient-to-br from-primary/10 to-primary/20 rounded-2xl">
+              <Clock className={`h-8 w-8 ${isTracking ? 'text-primary animate-pulse' : 'text-muted-foreground'}`} />
+              <div className="text-6xl font-mono font-bold text-primary tracking-tight">
                 {formatTime(elapsedTime)}
               </div>
             </div>
             {isTracking && currentTask && (
-              <p className="text-lg text-gray-700 dark:text-gray-300 animate-fade-in">
-                {t('timeTracker.workingOn')} <span className="font-semibold text-gray-900 dark:text-gray-100">{currentTask}</span>
+              <p className="text-lg text-muted-foreground animate-fade-in">
+                {t('timeTracker.workingOn')} <span className="font-semibold text-foreground">{currentTask}</span>
               </p>
             )}
           </div>
 
           <div className="space-y-4">
-            <Input
+            <InputWithIcon
               id="task"
               label={t('timeTracker.taskName')}
               value={currentTask}
@@ -232,65 +222,53 @@ const TimeTracker: React.FC = () => {
               placeholder={t('timeTracker.taskPlaceholder')}
               icon={FileText}
               iconPosition="left"
+              required
             />
 
-            <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t('timeTracker.category')}
-              </label>
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <Tag className="h-5 w-5 text-gray-400" />
-                </div>
-                <select
-                  id="category"
-                  value={selectedCategoryId || ''}
-                  onChange={handleCategoryChange}
-                  disabled={isTracking}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="">{t('timeTracker.categoryPlaceholder')}</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-                {selectedCategoryId && categories.find(c => c.id === selectedCategoryId) && (
-                  <div
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 rounded-full border-2 border-white dark:border-gray-700"
-                    style={{ backgroundColor: categories.find(c => c.id === selectedCategoryId)?.color }}
-                  />
-                )}
-              </div>
-            </div>
+            <CategorySelect
+              value={selectedCategoryId?.toString() || ''}
+              onValueChange={(value) => {
+                const categoryId = value ? Number(value) : null;
+                setSelectedCategoryId(categoryId);
+                if (categoryId) {
+                  const selectedCategory = categories.find(c => c.id === categoryId);
+                  setCategory(selectedCategory?.name || '');
+                } else {
+                  setCategory('');
+                }
+              }}
+              categories={categories}
+              label={t('timeTracker.category')}
+              placeholder={t('timeTracker.categoryPlaceholder')}
+              disabled={isTracking}
+            />
 
             <div className="flex justify-center pt-4">
               {!isTracking ? (
                 <Button
                   onClick={startTracking}
                   disabled={!currentTask.trim()}
-                  variant="primary"
                   size="lg"
-                  icon={Play}
                   className="px-8"
                 >
+                  <Play className="mr-2 h-5 w-5" />
                   {t('timeTracker.startTracking')}
                 </Button>
               ) : (
                 <Button
                   onClick={stopTracking}
-                  variant="danger"
+                  variant="destructive"
                   size="lg"
-                  icon={Square}
                   className="px-8"
                 >
+                  <Square className="mr-2 h-5 w-5" />
                   {t('timeTracker.stopTracking')}
                 </Button>
               )}
             </div>
           </div>
-        </div>
+          </CardContent>
+        </Card>
 
         <ActivityListCard
           title={t('timeTracker.recentEntries')}

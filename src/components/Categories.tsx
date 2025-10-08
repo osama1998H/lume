@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FolderOpen, Plus, Tag, Link, Trash2, Edit2, Check, X, Palette } from 'lucide-react';
+import { FolderOpen, Plus, Tag, Link, Trash2, Edit2, Check, X } from 'lucide-react';
 import { Category, Tag as TagType, AppCategoryMapping, DomainCategoryMapping } from '../types';
-import Button from './ui/Button';
-import Skeleton from './ui/Skeleton';
+import { Button } from './ui/button';
+import { Skeleton } from './ui/skeleton';
 import EmptyState from './ui/EmptyState';
 import { FormModal, ConfirmModal } from './ui/Modal';
 import FormField, { SelectField } from './ui/FormField';

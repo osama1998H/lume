@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FolderOpen, Plus, Tag, Link, Trash2 } from 'lucide-react';
 import { Category, Tag as TagType, AppCategoryMapping, DomainCategoryMapping } from '../types';
-import Button from './ui/Button';
-import Skeleton from './ui/Skeleton';
+import { Button } from './ui/button';
+import { Skeleton } from './ui/skeleton';
 import EmptyState from './ui/EmptyState';
 
 const Categories: React.FC = () => {

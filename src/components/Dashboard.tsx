@@ -6,7 +6,7 @@ import { TimeEntry, AppUsage } from '../types';
 import GoalProgressWidget from './GoalProgressWidget';
 import StatCard from './ui/StatCard';
 import ActivityListCard from './ui/ActivityListCard';
-import Skeleton from './ui/Skeleton';
+import { Skeleton } from './ui/skeleton';
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();

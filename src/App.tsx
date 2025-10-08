@@ -14,6 +14,8 @@ import Timeline from './components/Timeline';
 import ToastContainer from './components/ui/Toast';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PomodoroProvider } from './contexts/PomodoroContext';
+import { SidebarProvider, SidebarInset } from './components/ui/sidebar';
+import { useLanguage } from './hooks/useLanguage';
 
 type View = 'dashboard' | 'tracker' | 'reports' | 'analytics' | 'timeline' | 'goals' | 'focus' | 'categories' | 'settings';
 
@@ -24,6 +26,7 @@ type View = 'dashboard' | 'tracker' | 'reports' | 'analytics' | 'timeline' | 'go
  */
 function App() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
+  const { isRTL } = useLanguage();
 
   const renderView = () => {
     switch (currentView) {
@@ -54,17 +57,33 @@ function App() {
     <ThemeProvider>
       <PomodoroProvider>
         <ErrorBoundary>
-          <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
-            <TitleBar />
-            <div className="flex flex-1 overflow-hidden">
-              <Sidebar currentView={currentView} onViewChange={setCurrentView} />
-              <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
-                <ErrorBoundary>
-                  {renderView()}
-                </ErrorBoundary>
-              </main>
-            </div>
-          </div>
+          <SidebarProvider defaultOpen={true}>
+            {isRTL ? (
+              <>
+                <SidebarInset>
+                  <TitleBar />
+                  <main className="flex-1 overflow-y-auto">
+                    <ErrorBoundary>
+                      {renderView()}
+                    </ErrorBoundary>
+                  </main>
+                </SidebarInset>
+                <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+              </>
+            ) : (
+              <>
+                <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+                <SidebarInset>
+                  <TitleBar />
+                  <main className="flex-1 overflow-y-auto">
+                    <ErrorBoundary>
+                      {renderView()}
+                    </ErrorBoundary>
+                  </main>
+                </SidebarInset>
+              </>
+            )}
+          </SidebarProvider>
           <ToastContainer />
         </ErrorBoundary>
       </PomodoroProvider>

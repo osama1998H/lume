@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { Play, Pause, Square, SkipForward, Coffee, TrendingUp, Award } from 'lucide-react';
 import { PomodoroStats } from '../types';
 import { usePomodoro, SessionType } from '../contexts/PomodoroContext';
-import Button from './ui/Button';
-import Input from './ui/Input';
+import { Button } from './ui/button';
+import InputWithIcon from './ui/InputWithIcon';
 import StatCard from './ui/StatCard';
-import Skeleton from './ui/Skeleton';
+import { Skeleton } from './ui/skeleton';
 
 const FocusMode: React.FC = () => {
   const { t } = useTranslation();
@@ -167,7 +167,7 @@ const FocusMode: React.FC = () => {
             {/* Task Display/Input */}
             {status.state === 'idle' && status.sessionType === 'focus' ? (
               <div className="w-full max-w-md mb-6">
-                <Input
+                <InputWithIcon
                   type="text"
                   value={taskInput}
                   onChange={(e) => setTaskInput(e.target.value)}
