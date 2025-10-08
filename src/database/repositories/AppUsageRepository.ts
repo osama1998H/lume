@@ -39,14 +39,14 @@ export class AppUsageRepository extends BaseRepository<AppUsage> {
   insert(usage: Partial<AppUsage>): number {
     const usageToInsert = {
       appName: usage.appName,
-      windowTitle: usage.windowTitle || null,
+      windowTitle: usage.windowTitle || undefined,
       startTime: usage.startTime,
-      endTime: usage.endTime || null,
-      duration: usage.duration || null,
-      category: usage.category || null,
-      categoryId: usage.categoryId || null,
-      domain: usage.domain || null,
-      url: usage.url || null,
+      endTime: usage.endTime || undefined,
+      duration: usage.duration || undefined,
+      category: usage.category || undefined,
+      categoryId: usage.categoryId || undefined,
+      domain: usage.domain || undefined,
+      url: usage.url || undefined,
       isBrowser: usage.isBrowser ? 1 : 0,
       isIdle: usage.isIdle ? 1 : 0,
     };

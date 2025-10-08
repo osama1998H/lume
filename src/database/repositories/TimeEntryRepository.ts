@@ -36,10 +36,10 @@ export class TimeEntryRepository extends BaseRepository<TimeEntry> {
     const entryToInsert = {
       task: entry.task,
       startTime: entry.startTime,
-      endTime: entry.endTime || null,
-      duration: entry.duration || null,
-      category: entry.category || null,
-      categoryId: entry.categoryId || null,
+      endTime: entry.endTime || undefined,
+      duration: entry.duration || undefined,
+      category: entry.category || undefined,
+      categoryId: entry.categoryId || undefined,
     };
     return super.insert(entryToInsert);
   }

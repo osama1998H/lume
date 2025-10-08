@@ -61,10 +61,10 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
   insert(goal: Partial<ProductivityGoal>): number {
     const goalToInsert = {
       name: goal.name,
-      description: goal.description || null,
+      description: goal.description || undefined,
       goalType: goal.goalType,
-      category: goal.category || null,
-      appName: goal.appName || null,
+      category: goal.category || undefined,
+      appName: goal.appName || undefined,
       targetMinutes: goal.targetMinutes,
       operator: goal.operator,
       period: goal.period,

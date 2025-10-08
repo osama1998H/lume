@@ -34,8 +34,8 @@ export class CategoryRepository extends BaseRepository<Category> {
     const categoryToInsert = {
       name: category.name,
       color: category.color || '#3B82F6',
-      icon: category.icon || null,
-      description: category.description || null,
+      icon: category.icon || undefined,
+      description: category.description || undefined,
     };
     return super.insert(categoryToInsert);
   }
