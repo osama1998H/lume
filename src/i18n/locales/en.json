@@ -483,6 +483,14 @@
         "descriptionShort": "Keep it up! {{days}} day streak",
         "descriptionShortPlural": "Keep it up! {{days}} days streak"
       }
+    },
+    "weeklyInsights": {
+      "greatProgress": "Great progress! You're {{percentage}}% more productive than last week.",
+      "activityDecreased": "Activity decreased {{percentage}}% from last week. Let's get back on track!",
+      "mostProductiveDay": "{{dayName}} was your most productive day with {{minutes}} minutes tracked.",
+      "focusedMostOn": "You focused most on {{category}} this week.",
+      "excellentAverage": "Excellent! You averaged {{minutes}} minutes per day.",
+      "increaseTracking": "Try to increase your daily tracking time - currently averaging {{minutes}} minutes."
     }
   },
   "errors": {
