@@ -1,21 +1,22 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, Timer, BarChart3, Target, Coffee, Settings, LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Timer, BarChart3, Target, Coffee, FolderOpen, Settings, LucideIcon } from 'lucide-react';
 
 interface SidebarProps {
   currentView: string;
-  onViewChange: (view: 'dashboard' | 'tracker' | 'reports' | 'goals' | 'focus' | 'settings') => void;
+  onViewChange: (view: 'dashboard' | 'tracker' | 'reports' | 'goals' | 'focus' | 'categories' | 'settings') => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
   const { t } = useTranslation();
 
-  const menuItems: Array<{ id: 'dashboard' | 'tracker' | 'reports' | 'goals' | 'focus' | 'settings'; label: string; icon: LucideIcon }> = [
+  const menuItems: Array<{ id: 'dashboard' | 'tracker' | 'reports' | 'goals' | 'focus' | 'categories' | 'settings'; label: string; icon: LucideIcon }> = [
     { id: 'dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard },
     { id: 'tracker', label: t('navigation.tracker'), icon: Timer },
     { id: 'reports', label: t('navigation.reports'), icon: BarChart3 },
     { id: 'goals', label: t('navigation.goals'), icon: Target },
     { id: 'focus', label: t('navigation.focus'), icon: Coffee },
+    { id: 'categories', label: t('navigation.categories'), icon: FolderOpen },
     { id: 'settings', label: t('navigation.settings'), icon: Settings },
   ];
 

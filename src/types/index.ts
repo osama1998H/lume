@@ -4,7 +4,9 @@ export interface TimeEntry {
   startTime: string;
   endTime?: string;
   duration?: number;
-  category?: string;
+  category?: string; // Kept for backward compatibility
+  categoryId?: number; // New category ID reference
+  tags?: Tag[]; // Tags associated with this entry
   createdAt?: string;
 }
 
@@ -12,7 +14,8 @@ export interface AppUsage {
   id?: number;
   appName: string;
   windowTitle?: string;
-  category?: string;
+  category?: string; // Kept for backward compatibility
+  categoryId?: number; // New category ID reference
   domain?: string;
   url?: string;
   startTime: string;
@@ -20,6 +23,7 @@ export interface AppUsage {
   duration?: number;
   isBrowser?: boolean;
   isIdle?: boolean;
+  tags?: Tag[]; // Tags associated with this usage
   createdAt?: string;
 }
 
@@ -106,6 +110,60 @@ export interface GoalStats {
   achievementRate: number; // percentage
 }
 
+// Categorization & Tagging Types
+export interface Category {
+  id?: number;
+  name: string;
+  color: string; // Hex color
+  icon?: string; // Lucide icon name
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Tag {
+  id?: number;
+  name: string;
+  color: string; // Hex color
+  createdAt?: string;
+}
+
+export interface AppCategoryMapping {
+  id?: number;
+  appName: string;
+  categoryId: number;
+  categoryName?: string;
+  categoryColor?: string;
+  createdAt?: string;
+}
+
+export interface DomainCategoryMapping {
+  id?: number;
+  domain: string;
+  categoryId: number;
+  categoryName?: string;
+  categoryColor?: string;
+  createdAt?: string;
+}
+
+export interface CategoryStats {
+  categoryId: number;
+  categoryName: string;
+  categoryColor: string;
+  totalTime: number; // in seconds
+  percentage: number;
+  activityCount: number;
+}
+
+export interface TagStats {
+  tagId: number;
+  tagName: string;
+  tagColor: string;
+  totalTime: number; // in seconds
+  percentage: number;
+  activityCount: number;
+}
+
 export interface ElectronAPI {
   getTimeEntries: () => Promise<TimeEntry[]>;
   addTimeEntry: (entry: TimeEntry) => Promise<number>;
@@ -144,6 +202,32 @@ export interface ElectronAPI {
   getGoalProgress: (goalId: number, date: string) => Promise<GoalProgress | null>;
   getGoalAchievementHistory: (goalId: number, days: number) => Promise<GoalProgress[]>;
   getGoalStats: () => Promise<GoalStats>;
+  // Categories API
+  getCategories: () => Promise<Category[]>;
+  getCategoryById: (id: number) => Promise<Category | null>;
+  addCategory: (category: Category) => Promise<number>;
+  updateCategory: (id: number, updates: Partial<Category>) => Promise<boolean>;
+  deleteCategory: (id: number) => Promise<boolean>;
+  // Tags API
+  getTags: () => Promise<Tag[]>;
+  addTag: (tag: Tag) => Promise<number>;
+  updateTag: (id: number, updates: Partial<Tag>) => Promise<boolean>;
+  deleteTag: (id: number) => Promise<boolean>;
+  // Category Mappings API
+  getAppCategoryMappings: () => Promise<AppCategoryMapping[]>;
+  addAppCategoryMapping: (appName: string, categoryId: number) => Promise<number>;
+  deleteAppCategoryMapping: (id: number) => Promise<boolean>;
+  getDomainCategoryMappings: () => Promise<DomainCategoryMapping[]>;
+  addDomainCategoryMapping: (domain: string, categoryId: number) => Promise<number>;
+  deleteDomainCategoryMapping: (id: number) => Promise<boolean>;
+  // Tag Associations API
+  getTimeEntryTags: (timeEntryId: number) => Promise<Tag[]>;
+  addTimeEntryTags: (timeEntryId: number, tagIds: number[]) => Promise<void>;
+  getAppUsageTags: (appUsageId: number) => Promise<Tag[]>;
+  addAppUsageTags: (appUsageId: number, tagIds: number[]) => Promise<void>;
+  // Statistics API
+  getCategoryStats: (startDate?: string, endDate?: string) => Promise<CategoryStats[]>;
+  getTagStats: (startDate?: string, endDate?: string) => Promise<TagStats[]>;
 }
 
 declare global {
