@@ -8,6 +8,7 @@ import { ActivityTrackingService } from '../services/ActivityTrackingService';
 import { PomodoroService } from '../services/PomodoroService';
 import { NotificationService } from '../services/NotificationService';
 import { GoalsService } from '../services/GoalsService';
+import { CategoriesService } from '../services/CategoriesService';
 import { initializeSentry } from '../config/sentry';
 import { initializeCrashReporter, getLastCrashReport, getUploadedReports } from '../config/crashReporter';
 
@@ -27,6 +28,7 @@ class LumeApp {
   private pomodoroService: PomodoroService | null = null;
   private notificationService: NotificationService | null = null;
   private goalsService: GoalsService | null = null;
+  private categoriesService: CategoriesService | null = null;
   private settingsPath: string;
 
   constructor() {
@@ -66,8 +68,8 @@ class LumeApp {
     const iconPath = path.join(__dirname, '../../src/public/logo1.png');
 
     this.mainWindow = new BrowserWindow({
-      width: 1200,
-      height: 800,
+      width: 1600,
+      height: 1000,
       minWidth: 800,
       minHeight: 600,
       icon: iconPath,
@@ -115,6 +117,17 @@ class LumeApp {
       // Initialize goals service
       this.goalsService = new GoalsService(this.dbManager, this.notificationService);
       console.log('✅ Goals service initialized');
+
+      // Initialize categories service
+      this.categoriesService = new CategoriesService(this.dbManager);
+      console.log('✅ Categories service initialized');
+
+      // Initialize default categories for first-run users (async, non-blocking)
+      this.categoriesService.initializeDefaultCategories().then(() => {
+        console.log('✅ Default categories initialized');
+      }).catch((error) => {
+        console.error('⚠️ Failed to initialize default categories:', error);
+      });
 
       // Initialize activity tracking service (with goals service for integration)
       this.activityTracker = new ActivityTrackingService(this.dbManager, this.goalsService);
@@ -665,6 +678,207 @@ class LumeApp {
           longestStreak: 0,
           achievementRate: 0,
         };
+      }
+    });
+
+    // ==================== CATEGORIES IPC HANDLERS ====================
+
+    ipcMain.handle('get-categories', async () => {
+      try {
+        return await this.categoriesService?.getCategories() || [];
+      } catch (error) {
+        console.error('Failed to get categories:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('get-category-by-id', async (_, id: number) => {
+      try {
+        return await this.categoriesService?.getCategoryById(id) || null;
+      } catch (error) {
+        console.error('Failed to get category by ID:', error);
+        return null;
+      }
+    });
+
+    ipcMain.handle('add-category', async (_, category) => {
+      try {
+        return await this.categoriesService?.addCategory(category) || null;
+      } catch (error) {
+        console.error('Failed to add category:', error);
+        return null;
+      }
+    });
+
+    ipcMain.handle('update-category', async (_, id: number, updates: any) => {
+      try {
+        return await this.categoriesService?.updateCategory(id, updates) || false;
+      } catch (error) {
+        console.error('Failed to update category:', error);
+        return false;
+      }
+    });
+
+    ipcMain.handle('delete-category', async (_, id: number) => {
+      try {
+        return await this.categoriesService?.deleteCategory(id) || false;
+      } catch (error) {
+        console.error('Failed to delete category:', error);
+        return false;
+      }
+    });
+
+    // ==================== TAGS IPC HANDLERS ====================
+
+    ipcMain.handle('get-tags', async () => {
+      try {
+        return await this.categoriesService?.getTags() || [];
+      } catch (error) {
+        console.error('Failed to get tags:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('add-tag', async (_, tag) => {
+      try {
+        return await this.categoriesService?.addTag(tag) || null;
+      } catch (error) {
+        console.error('Failed to add tag:', error);
+        return null;
+      }
+    });
+
+    ipcMain.handle('update-tag', async (_, id: number, updates: any) => {
+      try {
+        return await this.categoriesService?.updateTag(id, updates) || false;
+      } catch (error) {
+        console.error('Failed to update tag:', error);
+        return false;
+      }
+    });
+
+    ipcMain.handle('delete-tag', async (_, id: number) => {
+      try {
+        return await this.categoriesService?.deleteTag(id) || false;
+      } catch (error) {
+        console.error('Failed to delete tag:', error);
+        return false;
+      }
+    });
+
+    // ==================== CATEGORY MAPPINGS IPC HANDLERS ====================
+
+    ipcMain.handle('get-app-category-mappings', async () => {
+      try {
+        return await this.categoriesService?.getAppCategoryMappings() || [];
+      } catch (error) {
+        console.error('Failed to get app category mappings:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('add-app-category-mapping', async (_, appName: string, categoryId: number) => {
+      try {
+        return await this.categoriesService?.addAppCategoryMapping(appName, categoryId) || null;
+      } catch (error) {
+        console.error('Failed to add app category mapping:', error);
+        return null;
+      }
+    });
+
+    ipcMain.handle('delete-app-category-mapping', async (_, id: number) => {
+      try {
+        return await this.categoriesService?.deleteAppCategoryMapping(id) || false;
+      } catch (error) {
+        console.error('Failed to delete app category mapping:', error);
+        return false;
+      }
+    });
+
+    ipcMain.handle('get-domain-category-mappings', async () => {
+      try {
+        return await this.categoriesService?.getDomainCategoryMappings() || [];
+      } catch (error) {
+        console.error('Failed to get domain category mappings:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('add-domain-category-mapping', async (_, domain: string, categoryId: number) => {
+      try {
+        return await this.categoriesService?.addDomainCategoryMapping(domain, categoryId) || null;
+      } catch (error) {
+        console.error('Failed to add domain category mapping:', error);
+        return null;
+      }
+    });
+
+    ipcMain.handle('delete-domain-category-mapping', async (_, id: number) => {
+      try {
+        return await this.categoriesService?.deleteDomainCategoryMapping(id) || false;
+      } catch (error) {
+        console.error('Failed to delete domain category mapping:', error);
+        return false;
+      }
+    });
+
+    // ==================== TAG ASSOCIATIONS IPC HANDLERS ====================
+
+    ipcMain.handle('get-time-entry-tags', async (_, timeEntryId: number) => {
+      try {
+        return await this.categoriesService?.getTimeEntryTags(timeEntryId) || [];
+      } catch (error) {
+        console.error('Failed to get time entry tags:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('add-time-entry-tags', async (_, timeEntryId: number, tagIds: number[]) => {
+      try {
+        await this.categoriesService?.addTimeEntryTags(timeEntryId, tagIds);
+        return true;
+      } catch (error) {
+        console.error('Failed to add time entry tags:', error);
+        return false;
+      }
+    });
+
+    ipcMain.handle('get-app-usage-tags', async (_, appUsageId: number) => {
+      try {
+        return await this.categoriesService?.getAppUsageTags(appUsageId) || [];
+      } catch (error) {
+        console.error('Failed to get app usage tags:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('add-app-usage-tags', async (_, appUsageId: number, tagIds: number[]) => {
+      try {
+        await this.categoriesService?.addAppUsageTags(appUsageId, tagIds);
+        return true;
+      } catch (error) {
+        console.error('Failed to add app usage tags:', error);
+        return false;
+      }
+    });
+
+    // ==================== STATISTICS IPC HANDLERS ====================
+
+    ipcMain.handle('get-category-stats', async (_, startDate?: string, endDate?: string) => {
+      try {
+        return await this.categoriesService?.getCategoryStats(startDate, endDate) || [];
+      } catch (error) {
+        console.error('Failed to get category stats:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('get-tag-stats', async (_, startDate?: string, endDate?: string) => {
+      try {
+        return await this.categoriesService?.getTagStats(startDate, endDate) || [];
+      } catch (error) {
+        console.error('Failed to get tag stats:', error);
+        return [];
       }
     });
   }

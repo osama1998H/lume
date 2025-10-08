@@ -160,6 +160,105 @@ export class DatabaseManager {
       CREATE INDEX IF NOT EXISTS idx_goal_progress_achieved ON goal_progress(achieved);
     `);
 
+    // Categories table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        color TEXT NOT NULL DEFAULT '#3B82F6',
+        icon TEXT,
+        description TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Tags table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS tags (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        color TEXT NOT NULL DEFAULT '#8B5CF6',
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // App to Category mappings
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS app_category_mappings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        app_name TEXT NOT NULL UNIQUE,
+        category_id INTEGER NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Domain to Category mappings
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS domain_category_mappings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        domain TEXT NOT NULL UNIQUE,
+        category_id INTEGER NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Time Entry to Tags junction table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS time_entry_tags (
+        time_entry_id INTEGER NOT NULL,
+        tag_id INTEGER NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (time_entry_id, tag_id),
+        FOREIGN KEY (time_entry_id) REFERENCES time_entries(id) ON DELETE CASCADE,
+        FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+      )
+    `);
+
+    // App Usage to Tags junction table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS app_usage_tags (
+        app_usage_id INTEGER NOT NULL,
+        tag_id INTEGER NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (app_usage_id, tag_id),
+        FOREIGN KEY (app_usage_id) REFERENCES app_usage(id) ON DELETE CASCADE,
+        FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Add category_id column to time_entries if it doesn't exist
+    try {
+      this.db.exec(`ALTER TABLE time_entries ADD COLUMN category_id INTEGER REFERENCES categories(id)`);
+    } catch (_error) {
+      // Column already exists, ignore
+    }
+
+    // Add category_id column to app_usage if it doesn't exist
+    try {
+      this.db.exec(`ALTER TABLE app_usage ADD COLUMN category_id INTEGER REFERENCES categories(id)`);
+    } catch (_error) {
+      // Column already exists, ignore
+    }
+
+    // Create indexes for new tables
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_categories_name ON categories(name);
+      CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
+      CREATE INDEX IF NOT EXISTS idx_app_category_mappings_app_name ON app_category_mappings(app_name);
+      CREATE INDEX IF NOT EXISTS idx_app_category_mappings_category_id ON app_category_mappings(category_id);
+      CREATE INDEX IF NOT EXISTS idx_domain_category_mappings_domain ON domain_category_mappings(domain);
+      CREATE INDEX IF NOT EXISTS idx_domain_category_mappings_category_id ON domain_category_mappings(category_id);
+      CREATE INDEX IF NOT EXISTS idx_time_entry_tags_time_entry_id ON time_entry_tags(time_entry_id);
+      CREATE INDEX IF NOT EXISTS idx_time_entry_tags_tag_id ON time_entry_tags(tag_id);
+      CREATE INDEX IF NOT EXISTS idx_app_usage_tags_app_usage_id ON app_usage_tags(app_usage_id);
+      CREATE INDEX IF NOT EXISTS idx_app_usage_tags_tag_id ON app_usage_tags(tag_id);
+      CREATE INDEX IF NOT EXISTS idx_time_entries_category_id ON time_entries(category_id);
+      CREATE INDEX IF NOT EXISTS idx_app_usage_category_id ON app_usage(category_id);
+    `);
+
     console.log('✅ Database initialization complete');
   }
 
@@ -167,8 +266,8 @@ export class DatabaseManager {
     if (!this.db) throw new Error('Database not initialized');
 
     const stmt = this.db.prepare(`
-      INSERT INTO time_entries (task, start_time, end_time, duration, category)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO time_entries (task, start_time, end_time, duration, category, category_id)
+      VALUES (?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -176,7 +275,8 @@ export class DatabaseManager {
       entry.startTime,
       entry.endTime || null,
       entry.duration || null,
-      entry.category || null
+      entry.category || null,
+      entry.categoryId || null
     );
 
     return result.lastInsertRowid as number;
@@ -272,8 +372,8 @@ export class DatabaseManager {
     if (!this.db) throw new Error('Database not initialized');
 
     const stmt = this.db.prepare(`
-      INSERT INTO app_usage (app_name, window_title, start_time, end_time, duration)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO app_usage (app_name, window_title, start_time, end_time, duration, category, category_id, domain, url, is_browser, is_idle)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -281,7 +381,13 @@ export class DatabaseManager {
       usage.windowTitle || null,
       usage.startTime,
       usage.endTime || null,
-      usage.duration || null
+      usage.duration || null,
+      usage.category || null,
+      usage.categoryId || null,
+      usage.domain || null,
+      usage.url || null,
+      usage.isBrowser ? 1 : 0,
+      usage.isIdle ? 1 : 0
     );
 
     return result.lastInsertRowid as number;
@@ -1100,6 +1206,358 @@ export class DatabaseManager {
     `).get(startTime, endTime, appName) as { total_seconds: number };
 
     return Math.round(result.total_seconds / 60);
+  }
+
+  // ==================== CATEGORIES METHODS ====================
+
+  addCategory(category: import('../types').Category): number {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      INSERT INTO categories (name, color, icon, description)
+      VALUES (?, ?, ?, ?)
+    `);
+
+    const result = stmt.run(
+      category.name,
+      category.color || '#3B82F6',
+      category.icon || null,
+      category.description || null
+    );
+
+    return result.lastInsertRowid as number;
+  }
+
+  updateCategory(id: number, updates: Partial<import('../types').Category>): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    if (updates.name !== undefined) {
+      fields.push('name = ?');
+      values.push(updates.name);
+    }
+    if (updates.color !== undefined) {
+      fields.push('color = ?');
+      values.push(updates.color);
+    }
+    if (updates.icon !== undefined) {
+      fields.push('icon = ?');
+      values.push(updates.icon);
+    }
+    if (updates.description !== undefined) {
+      fields.push('description = ?');
+      values.push(updates.description);
+    }
+
+    if (fields.length === 0) return false;
+
+    fields.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(id);
+
+    const stmt = this.db.prepare(`
+      UPDATE categories
+      SET ${fields.join(', ')}
+      WHERE id = ?
+    `);
+
+    const result = stmt.run(...values);
+    return result.changes > 0;
+  }
+
+  deleteCategory(id: number): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+
+    // Clear foreign key references before deletion to avoid constraint violations
+    this.db.prepare('UPDATE time_entries SET category_id = NULL WHERE category_id = ?').run(id);
+    this.db.prepare('UPDATE app_usage SET category_id = NULL WHERE category_id = ?').run(id);
+    this.db.prepare('DELETE FROM app_category_mappings WHERE category_id = ?').run(id);
+    this.db.prepare('DELETE FROM domain_category_mappings WHERE category_id = ?').run(id);
+
+    // Now safe to delete the category
+    const stmt = this.db.prepare('DELETE FROM categories WHERE id = ?');
+    const result = stmt.run(id);
+    return result.changes > 0;
+  }
+
+  getCategories(): import('../types').Category[] {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT
+        id,
+        name,
+        color,
+        icon,
+        description,
+        created_at AS createdAt,
+        updated_at AS updatedAt
+      FROM categories
+      ORDER BY name ASC
+    `);
+
+    return stmt.all() as import('../types').Category[];
+  }
+
+  getCategoryById(id: number): import('../types').Category | null {
+    if (!this.db) return null;
+
+    const stmt = this.db.prepare(`
+      SELECT
+        id,
+        name,
+        color,
+        icon,
+        description,
+        created_at AS createdAt,
+        updated_at AS updatedAt
+      FROM categories
+      WHERE id = ?
+    `);
+
+    return stmt.get(id) as import('../types').Category | null;
+  }
+
+  // ==================== TAGS METHODS ====================
+
+  addTag(tag: import('../types').Tag): number {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      INSERT INTO tags (name, color)
+      VALUES (?, ?)
+    `);
+
+    const result = stmt.run(
+      tag.name,
+      tag.color || '#8B5CF6'
+    );
+
+    return result.lastInsertRowid as number;
+  }
+
+  updateTag(id: number, updates: Partial<import('../types').Tag>): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    if (updates.name !== undefined) {
+      fields.push('name = ?');
+      values.push(updates.name);
+    }
+    if (updates.color !== undefined) {
+      fields.push('color = ?');
+      values.push(updates.color);
+    }
+
+    if (fields.length === 0) return false;
+
+    values.push(id);
+
+    const stmt = this.db.prepare(`
+      UPDATE tags
+      SET ${fields.join(', ')}
+      WHERE id = ?
+    `);
+
+    const result = stmt.run(...values);
+    return result.changes > 0;
+  }
+
+  deleteTag(id: number): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare('DELETE FROM tags WHERE id = ?');
+    const result = stmt.run(id);
+    return result.changes > 0;
+  }
+
+  getTags(): import('../types').Tag[] {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT
+        id,
+        name,
+        color,
+        created_at AS createdAt
+      FROM tags
+      ORDER BY name ASC
+    `);
+
+    return stmt.all() as import('../types').Tag[];
+  }
+
+  // ==================== CATEGORY MAPPINGS METHODS ====================
+
+  addAppCategoryMapping(appName: string, categoryId: number): number {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      INSERT INTO app_category_mappings (app_name, category_id)
+      VALUES (?, ?)
+    `);
+
+    const result = stmt.run(appName, categoryId);
+    return result.lastInsertRowid as number;
+  }
+
+  deleteAppCategoryMapping(id: number): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare('DELETE FROM app_category_mappings WHERE id = ?');
+    const result = stmt.run(id);
+    return result.changes > 0;
+  }
+
+  getAppCategoryMappings(): import('../types').AppCategoryMapping[] {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT
+        acm.id,
+        acm.app_name AS appName,
+        acm.category_id AS categoryId,
+        c.name AS categoryName,
+        c.color AS categoryColor,
+        acm.created_at AS createdAt
+      FROM app_category_mappings acm
+      JOIN categories c ON acm.category_id = c.id
+      ORDER BY acm.app_name ASC
+    `);
+
+    return stmt.all() as import('../types').AppCategoryMapping[];
+  }
+
+  getCategoryIdForApp(appName: string): number | null {
+    if (!this.db) return null;
+
+    const stmt = this.db.prepare(`
+      SELECT category_id
+      FROM app_category_mappings
+      WHERE app_name = ?
+    `);
+
+    const result = stmt.get(appName) as {category_id: number} | undefined;
+    return result ? result.category_id : null;
+  }
+
+  addDomainCategoryMapping(domain: string, categoryId: number): number {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      INSERT INTO domain_category_mappings (domain, category_id)
+      VALUES (?, ?)
+    `);
+
+    const result = stmt.run(domain, categoryId);
+    return result.lastInsertRowid as number;
+  }
+
+  deleteDomainCategoryMapping(id: number): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare('DELETE FROM domain_category_mappings WHERE id = ?');
+    const result = stmt.run(id);
+    return result.changes > 0;
+  }
+
+  getDomainCategoryMappings(): import('../types').DomainCategoryMapping[] {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT
+        dcm.id,
+        dcm.domain,
+        dcm.category_id AS categoryId,
+        c.name AS categoryName,
+        c.color AS categoryColor,
+        dcm.created_at AS createdAt
+      FROM domain_category_mappings dcm
+      JOIN categories c ON dcm.category_id = c.id
+      ORDER BY dcm.domain ASC
+    `);
+
+    return stmt.all() as import('../types').DomainCategoryMapping[];
+  }
+
+  getCategoryIdForDomain(domain: string): number | null {
+    if (!this.db) return null;
+
+    const stmt = this.db.prepare(`
+      SELECT category_id
+      FROM domain_category_mappings
+      WHERE domain = ?
+    `);
+
+    const result = stmt.get(domain) as {category_id: number} | undefined;
+    return result ? result.category_id : null;
+  }
+
+  // ==================== TAG ASSOCIATIONS METHODS ====================
+
+  addTimeEntryTags(timeEntryId: number, tagIds: number[]): void {
+    if (!this.db || tagIds.length === 0) return;
+
+    const stmt = this.db.prepare(`
+      INSERT OR IGNORE INTO time_entry_tags (time_entry_id, tag_id)
+      VALUES (?, ?)
+    `);
+
+    for (const tagId of tagIds) {
+      stmt.run(timeEntryId, tagId);
+    }
+  }
+
+  getTimeEntryTags(timeEntryId: number): import('../types').Tag[] {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT
+        t.id,
+        t.name,
+        t.color,
+        t.created_at AS createdAt
+      FROM tags t
+      JOIN time_entry_tags tet ON t.id = tet.tag_id
+      WHERE tet.time_entry_id = ?
+      ORDER BY t.name ASC
+    `);
+
+    return stmt.all(timeEntryId) as import('../types').Tag[];
+  }
+
+  addAppUsageTags(appUsageId: number, tagIds: number[]): void {
+    if (!this.db || tagIds.length === 0) return;
+
+    const stmt = this.db.prepare(`
+      INSERT OR IGNORE INTO app_usage_tags (app_usage_id, tag_id)
+      VALUES (?, ?)
+    `);
+
+    for (const tagId of tagIds) {
+      stmt.run(appUsageId, tagId);
+    }
+  }
+
+  getAppUsageTags(appUsageId: number): import('../types').Tag[] {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT
+        t.id,
+        t.name,
+        t.color,
+        t.created_at AS createdAt
+      FROM tags t
+      JOIN app_usage_tags aut ON t.id = aut.tag_id
+      WHERE aut.app_usage_id = ?
+      ORDER BY t.name ASC
+    `);
+
+    return stmt.all(appUsageId) as import('../types').Tag[];
   }
 
   close(): void {

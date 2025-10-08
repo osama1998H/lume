@@ -1,5 +1,16 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { ProductivityGoal, GoalWithProgress, GoalProgress, GoalStats } from '../types';
+import type {
+  ProductivityGoal,
+  GoalWithProgress,
+  GoalProgress,
+  GoalStats,
+  Category,
+  Tag,
+  AppCategoryMapping,
+  DomainCategoryMapping,
+  CategoryStats,
+  TagStats
+} from '../types';
 
 // Note: Sentry is initialized in the main process only, not in preload
 // Preload script should not initialize Sentry to avoid duplicate tracking
@@ -46,6 +57,32 @@ export interface IElectronAPI {
   getGoalProgress: (goalId: number, date: string) => Promise<GoalProgress | null>;
   getGoalAchievementHistory: (goalId: number, days: number) => Promise<GoalProgress[]>;
   getGoalStats: () => Promise<GoalStats>;
+  // Categories API
+  getCategories: () => Promise<Category[]>;
+  getCategoryById: (id: number) => Promise<Category | null>;
+  addCategory: (category: Category) => Promise<number>;
+  updateCategory: (id: number, updates: Partial<Category>) => Promise<boolean>;
+  deleteCategory: (id: number) => Promise<boolean>;
+  // Tags API
+  getTags: () => Promise<Tag[]>;
+  addTag: (tag: Tag) => Promise<number>;
+  updateTag: (id: number, updates: Partial<Tag>) => Promise<boolean>;
+  deleteTag: (id: number) => Promise<boolean>;
+  // Category Mappings API
+  getAppCategoryMappings: () => Promise<AppCategoryMapping[]>;
+  addAppCategoryMapping: (appName: string, categoryId: number) => Promise<number>;
+  deleteAppCategoryMapping: (id: number) => Promise<boolean>;
+  getDomainCategoryMappings: () => Promise<DomainCategoryMapping[]>;
+  addDomainCategoryMapping: (domain: string, categoryId: number) => Promise<number>;
+  deleteDomainCategoryMapping: (id: number) => Promise<boolean>;
+  // Tag Associations API
+  getTimeEntryTags: (timeEntryId: number) => Promise<Tag[]>;
+  addTimeEntryTags: (timeEntryId: number, tagIds: number[]) => Promise<void>;
+  getAppUsageTags: (appUsageId: number) => Promise<Tag[]>;
+  addAppUsageTags: (appUsageId: number, tagIds: number[]) => Promise<void>;
+  // Statistics API
+  getCategoryStats: (startDate?: string, endDate?: string) => Promise<CategoryStats[]>;
+  getTagStats: (startDate?: string, endDate?: string) => Promise<TagStats[]>;
 }
 
 const electronAPI: IElectronAPI = {
@@ -90,6 +127,32 @@ const electronAPI: IElectronAPI = {
   getGoalProgress: (goalId, date) => ipcRenderer.invoke('get-goal-progress', goalId, date),
   getGoalAchievementHistory: (goalId, days) => ipcRenderer.invoke('get-goal-achievement-history', goalId, days),
   getGoalStats: () => ipcRenderer.invoke('get-goal-stats'),
+  // Categories API
+  getCategories: () => ipcRenderer.invoke('get-categories'),
+  getCategoryById: (id) => ipcRenderer.invoke('get-category-by-id', id),
+  addCategory: (category) => ipcRenderer.invoke('add-category', category),
+  updateCategory: (id, updates) => ipcRenderer.invoke('update-category', id, updates),
+  deleteCategory: (id) => ipcRenderer.invoke('delete-category', id),
+  // Tags API
+  getTags: () => ipcRenderer.invoke('get-tags'),
+  addTag: (tag) => ipcRenderer.invoke('add-tag', tag),
+  updateTag: (id, updates) => ipcRenderer.invoke('update-tag', id, updates),
+  deleteTag: (id) => ipcRenderer.invoke('delete-tag', id),
+  // Category Mappings API
+  getAppCategoryMappings: () => ipcRenderer.invoke('get-app-category-mappings'),
+  addAppCategoryMapping: (appName, categoryId) => ipcRenderer.invoke('add-app-category-mapping', appName, categoryId),
+  deleteAppCategoryMapping: (id) => ipcRenderer.invoke('delete-app-category-mapping', id),
+  getDomainCategoryMappings: () => ipcRenderer.invoke('get-domain-category-mappings'),
+  addDomainCategoryMapping: (domain, categoryId) => ipcRenderer.invoke('add-domain-category-mapping', domain, categoryId),
+  deleteDomainCategoryMapping: (id) => ipcRenderer.invoke('delete-domain-category-mapping', id),
+  // Tag Associations API
+  getTimeEntryTags: (timeEntryId) => ipcRenderer.invoke('get-time-entry-tags', timeEntryId),
+  addTimeEntryTags: (timeEntryId, tagIds) => ipcRenderer.invoke('add-time-entry-tags', timeEntryId, tagIds),
+  getAppUsageTags: (appUsageId) => ipcRenderer.invoke('get-app-usage-tags', appUsageId),
+  addAppUsageTags: (appUsageId, tagIds) => ipcRenderer.invoke('add-app-usage-tags', appUsageId, tagIds),
+  // Statistics API
+  getCategoryStats: (startDate, endDate) => ipcRenderer.invoke('get-category-stats', startDate, endDate),
+  getTagStats: (startDate, endDate) => ipcRenderer.invoke('get-tag-stats', startDate, endDate),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);

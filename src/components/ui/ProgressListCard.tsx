@@ -9,6 +9,7 @@ export interface ProgressListItem {
   label: string;
   value: number;
   formattedValue?: string;
+  color?: string; // Optional hex color for individual items
 }
 
 export interface ProgressListCardProps {
@@ -71,17 +72,25 @@ const ProgressListCard: React.FC<ProgressListCardProps> = ({
             return (
               <div key={item.key} className="space-y-2.5">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-900 dark:text-gray-100">
-                    {item.label}
-                  </span>
-                  <span className={`text-sm font-semibold ${colors.text}`}>
+                  <div className="flex items-center gap-2">
+                    {item.color && (
+                      <div
+                        className="w-3 h-3 rounded-full border border-gray-300 dark:border-gray-600"
+                        style={{ backgroundColor: item.color }}
+                      />
+                    )}
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {item.label}
+                    </span>
+                  </div>
+                  <span className={`text-sm font-semibold ${item.color ? '' : colors.text}`} style={item.color ? { color: item.color } : {}}>
                     {displayValue}
                   </span>
                 </div>
                 <div className="relative w-full bg-gray-100 dark:bg-gray-700/50 rounded-full h-2.5 overflow-hidden">
                   <div
-                    className={`${colors.bar} h-2.5 rounded-full transition-all duration-500 ease-out relative`}
-                    style={{ width: `${percentage}%` }}
+                    className={`${item.color ? '' : colors.bar} h-2.5 rounded-full transition-all duration-500 ease-out relative`}
+                    style={item.color ? { width: `${percentage}%`, backgroundColor: item.color } : { width: `${percentage}%` }}
                   >
                     <div className="absolute inset-0 bg-white/20 animate-pulse" />
                   </div>

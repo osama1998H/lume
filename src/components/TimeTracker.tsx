@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Play, Square, Clock, Tag, FileText } from 'lucide-react';
-import { TimeEntry } from '../types';
+import { TimeEntry, Category } from '../types';
 import ActivityListCard from './ui/ActivityListCard';
 import Button from './ui/Button';
 import Input from './ui/Input';
@@ -10,6 +10,8 @@ const TimeTracker: React.FC = () => {
   const { t } = useTranslation();
   const [currentTask, setCurrentTask] = useState('');
   const [category, setCategory] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isTracking, setIsTracking] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -33,18 +35,50 @@ const TimeTracker: React.FC = () => {
   }, [isTracking, startTime]);
 
   useEffect(() => {
-    loadRecentEntries();
-    restoreActiveTimer();
+    const init = async () => {
+      const categoriesData = await loadCategories();
+      await loadRecentEntries();
+      await restoreActiveTimer(categoriesData);
+    };
+    init();
   }, []);
 
-  const restoreActiveTimer = async () => {
+  const loadCategories = async () => {
+    try {
+      if (window.electronAPI) {
+        const categoriesData = await window.electronAPI.getCategories();
+        setCategories(categoriesData);
+        return categoriesData;
+      }
+    } catch (error) {
+      console.error('Failed to load categories:', error);
+    }
+    return [];
+  };
+
+  const restoreActiveTimer = async (categoriesData: Category[]) => {
     try {
       if (window.electronAPI) {
         const activeEntry = await window.electronAPI.getActiveTimeEntry();
         if (activeEntry && activeEntry.id) {
           console.log('📋 Restoring active timer:', activeEntry);
           setCurrentTask(activeEntry.task);
-          setCategory(activeEntry.category || '');
+
+          // Restore category ID if available
+          if (activeEntry.categoryId) {
+            setSelectedCategoryId(activeEntry.categoryId);
+            // Find the category name
+            const categoryData = categoriesData.find(c => c.id === activeEntry.categoryId);
+            setCategory(categoryData?.name || activeEntry.category || '');
+          } else if (activeEntry.category) {
+            // Backward compatibility: try to match by name
+            const categoryData = categoriesData.find(c => c.name === activeEntry.category);
+            if (categoryData) {
+              setSelectedCategoryId(categoryData.id || null);
+            }
+            setCategory(activeEntry.category);
+          }
+
           const parsedStartTime = new Date(activeEntry.startTime);
           if (!isNaN(parsedStartTime.getTime())) {
             setStartTime(parsedStartTime);
@@ -80,6 +114,7 @@ const TimeTracker: React.FC = () => {
       task: currentTask,
       startTime: now.toISOString(),
       category: category || undefined,
+      categoryId: selectedCategoryId || undefined,
       // No endTime = active timer
     };
 
@@ -126,6 +161,7 @@ const TimeTracker: React.FC = () => {
     setElapsedTime(0);
     setCurrentTask('');
     setCategory('');
+    setSelectedCategoryId(null);
     setActiveEntryId(null);
   };
 
@@ -147,6 +183,19 @@ const TimeTracker: React.FC = () => {
       return `${mins}m ${secs}s`;
     } else {
       return `${secs}s`;
+    }
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const categoryId = e.target.value ? Number(e.target.value) : null;
+    setSelectedCategoryId(categoryId);
+
+    // Update category name for backward compatibility
+    if (categoryId) {
+      const selectedCategory = categories.find(c => c.id === categoryId);
+      setCategory(selectedCategory?.name || '');
+    } else {
+      setCategory('');
     }
   };
 
@@ -185,16 +234,36 @@ const TimeTracker: React.FC = () => {
               iconPosition="left"
             />
 
-            <Input
-              id="category"
-              label={t('timeTracker.category')}
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              disabled={isTracking}
-              placeholder={t('timeTracker.categoryPlaceholder')}
-              icon={Tag}
-              iconPosition="left"
-            />
+            <div>
+              <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t('timeTracker.category')}
+              </label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                  <Tag className="h-5 w-5 text-gray-400" />
+                </div>
+                <select
+                  id="category"
+                  value={selectedCategoryId || ''}
+                  onChange={handleCategoryChange}
+                  disabled={isTracking}
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="">{t('timeTracker.categoryPlaceholder')}</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+                {selectedCategoryId && categories.find(c => c.id === selectedCategoryId) && (
+                  <div
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 rounded-full border-2 border-white dark:border-gray-700"
+                    style={{ backgroundColor: categories.find(c => c.id === selectedCategoryId)?.color }}
+                  />
+                )}
+              </div>
+            </div>
 
             <div className="flex justify-center pt-4">
               {!isTracking ? (
