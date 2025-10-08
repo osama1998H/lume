@@ -323,6 +323,19 @@ class LumeApp {
           }
         }
 
+        // Update auto-start when autoStartOnLogin setting changes
+        if (success && settings.autoStartOnLogin !== previousSettings.autoStartOnLogin) {
+          try {
+            app.setLoginItemSettings({
+              openAtLogin: settings.autoStartOnLogin,
+              openAsHidden: false,
+            });
+            console.log(`✅ Auto-start ${settings.autoStartOnLogin ? 'enabled' : 'disabled'}`);
+          } catch (error) {
+            console.error('Failed to update auto-start setting:', error);
+          }
+        }
+
         return success;
       } catch (error) {
         console.error('❌ Failed to save settings:', error);
