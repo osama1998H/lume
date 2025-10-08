@@ -243,6 +243,9 @@
     "breakComplete": "اكتملت الاستراحة!",
     "settings": {
       "title": "إعدادات بومودورو",
+      "focus": "التركيز:",
+      "shortBreak": "استراحة قصيرة:",
+      "longBreak": "استراحة طويلة:",
       "focusDuration": "مدة التركيز (دقائق)",
       "shortBreakDuration": "مدة الاستراحة القصيرة (دقائق)",
       "longBreakDuration": "مدة الاستراحة الطويلة (دقائق)",

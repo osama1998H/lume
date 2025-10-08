@@ -323,15 +323,15 @@ const FocusMode: React.FC = () => {
             </h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Focus:</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('focusMode.settings.focus')}</span>
                 <span className="font-medium dark:text-gray-200">{settings.focusDuration}m</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Short Break:</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('focusMode.settings.shortBreak')}</span>
                 <span className="font-medium dark:text-gray-200">{settings.shortBreakDuration}m</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Long Break:</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('focusMode.settings.longBreak')}</span>
                 <span className="font-medium dark:text-gray-200">{settings.longBreakDuration}m</span>
               </div>
             </div>

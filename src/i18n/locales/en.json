@@ -243,6 +243,9 @@
     "breakComplete": "Break complete!",
     "settings": {
       "title": "Pomodoro Settings",
+      "focus": "Focus:",
+      "shortBreak": "Short Break:",
+      "longBreak": "Long Break:",
       "focusDuration": "Focus Duration (minutes)",
       "shortBreakDuration": "Short Break Duration (minutes)",
       "longBreakDuration": "Long Break Duration (minutes)",
