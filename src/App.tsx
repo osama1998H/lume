@@ -11,6 +11,7 @@ import FocusMode from './components/FocusMode';
 import Settings from './components/Settings';
 import Categories from './components/Categories';
 import Timeline from './components/Timeline';
+import ToastContainer from './components/ui/Toast';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PomodoroProvider } from './contexts/PomodoroContext';
 
@@ -64,6 +65,7 @@ function App() {
               </main>
             </div>
           </div>
+          <ToastContainer />
         </ErrorBoundary>
       </PomodoroProvider>
     </ThemeProvider>
