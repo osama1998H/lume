@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Play, Square, Clock, Tag, FileText } from 'lucide-react';
-import { TimeEntry, Category } from '../types';
+import { Play, Square, Clock, Tag as TagIcon, FileText } from 'lucide-react';
+import { TimeEntry, Category, Tag } from '../types';
 import ActivityListCard from './ui/ActivityListCard';
 import Button from './ui/Button';
 import Input from './ui/Input';
+import TagSelector from './ui/TagSelector';
+import TagDisplay from './ui/TagDisplay';
 
 const TimeTracker: React.FC = () => {
   const { t } = useTranslation();
@@ -12,6 +14,7 @@ const TimeTracker: React.FC = () => {
   const [category, setCategory] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [isTracking, setIsTracking] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -99,7 +102,17 @@ const TimeTracker: React.FC = () => {
     try {
       if (window.electronAPI) {
         const entries = await window.electronAPI.getTimeEntries();
-        setRecentEntries(entries.slice(0, 10));
+        // Load tags for each entry
+        const entriesWithTags = await Promise.all(
+          entries.slice(0, 10).map(async (entry) => {
+            if (entry.id) {
+              const tags = await window.electronAPI.getTimeEntryTags(entry.id);
+              return { ...entry, tags };
+            }
+            return entry;
+          })
+        );
+        setRecentEntries(entriesWithTags);
       }
     } catch (error) {
       console.error('Failed to load recent entries:', error);
@@ -122,6 +135,13 @@ const TimeTracker: React.FC = () => {
       if (window.electronAPI) {
         const id = await window.electronAPI.addTimeEntry(entry);
         console.log('⏱️  Started timer with ID:', id);
+
+        // Save tags if any selected
+        if (selectedTags.length > 0) {
+          const tagIds = selectedTags.map((tag) => tag.id!).filter((id) => id !== undefined);
+          await window.electronAPI.addTimeEntryTags(id, tagIds);
+        }
+
         setActiveEntryId(id);
         setStartTime(now);
         setIsTracking(true);
@@ -162,6 +182,7 @@ const TimeTracker: React.FC = () => {
     setCurrentTask('');
     setCategory('');
     setSelectedCategoryId(null);
+    setSelectedTags([]);
     setActiveEntryId(null);
   };
 
@@ -240,7 +261,7 @@ const TimeTracker: React.FC = () => {
               </label>
               <div className="relative">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <Tag className="h-5 w-5 text-gray-400" />
+                  <TagIcon className="h-5 w-5 text-gray-400" />
                 </div>
                 <select
                   id="category"
@@ -263,6 +284,18 @@ const TimeTracker: React.FC = () => {
                   />
                 )}
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t('timeTracker.tags')}
+              </label>
+              <TagSelector
+                selectedTags={selectedTags}
+                onChange={setSelectedTags}
+                allowCreate={true}
+                placeholder={t('timeTracker.tagsPlaceholder')}
+              />
             </div>
 
             <div className="flex justify-center pt-4">
@@ -299,6 +332,7 @@ const TimeTracker: React.FC = () => {
             mainLabel: entry.task,
             subLabel: `${new Date(entry.startTime).toLocaleDateString()} ${t('timeTracker.at')} ${new Date(entry.startTime).toLocaleTimeString()}`,
             category: entry.category,
+            tags: entry.tags,
             value: entry.duration ? formatDuration(entry.duration) : t('timeTracker.active'),
           }))}
           emptyStateText={t('timeTracker.noEntries')}

@@ -914,6 +914,44 @@ class LumeApp {
       }
     });
 
+    ipcMain.handle('get-pomodoro-session-tags', async (_, pomodoroSessionId: number) => {
+      try {
+        return this.dbManager?.getPomodoroSessionTags(pomodoroSessionId) || [];
+      } catch (error) {
+        console.error('Failed to get pomodoro session tags:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('add-pomodoro-session-tags', async (_, pomodoroSessionId: number, tagIds: number[]) => {
+      try {
+        this.dbManager?.addPomodoroSessionTags(pomodoroSessionId, tagIds);
+        return true;
+      } catch (error) {
+        console.error('Failed to add pomodoro session tags:', error);
+        return false;
+      }
+    });
+
+    ipcMain.handle('get-productivity-goal-tags', async (_, productivityGoalId: number) => {
+      try {
+        return this.dbManager?.getProductivityGoalTags(productivityGoalId) || [];
+      } catch (error) {
+        console.error('Failed to get productivity goal tags:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('add-productivity-goal-tags', async (_, productivityGoalId: number, tagIds: number[]) => {
+      try {
+        this.dbManager?.addProductivityGoalTags(productivityGoalId, tagIds);
+        return true;
+      } catch (error) {
+        console.error('Failed to add productivity goal tags:', error);
+        return false;
+      }
+    });
+
     // ==================== STATISTICS IPC HANDLERS ====================
 
     ipcMain.handle('get-category-stats', async (_, startDate?: string, endDate?: string) => {

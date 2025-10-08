@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Target, TrendingUp, Award, Flame, Edit2, Trash2, Plus } from 'lucide-react';
-import { ProductivityGoal, GoalWithProgress, GoalStats, GoalType, GoalOperator, GoalPeriod, GoalStatus } from '../types';
+import { ProductivityGoal, GoalWithProgress, GoalStats, GoalType, GoalOperator, GoalPeriod, GoalStatus, Tag } from '../types';
 import StatCard from './ui/StatCard';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
@@ -9,6 +9,8 @@ import EmptyState from './ui/EmptyState';
 import Skeleton from './ui/Skeleton';
 import { FormModal, ConfirmModal } from './ui/Modal';
 import FormField, { SelectField } from './ui/FormField';
+import TagSelector from './ui/TagSelector';
+import TagDisplay from './ui/TagDisplay';
 import { showToast } from '../utils/toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -36,6 +38,7 @@ const Goals: React.FC = () => {
     active: boolean;
     notificationsEnabled: boolean;
     notifyAtPercentage: number;
+    tags: Tag[];
   }>({
     name: '',
     description: '',
@@ -48,6 +51,7 @@ const Goals: React.FC = () => {
     active: true,
     notificationsEnabled: true,
     notifyAtPercentage: 100,
+    tags: [],
   });
 
   useEffect(() => {
@@ -59,7 +63,17 @@ const Goals: React.FC = () => {
     try {
       if (window.electronAPI) {
         const goalsData = await window.electronAPI.getTodayGoalsWithProgress();
-        setGoals(goalsData);
+        // Load tags for each goal
+        const goalsWithTags = await Promise.all(
+          goalsData.map(async (goal) => {
+            if (goal.id) {
+              const tags = await window.electronAPI.getProductivityGoalTags(goal.id);
+              return { ...goal, tags };
+            }
+            return goal;
+          })
+        );
+        setGoals(goalsWithTags);
       }
     } catch (error) {
       console.error('Failed to load goals:', error);
@@ -94,6 +108,7 @@ const Goals: React.FC = () => {
       active: true,
       notificationsEnabled: true,
       notifyAtPercentage: 100,
+      tags: [],
     });
     setShowCreateModal(true);
   };
@@ -112,6 +127,7 @@ const Goals: React.FC = () => {
       active: goal.active,
       notificationsEnabled: goal.notificationsEnabled,
       notifyAtPercentage: goal.notifyAtPercentage,
+      tags: goal.tags || [],
     });
     setShowCreateModal(true);
   };
@@ -141,12 +157,20 @@ const Goals: React.FC = () => {
           notifyAtPercentage: formData.notifyAtPercentage,
         };
 
+        let goalId: number;
         if (editingGoal?.id) {
           await window.electronAPI.updateGoal(editingGoal.id, goalData);
+          goalId = editingGoal.id;
           showToast.success(t('goals.updateSuccess') || 'Goal updated successfully');
         } else {
-          await window.electronAPI.addGoal(goalData as ProductivityGoal);
+          goalId = await window.electronAPI.addGoal(goalData as ProductivityGoal);
           showToast.success(t('goals.createSuccess') || 'Goal created successfully');
+        }
+
+        // Save tags
+        if (formData.tags.length > 0) {
+          const tagIds = formData.tags.map((tag) => tag.id!).filter((id) => id !== undefined);
+          await window.electronAPI.addProductivityGoalTags(goalId, tagIds);
         }
 
         setShowCreateModal(false);
@@ -369,6 +393,11 @@ const Goals: React.FC = () => {
                         {goal.description}
                       </p>
                     )}
+                    {goal.tags && goal.tags.length > 0 && (
+                      <div className="mb-3">
+                        <TagDisplay tags={goal.tags} size="sm" maxDisplay={5} />
+                      </div>
+                    )}
                     <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                       <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md">
                         {t(`goals.goalType${goal.goalType.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`)}
@@ -493,6 +522,19 @@ const Goals: React.FC = () => {
             placeholder={t('goals.descriptionPlaceholder')}
             rows={2}
           />
+
+          {/* Tags */}
+          <div>
+            <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+              {t('goals.tags')}
+            </label>
+            <TagSelector
+              selectedTags={formData.tags}
+              onChange={(tags) => setFormData({ ...formData, tags })}
+              allowCreate={true}
+              placeholder={t('goals.tagsPlaceholder')}
+            />
+          </div>
 
           {/* Goal Type */}
           <SelectField

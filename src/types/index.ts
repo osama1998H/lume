@@ -38,6 +38,7 @@ export interface PomodoroSession {
   endTime?: string;
   completed: boolean;
   interrupted: boolean;
+  tags?: Tag[]; // Tags associated with this session
   createdAt?: string;
 }
 
@@ -81,6 +82,7 @@ export interface ProductivityGoal {
   active: boolean;
   notificationsEnabled: boolean;
   notifyAtPercentage: number; // 50, 75, 90, or 100
+  tags?: Tag[]; // Tags associated with this goal
   createdAt?: string;
   updatedAt?: string;
 }
@@ -386,6 +388,10 @@ export interface ElectronAPI {
   addTimeEntryTags: (timeEntryId: number, tagIds: number[]) => Promise<void>;
   getAppUsageTags: (appUsageId: number) => Promise<Tag[]>;
   addAppUsageTags: (appUsageId: number, tagIds: number[]) => Promise<void>;
+  getPomodoroSessionTags: (pomodoroSessionId: number) => Promise<Tag[]>;
+  addPomodoroSessionTags: (pomodoroSessionId: number, tagIds: number[]) => Promise<void>;
+  getProductivityGoalTags: (productivityGoalId: number) => Promise<Tag[]>;
+  addProductivityGoalTags: (productivityGoalId: number, tagIds: number[]) => Promise<void>;
   // Statistics API
   getCategoryStats: (startDate?: string, endDate?: string) => Promise<CategoryStats[]>;
   getTagStats: (startDate?: string, endDate?: string) => Promise<TagStats[]>;
