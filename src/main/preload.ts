@@ -89,6 +89,15 @@ export interface IElectronAPI {
   // Timeline API
   getTimelineActivities: (startDate: string, endDate: string) => Promise<any[]>;
   getTimelineSummary: (startDate: string, endDate: string) => Promise<any>;
+  // Analytics API
+  getDailyProductivityStats: (startDate: string, endDate: string) => Promise<any[]>;
+  getHourlyPatterns: (days: number) => Promise<any[]>;
+  getHeatmapData: (year: number) => Promise<any[]>;
+  getWeeklySummary: (weekOffset: number) => Promise<any>;
+  getProductivityTrends: (startDate: string, endDate: string, groupBy: 'day' | 'week' | 'month') => Promise<any[]>;
+  getBehavioralInsights: () => Promise<any[]>;
+  getAnalyticsSummary: () => Promise<any>;
+  getDistractionAnalysis: (days: number) => Promise<any[]>;
 }
 
 const electronAPI: IElectronAPI = {
@@ -165,6 +174,15 @@ const electronAPI: IElectronAPI = {
   // Timeline API
   getTimelineActivities: (startDate, endDate) => ipcRenderer.invoke('get-timeline-activities', startDate, endDate),
   getTimelineSummary: (startDate, endDate) => ipcRenderer.invoke('get-timeline-summary', startDate, endDate),
+  // Analytics API
+  getDailyProductivityStats: (startDate, endDate) => ipcRenderer.invoke('get-daily-productivity-stats', startDate, endDate),
+  getHourlyPatterns: (days) => ipcRenderer.invoke('get-hourly-patterns', days),
+  getHeatmapData: (year) => ipcRenderer.invoke('get-heatmap-data', year),
+  getWeeklySummary: (weekOffset) => ipcRenderer.invoke('get-weekly-summary', weekOffset),
+  getProductivityTrends: (startDate, endDate, groupBy) => ipcRenderer.invoke('get-productivity-trends', startDate, endDate, groupBy),
+  getBehavioralInsights: () => ipcRenderer.invoke('get-behavioral-insights'),
+  getAnalyticsSummary: () => ipcRenderer.invoke('get-analytics-summary'),
+  getDistractionAnalysis: (days) => ipcRenderer.invoke('get-distraction-analysis', days),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);

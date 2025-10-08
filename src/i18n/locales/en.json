@@ -7,6 +7,7 @@
     "dashboard": "Dashboard",
     "tracker": "Time Tracker",
     "reports": "Reports",
+    "analytics": "Analytics",
     "timeline": "Timeline",
     "goals": "Goals",
     "settings": "Settings",
@@ -174,7 +175,45 @@
     "seconds": "seconds",
     "h": "h",
     "m": "m",
-    "s": "s"
+    "s": "s",
+    "min": "min",
+    "avg": "avg",
+    "day": "day",
+    "days": "days",
+    "daysOfWeek": {
+      "Monday": "Monday",
+      "Tuesday": "Tuesday",
+      "Wednesday": "Wednesday",
+      "Thursday": "Thursday",
+      "Friday": "Friday",
+      "Saturday": "Saturday",
+      "Sunday": "Sunday"
+    },
+    "daysOfWeekShort": {
+      "Mon": "Mon",
+      "Tue": "Tue",
+      "Wed": "Wed",
+      "Thu": "Thu",
+      "Fri": "Fri",
+      "Sat": "Sat",
+      "Sun": "Sun"
+    },
+    "months": {
+      "Jan": "Jan",
+      "Feb": "Feb",
+      "Mar": "Mar",
+      "Apr": "Apr",
+      "May": "May",
+      "Jun": "Jun",
+      "Jul": "Jul",
+      "Aug": "Aug",
+      "Sep": "Sep",
+      "Oct": "Oct",
+      "Nov": "Nov",
+      "Dec": "Dec"
+    },
+    "less": "Less",
+    "more": "More"
   },
   "focusMode": {
     "title": "Focus Mode",
@@ -383,6 +422,64 @@
       "week": "Last 7 Days",
       "month": "Last 30 Days",
       "custom": "Custom Range"
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Understand your productivity patterns and improve over time",
+    "lastWeek": "Last 7 Days",
+    "lastMonth": "Last 30 Days",
+    "lastYear": "Last Year",
+    "productivityScore": "Productivity Score",
+    "totalProductiveTime": "Total Productive Time",
+    "peakHour": "Peak Hour",
+    "weeklyStreak": "Weekly Streak",
+    "productivityTrends": "Productivity Trends",
+    "trendsDescription": "Track your productivity over time",
+    "hourlyPatterns": "Hourly Activity Patterns",
+    "patternsDescription": "Discover your peak productivity hours",
+    "weeklySummary": "Weekly Summary",
+    "totalTime": "Total Time",
+    "avgDaily": "Avg Daily",
+    "goalsAchieved": "Goals Achieved",
+    "vsLastWeek": "vs Last Week",
+    "insights": "Insights",
+    "yearlyActivity": "Yearly Activity",
+    "heatmapDescription": "GitHub-style contribution calendar",
+    "behavioralInsights": "Behavioral Insights",
+    "noData": "No data available",
+    "loading": "Loading analytics...",
+    "insightTypes": {
+      "peakHour": {
+        "title": "Peak Productivity Hour",
+        "morning": "morning",
+        "afternoon": "afternoon",
+        "evening": "evening",
+        "description": "You're most productive around {{hour}}:00 in the {{period}}"
+      },
+      "productiveDay": {
+        "title": "Most Productive Day",
+        "description": "{{day}} is your most productive day"
+      },
+      "categoryTrend": {
+        "title": "Top Focus Area",
+        "description": "You've spent the most time on {{category}}"
+      },
+      "distraction": {
+        "title": "Potential Distraction",
+        "description": "{{app}} has {{count}} short sessions"
+      },
+      "focusQuality": {
+        "title": "Focus Quality",
+        "descriptionGood": "Great focus! You complete {{rate}}% of your focus sessions",
+        "descriptionPoor": "Try to improve focus - {{rate}}% completion rate"
+      },
+      "streak": {
+        "title": "Activity Streak",
+        "descriptionLong": "Impressive! {{days}} days of consistent tracking",
+        "descriptionShort": "Keep it up! {{days}} day streak",
+        "descriptionShortPlural": "Keep it up! {{days}} days streak"
+      }
     }
   },
   "errors": {
