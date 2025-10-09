@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, LucideIcon } from 'lucide-react';
 import { Tag } from '../../types';
 
 export interface TagSelectorProps {
@@ -9,6 +9,7 @@ export interface TagSelectorProps {
   allowCreate?: boolean;
   placeholder?: string;
   className?: string;
+  icon?: LucideIcon;
 }
 
 /**
@@ -22,6 +23,7 @@ const TagSelector: React.FC<TagSelectorProps> = ({
   allowCreate = false,
   placeholder = 'Add tags...',
   className = '',
+  icon: Icon,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -116,9 +118,16 @@ const TagSelector: React.FC<TagSelectorProps> = ({
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
+      {/* Icon */}
+      {Icon && (
+        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none z-10">
+          <Icon className="h-5 w-5 text-gray-400" />
+        </div>
+      )}
+
       {/* Selected Tags Display + Input */}
       <div
-        className="min-h-[42px] w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 cursor-text flex flex-wrap items-center gap-2"
+        className={`min-h-[42px] w-full py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 cursor-text flex flex-wrap items-center gap-2 ${Icon ? 'pl-10 pr-3' : 'px-3'}`}
         onClick={() => {
           setIsOpen(true);
           inputRef.current?.focus();

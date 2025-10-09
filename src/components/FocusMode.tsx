@@ -112,12 +112,12 @@ const FocusMode: React.FC = () => {
 
   if (!settings) {
     return (
-      <div className="p-8 overflow-y-auto space-y-8">
+      <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto space-y-6 lg:space-y-8">
         <div className="space-y-2">
           <Skeleton width="200px" height="32px" />
           <Skeleton width="300px" height="20px" />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-2">
             <Skeleton variant="rectangular" height="400px" />
           </div>
@@ -128,22 +128,22 @@ const FocusMode: React.FC = () => {
   }
 
   return (
-    <div className="p-8 overflow-y-auto h-full">
-      <div className="mb-8 animate-fade-in">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+    <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto h-full">
+      <div className="mb-6 lg:mb-8 animate-fade-in">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           {t('focusMode.title')}
         </h2>
-        <p className="text-gray-600 dark:text-gray-400">{t('focusMode.subtitle')}</p>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">{t('focusMode.subtitle')}</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Main Timer Section */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Circular Timer */}
-          <div className="card flex flex-col items-center justify-center py-12">
-            <div className="relative inline-flex items-center justify-center mb-6">
+          <div className="card flex flex-col items-center justify-center py-8 sm:py-10 md:py-12">
+            <div className="relative inline-flex items-center justify-center mb-4 sm:mb-6">
               {/* SVG Circle Progress */}
-              <svg className="transform -rotate-90" width="280" height="280">
+              <svg className="timer-circle transform -rotate-90" viewBox="0 0 280 280">
                 <circle
                   cx="140"
                   cy="140"
@@ -167,14 +167,14 @@ const FocusMode: React.FC = () => {
                 />
               </svg>
               <div className="absolute flex flex-col items-center">
-                <span className={`text-5xl font-bold ${getSessionColor(status.sessionType)}`}>
+                <span className={`text-3xl sm:text-4xl md:text-5xl font-bold ${getSessionColor(status.sessionType)}`}>
                   {formatTime(
                     status.timeRemaining !== undefined && status.timeRemaining !== null
                       ? status.timeRemaining
                       : status.totalDuration
                   )}
                 </span>
-                <span className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-2">
                   {getSessionTypeLabel(status.sessionType)}
                 </span>
               </div>
@@ -182,7 +182,7 @@ const FocusMode: React.FC = () => {
 
             {/* Task Display/Input */}
             {status.state === 'idle' && status.sessionType === 'focus' ? (
-              <div className="w-full max-w-md mb-6 space-y-4">
+              <div className="w-full max-w-md mb-4 sm:mb-6 space-y-3 sm:space-y-4">
                 <Input
                   type="text"
                   value={taskInput}
@@ -210,15 +210,15 @@ const FocusMode: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="text-center mb-6">
-                <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
+              <div className="text-center mb-4 sm:mb-6">
+                <p className="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100">
                   {status.currentTask}
                 </p>
               </div>
             )}
 
             {/* Controls */}
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3">
               {status.state === 'idle' && (
                 <Button
                   onClick={handleStartSession}
@@ -285,7 +285,7 @@ const FocusMode: React.FC = () => {
           </div>
 
           {/* Session Info */}
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6">
             <StatCard
               icon={Award}
               title={t('focusMode.sessionsCompleted')}
@@ -302,7 +302,7 @@ const FocusMode: React.FC = () => {
         </div>
 
         {/* Stats Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div className="card">
             <h3 className="text-xl font-semibold mb-4 dark:text-gray-100">
               {t('focusMode.stats.today')}

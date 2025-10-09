@@ -19,7 +19,6 @@ const Settings: React.FC = () => {
     autoStartOnLogin: false,
     autoStartTracking: false,
     defaultCategory: null as number | null,
-    trackingInterval: 30,
     activityTracking: {
       enabled: false,
       trackingInterval: 30,
@@ -228,28 +227,31 @@ const Settings: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-8 overflow-y-auto space-y-8">
-        <div className="space-y-2">
-          <Skeleton width="200px" height="32px" />
-          <Skeleton width="300px" height="20px" />
-        </div>
-        <div className="space-y-6 max-w-2xl">
-          <Skeleton variant="rectangular" height="300px" />
-          <Skeleton variant="rectangular" height="400px" />
-          <Skeleton variant="rectangular" height="200px" />
+      <div className="h-full overflow-y-auto">
+        <div className="p-4 sm:p-6 lg:p-8">
+          <div className="mb-6 lg:mb-8">
+            <Skeleton width="200px" height="32px" />
+            <Skeleton width="300px" height="20px" className="mt-2" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+            <Skeleton variant="rectangular" height="400px" />
+            <Skeleton variant="rectangular" height="500px" />
+            <Skeleton variant="rectangular" height="300px" />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-8 overflow-y-auto">
-      <div className="mb-8 animate-fade-in">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('settings.title')}</h2>
-        <p className="text-gray-600 dark:text-gray-400">{t('settings.configurePreferences')}</p>
-      </div>
+    <div className="h-full overflow-y-auto">
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="mb-6 lg:mb-8 animate-fade-in">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('settings.title')}</h2>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">{t('settings.configurePreferences')}</p>
+        </div>
 
-      <div className="max-w-2xl space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 pb-20">
         <div className="card">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('settings.general')}</h3>
           <div className="space-y-4">
@@ -348,22 +350,6 @@ const Settings: React.FC = () => {
               </select>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('settings.defaultCategoryDesc')}</p>
             </div>
-
-            <div>
-              <label className="block font-medium text-gray-900 dark:text-gray-100 mb-2">
-                {t('settings.trackingInterval')}: {settings.trackingInterval}
-              </label>
-              <input
-                type="range"
-                min="10"
-                max="300"
-                step="10"
-                value={settings.trackingInterval}
-                onChange={(e) => handleSettingChange('trackingInterval', parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
-              />
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('settings.trackingIntervalDesc')}</p>
-            </div>
           </div>
         </div>
 
@@ -453,69 +439,75 @@ const Settings: React.FC = () => {
           </div>
         </div>
 
-        <div className="card">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('settings.dataManagement')}</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-gray-100">{t('settings.exportData')}</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.exportDataDesc')}</p>
+          {/* Column 3: Data Management + About */}
+          <div className="flex flex-col gap-4 sm:gap-6">
+            <div className="card">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('settings.dataManagement')}</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100">{t('settings.exportData')}</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.exportDataDesc')}</p>
+                  </div>
+                  <Button
+                    onClick={exportData}
+                    variant="secondary"
+                    icon={Download}
+                  >
+                    {t('settings.export')}
+                  </Button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100">{t('settings.importData')}</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.importDataDesc')}</p>
+                  </div>
+                  <Button
+                    onClick={importData}
+                    variant="secondary"
+                    icon={Upload}
+                  >
+                    {t('settings.import')}
+                  </Button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100">{t('settings.clearAllData')}</h4>
+                    <p className="text-sm text-red-600 dark:text-red-400">{t('settings.clearAllDataDesc')}</p>
+                  </div>
+                  <Button
+                    onClick={clearAllData}
+                    variant="danger"
+                    icon={Trash2}
+                  >
+                    {t('settings.clearDataButton')}
+                  </Button>
+                </div>
               </div>
-              <Button
-                onClick={exportData}
-                variant="secondary"
-                icon={Download}
-              >
-                {t('settings.export')}
-              </Button>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-gray-100">{t('settings.importData')}</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.importDataDesc')}</p>
+            <div className="card">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('settings.about')}</h3>
+              <div className="space-y-2">
+                <p className="text-gray-900 dark:text-gray-100"><strong>{t('settings.appVersion')}</strong></p>
+                <p className="text-gray-600 dark:text-gray-400">{t('settings.appDescription')}</p>
+                <p className="text-gray-600 dark:text-gray-400">{t('settings.builtWith')}</p>
               </div>
-              <Button
-                onClick={importData}
-                variant="secondary"
-                icon={Upload}
-              >
-                {t('settings.import')}
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-gray-100">{t('settings.clearAllData')}</h4>
-                <p className="text-sm text-red-600 dark:text-red-400">{t('settings.clearAllDataDesc')}</p>
-              </div>
-              <Button
-                onClick={clearAllData}
-                variant="danger"
-                icon={Trash2}
-              >
-                {t('settings.clearDataButton')}
-              </Button>
             </div>
           </div>
         </div>
 
-        <div className="card">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('settings.about')}</h3>
-          <div className="space-y-2">
-            <p className="text-gray-900 dark:text-gray-100"><strong>{t('settings.appVersion')}</strong></p>
-            <p className="text-gray-600 dark:text-gray-400">{t('settings.appDescription')}</p>
-            <p className="text-gray-600 dark:text-gray-400">{t('settings.builtWith')}</p>
-          </div>
-        </div>
-
-        <div className="flex justify-end items-center space-x-4">
+        {/* Fixed Save Button */}
+        <div className="fixed-save-button p-4 sm:p-6 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 md:bg-transparent md:border-0">
           <Button
             onClick={saveSettings}
             disabled={isSaving}
             variant="primary"
             loading={isSaving}
             size="lg"
+            className="w-full md:w-auto"
           >
             {t('settings.saveSettings')}
           </Button>

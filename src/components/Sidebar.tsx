@@ -88,7 +88,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
             </h1>
           )}
         </div>
-        <nav className="space-y-1.5">
+        <nav className="space-y-2.5">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentView === item.id;
@@ -100,11 +100,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
                 title={isCollapsed ? item.label : undefined}
                 className={`
                   group flex items-center text-left
-                  ${isCollapsed ? 'w-11 h-11 justify-center rounded-full' : 'w-full gap-3 px-3.5 py-2.5 rounded-xl'}
+                  ${isCollapsed ? 'w-12 h-12 justify-center rounded-full' : 'w-full gap-3 px-3.5 py-2.5 rounded-xl'}
                   transition-all duration-300 ease-in-out
                   ${
                     isActive
-                      ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/30'
+                      ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-primary-500/30'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300'
                   }
                 `}
