@@ -149,6 +149,8 @@
     "clearDataSuccess": "All data has been permanently deleted",
     "clearDataFailed": "Failed to clear data. Please try again",
     "functionalityUnavailable": "This functionality is not available",
+    "stopTrackingBeforeClear": "Please stop activity tracking before clearing data",
+    "stopPomodoroBeforeClear": "Please stop the Pomodoro session before clearing data",
     "about": "About",
     "appVersion": "Lume v1.0.0",
     "appDescription": "A desktop application for tracking and visualizing time spent on tasks and applications.",

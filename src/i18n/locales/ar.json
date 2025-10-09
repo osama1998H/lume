@@ -149,6 +149,8 @@
     "clearDataSuccess": "تم حذف جميع البيانات بشكل دائم",
     "clearDataFailed": "فشل في مسح البيانات. يرجى المحاولة مرة أخرى",
     "functionalityUnavailable": "هذه الوظيفة غير متاحة",
+    "stopTrackingBeforeClear": "يرجى إيقاف تتبع النشاط قبل مسح البيانات",
+    "stopPomodoroBeforeClear": "يرجى إيقاف جلسة بومودورو قبل مسح البيانات",
     "about": "حول",
     "appVersion": "لومي الإصدار 1.0.0",
     "appDescription": "تطبيق سطح مكتب لتتبع وتصور الوقت المستغرق في المهام والتطبيقات.",
