@@ -173,12 +173,69 @@ const Settings: React.FC = () => {
     }
   };
 
-  const exportData = () => {
-    console.log('Exporting data...');
+  const exportData = async () => {
+    try {
+      if (!window.electronAPI) {
+        showToast.error(t('settings.functionalityUnavailable'));
+        return;
+      }
+
+      // For now, only support JSON format
+      // TODO: Add format selection modal
+      const format = 'json';
+
+      const result = await window.electronAPI.exportData(format);
+
+      if (result.success && result.filePath) {
+        showToast.success(t('settings.exportSuccess'));
+        console.log(`✅ Data exported to: ${result.filePath}`);
+      } else {
+        showToast.error(result.error || t('settings.exportFailed'));
+      }
+    } catch (error) {
+      console.error('Failed to export data:', error);
+      showToast.error(t('settings.exportFailed'));
+    }
   };
 
-  const importData = () => {
-    console.log('Importing data...');
+  const importData = async () => {
+    try {
+      if (!window.electronAPI) {
+        showToast.error(t('settings.functionalityUnavailable'));
+        return;
+      }
+
+      // For now, only support JSON format with merge strategy
+      // TODO: Add format and strategy selection modals
+      const format = 'json';
+      const options = { strategy: 'merge' as const };
+
+      const result = await window.electronAPI.importData(format, options);
+
+      if (result.success) {
+        showToast.success(
+          t('settings.importSuccess', {
+            count: result.recordsImported
+          })
+        );
+        console.log(`✅ Imported ${result.recordsImported} records`);
+
+        if (result.warnings.length > 0) {
+          console.warn('Import warnings:', result.warnings);
+        }
+
+        // Reload the app after successful import to refresh all data
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        const errorMessage = result.errors.join(', ') || t('settings.importFailed');
+        showToast.error(errorMessage);
+      }
+    } catch (error) {
+      console.error('Failed to import data:', error);
+      showToast.error(t('settings.importFailed'));
+    }
   };
 
   const clearAllData = () => {

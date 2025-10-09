@@ -324,6 +324,50 @@ export interface AnalyticsSummary {
   weeklyStreak: number;
 }
 
+// Data Export/Import Types
+export interface ExportData {
+  version: string; // App version
+  schemaVersion: number; // Database schema version
+  exportDate: string; // ISO timestamp
+  tables: {
+    timeEntries: TimeEntry[];
+    appUsage: AppUsage[];
+    categories: Category[];
+    tags: Tag[];
+    pomodoroSessions: PomodoroSession[];
+    productivityGoals: ProductivityGoal[];
+    goalProgress: GoalProgress[];
+    appCategoryMappings: AppCategoryMapping[];
+    domainCategoryMappings: DomainCategoryMapping[];
+    timeEntryTags: Array<{ timeEntryId: number; tagId: number }>;
+    appUsageTags: Array<{ appUsageId: number; tagId: number }>;
+    pomodoroSessionTags: Array<{ pomodoroSessionId: number; tagId: number }>;
+    productivityGoalTags: Array<{ productivityGoalId: number; tagId: number }>;
+  };
+}
+
+export type ImportStrategy = 'merge' | 'replace' | 'skip_duplicates';
+
+export interface ImportOptions {
+  strategy: ImportStrategy;
+  validateOnly?: boolean; // If true, only validate without importing
+}
+
+export interface ImportResult {
+  success: boolean;
+  recordsImported: number;
+  recordsSkipped: number;
+  recordsUpdated: number;
+  errors: string[];
+  warnings: string[];
+}
+
+export interface ExportResult {
+  success: boolean;
+  filePath?: string;
+  error?: string;
+}
+
 export interface ElectronAPI {
   getTimeEntries: () => Promise<TimeEntry[]>;
   addTimeEntry: (entry: TimeEntry) => Promise<number>;
@@ -412,6 +456,8 @@ export interface ElectronAPI {
   getDistractionAnalysis: (days: number) => Promise<DistractionMetric[]>;
   // Data Management API
   clearAllData: () => Promise<boolean>;
+  exportData: (format: 'json' | 'csv') => Promise<ExportResult>;
+  importData: (format: 'json' | 'csv', options?: ImportOptions) => Promise<ImportResult>;
 }
 
 declare global {
