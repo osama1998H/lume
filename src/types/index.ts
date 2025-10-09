@@ -410,6 +410,8 @@ export interface ElectronAPI {
   getBehavioralInsights: () => Promise<BehavioralInsight[]>;
   getAnalyticsSummary: () => Promise<AnalyticsSummary>;
   getDistractionAnalysis: (days: number) => Promise<DistractionMetric[]>;
+  // Data Management API
+  clearAllData: () => Promise<boolean>;
 }
 
 declare global {

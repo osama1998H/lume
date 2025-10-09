@@ -14,7 +14,6 @@ const Settings: React.FC = () => {
   const { language, changeLanguage } = useLanguage();
   const { theme, changeTheme } = useTheme();
   const [settings, setSettings] = useState({
-    autoTrackApps: true,
     showNotifications: true,
     minimizeToTray: false,
     autoStartOnLogin: false,
@@ -189,13 +188,41 @@ const Settings: React.FC = () => {
 
   const confirmClearData = async () => {
     try {
-      // TODO: Implement actual data clearing
-      console.log('Clearing all data...');
-      showToast.success('All data cleared successfully');
-      setShowClearDataConfirm(false);
+      if (!window.electronAPI) {
+        showToast.error(t('settings.functionalityUnavailable'));
+        return;
+      }
+
+      // Prevent clearing while activity tracking is active
+      const isTracking = await window.electronAPI.getActivityTrackingStatus();
+      if (isTracking) {
+        showToast.error(t('settings.stopTrackingBeforeClear'));
+        return;
+      }
+
+      // Prevent clearing while a Pomodoro session is running
+      const pomodoroStatus = await window.electronAPI.getPomodoroStatus();
+      if (pomodoroStatus && pomodoroStatus.state !== 'idle') {
+        showToast.error(t('settings.stopPomodoroBeforeClear'));
+        return;
+      }
+
+      const success = await window.electronAPI.clearAllData();
+
+      if (success) {
+        showToast.success(t('settings.clearDataSuccess'));
+        setShowClearDataConfirm(false);
+
+        // Reload the app after 1.5 seconds to refresh all UI components with empty data
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        showToast.error(t('settings.clearDataFailed'));
+      }
     } catch (error) {
       console.error('Failed to clear data:', error);
-      showToast.error('Failed to clear data');
+      showToast.error(t('settings.clearDataFailed'));
     }
   };
 
@@ -251,22 +278,6 @@ const Settings: React.FC = () => {
               </select>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('settings.selectTheme')}</p>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium text-gray-900 dark:text-gray-100">{t('settings.autoTrackApps')}</label>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.autoTrackAppsDesc')}</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.autoTrackApps}
-                  onChange={(e) => handleSettingChange('autoTrackApps', e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600 dark:peer-checked:bg-primary-500"></div>
-              </label>
-            </div>
-
             <div className="flex items-center justify-between">
               <div>
                 <label className="font-medium text-gray-900 dark:text-gray-100">{t('settings.showNotifications')}</label>
@@ -359,22 +370,6 @@ const Settings: React.FC = () => {
         <div className="card">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('settings.activityTracking')}</h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium text-gray-900 dark:text-gray-100">{t('settings.enableActivityTracking')}</label>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.enableActivityTrackingDesc')}</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.activityTracking.enabled}
-                  onChange={(e) => handleActivityTrackingChange('enabled', e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600 dark:peer-checked:bg-primary-500"></div>
-              </label>
-            </div>
-
             <div className="flex items-center justify-between">
               <div>
                 <label className="font-medium text-gray-900 dark:text-gray-100">{t('settings.trackBrowserActivity')}</label>

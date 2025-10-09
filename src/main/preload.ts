@@ -104,6 +104,8 @@ export interface IElectronAPI {
   getBehavioralInsights: () => Promise<any[]>;
   getAnalyticsSummary: () => Promise<any>;
   getDistractionAnalysis: (days: number) => Promise<any[]>;
+  // Data Management API
+  clearAllData: () => Promise<boolean>;
 }
 
 const electronAPI: IElectronAPI = {
@@ -195,6 +197,8 @@ const electronAPI: IElectronAPI = {
   getBehavioralInsights: () => ipcRenderer.invoke('get-behavioral-insights'),
   getAnalyticsSummary: () => ipcRenderer.invoke('get-analytics-summary'),
   getDistractionAnalysis: (days) => ipcRenderer.invoke('get-distraction-analysis', days),
+  // Data Management API
+  clearAllData: () => ipcRenderer.invoke('clear-all-data'),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
