@@ -1248,6 +1248,31 @@ class LumeApp {
         return false;
       }
     });
+
+    // ==================== DATA MANAGEMENT IPC HANDLERS ====================
+
+    ipcMain.handle('clear-all-data', async () => {
+      try {
+        if (!this.dbManager) {
+          console.error('❌ Database manager not initialized');
+          return false;
+        }
+
+        console.log('🗑️  Clear all data requested');
+        const success = this.dbManager.clearAllData();
+
+        if (success) {
+          console.log('✅ All data cleared successfully');
+        } else {
+          console.error('❌ Failed to clear all data');
+        }
+
+        return success;
+      } catch (error) {
+        console.error('Failed to clear all data:', error);
+        return false;
+      }
+    });
   }
 
   // ==================== TRAY METHODS ====================

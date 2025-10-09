@@ -123,6 +123,72 @@ export class DatabaseManager {
     return this.db;
   }
 
+  /**
+   * Clear all data from the database
+   * Deletes all records from all tables while preserving the schema
+   * Uses a transaction to ensure atomicity
+   * @returns true if successful, false otherwise
+   */
+  clearAllData(): boolean {
+    if (!this.db) {
+      console.error('❌ Database not initialized');
+      return false;
+    }
+
+    try {
+      console.log('🗑️  Starting database clear operation...');
+
+      // Use a transaction to ensure all operations succeed or fail together
+      const clearTransaction = this.db.transaction(() => {
+        // Delete from junction tables first (to avoid foreign key violations)
+        this.db!.prepare('DELETE FROM time_entry_tags').run();
+        this.db!.prepare('DELETE FROM app_usage_tags').run();
+        this.db!.prepare('DELETE FROM pomodoro_session_tags').run();
+        this.db!.prepare('DELETE FROM productivity_goal_tags').run();
+
+        // Delete from dependent tables
+        this.db!.prepare('DELETE FROM goal_progress').run();
+
+        // Delete from main data tables
+        this.db!.prepare('DELETE FROM productivity_goals').run();
+        this.db!.prepare('DELETE FROM pomodoro_sessions').run();
+        this.db!.prepare('DELETE FROM time_entries').run();
+        this.db!.prepare('DELETE FROM app_usage').run();
+
+        // Delete from mapping tables
+        this.db!.prepare('DELETE FROM app_category_mappings').run();
+        this.db!.prepare('DELETE FROM domain_category_mappings').run();
+
+        // Delete from categorization tables
+        this.db!.prepare('DELETE FROM tags').run();
+        this.db!.prepare('DELETE FROM categories').run();
+
+        console.log('✅ All data deleted successfully');
+      });
+
+      // Execute the transaction
+      clearTransaction();
+
+      // Reset AUTO_INCREMENT sequences for all tables
+      console.log('🔄 Resetting AUTO_INCREMENT sequences...');
+      this.db.prepare("DELETE FROM sqlite_sequence").run();
+
+      // Checkpoint the Write-Ahead Log to ensure changes are flushed
+      console.log('💾 Flushing Write-Ahead Log...');
+      this.db.pragma('wal_checkpoint(TRUNCATE)');
+
+      // VACUUM to reclaim space and compact the database file
+      console.log('🗜️  Compacting database (VACUUM)...');
+      this.db.prepare('VACUUM').run();
+
+      console.log('✅ Database cleared and compacted successfully');
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to clear database:', error);
+      return false;
+    }
+  }
+
   // ==================== TIME ENTRIES ====================
 
   addTimeEntry(entry: TimeEntry): number {

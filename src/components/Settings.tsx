@@ -189,13 +189,27 @@ const Settings: React.FC = () => {
 
   const confirmClearData = async () => {
     try {
-      // TODO: Implement actual data clearing
-      console.log('Clearing all data...');
-      showToast.success('All data cleared successfully');
-      setShowClearDataConfirm(false);
+      if (!window.electronAPI) {
+        showToast.error(t('settings.functionalityUnavailable'));
+        return;
+      }
+
+      const success = await window.electronAPI.clearAllData();
+
+      if (success) {
+        showToast.success(t('settings.clearDataSuccess'));
+        setShowClearDataConfirm(false);
+
+        // Reload the app after 1.5 seconds to refresh all UI components with empty data
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        showToast.error(t('settings.clearDataFailed'));
+      }
     } catch (error) {
       console.error('Failed to clear data:', error);
-      showToast.error('Failed to clear data');
+      showToast.error(t('settings.clearDataFailed'));
     }
   };
 
