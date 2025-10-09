@@ -10,6 +10,7 @@ import type {
   BehavioralInsight
 } from '../types';
 import StatCard from './ui/StatCard';
+import DateRangeFilter from './ui/DateRangeFilter';
 import { ProductivityLineChart } from './analytics/ProductivityLineChart';
 import { HourlyHeatmap } from './analytics/HourlyHeatmap';
 import { CalendarHeatmap } from './analytics/CalendarHeatmap';
@@ -159,23 +160,15 @@ export const Analytics: React.FC = () => {
           </div>
 
           {/* Period Selector */}
-          <div className="flex gap-2">
-            {(['week', 'month', 'year'] as const).map(period => (
-              <button
-                key={period}
-                onClick={() => setSelectedPeriod(period)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  selectedPeriod === period
-                    ? 'bg-primary text-white shadow-lg'
-                    : 'bg-surface-secondary text-text-secondary hover:bg-surface-tertiary'
-                }`}
-              >
-                {period === 'week' && t('analytics.lastWeek', 'Last 7 Days')}
-                {period === 'month' && t('analytics.lastMonth', 'Last 30 Days')}
-                {period === 'year' && t('analytics.lastYear', 'Last Year')}
-              </button>
-            ))}
-          </div>
+          <DateRangeFilter
+            options={[
+              { value: 'week', label: t('analytics.lastWeek', 'Last 7 Days') },
+              { value: 'month', label: t('analytics.lastMonth', 'Last 30 Days') },
+              { value: 'year', label: t('analytics.lastYear', 'Last Year') },
+            ]}
+            selectedValue={selectedPeriod}
+            onChange={(value) => setSelectedPeriod(value as 'week' | 'month' | 'year')}
+          />
         </div>
       </div>
 

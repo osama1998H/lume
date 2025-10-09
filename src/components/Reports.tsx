@@ -6,6 +6,7 @@ import { ActivitySession } from '../types/activity';
 import StatCard from './ui/StatCard';
 import ProgressListCard from './ui/ProgressListCard';
 import Badge from './ui/Badge';
+import DateRangeFilter from './ui/DateRangeFilter';
 
 const Reports: React.FC = () => {
   const { t } = useTranslation();
@@ -238,17 +239,15 @@ const Reports: React.FC = () => {
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('reports.title')}</h2>
             <p className="text-gray-600 dark:text-gray-400">{t('reports.subtitle')}</p>
           </div>
-          <div>
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value as 'day' | 'week' | 'month')}
-              className="px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm transition-all"
-            >
-              <option value="day" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">{t('reports.today')}</option>
-              <option value="week" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">{t('reports.week')}</option>
-              <option value="month" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">{t('reports.month')}</option>
-            </select>
-          </div>
+          <DateRangeFilter
+            options={[
+              { value: 'day', label: t('reports.today') },
+              { value: 'week', label: t('reports.week') },
+              { value: 'month', label: t('reports.month') },
+            ]}
+            selectedValue={selectedPeriod}
+            onChange={(value) => setSelectedPeriod(value as 'day' | 'week' | 'month')}
+          />
         </div>
       </div>
 

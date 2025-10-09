@@ -6,11 +6,10 @@ import {
   TrendingUp,
   Activity,
   Calendar,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Modal from './ui/Modal';
+import DateRangeFilter from './ui/DateRangeFilter';
 import type {
   TimelineActivity,
   TimelineFilters,
@@ -25,6 +24,7 @@ const TimelineView: React.FC = () => {
   const [selectedActivity, setSelectedActivity] = useState<TimelineActivity | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [hoveredActivity, setHoveredActivity] = useState<string | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month'>('today');
 
   // Date range state
   const [dateRange, setDateRange] = useState({
@@ -102,6 +102,7 @@ const TimelineView: React.FC = () => {
 
   // Date range presets
   const handleDateRangeChange = (preset: 'today' | 'week' | 'month') => {
+    setSelectedPeriod(preset);
     let start, end;
     switch (preset) {
       case 'today':
@@ -225,40 +226,18 @@ const TimelineView: React.FC = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex items-center gap-2 w-full sm:w-auto"
           >
-            <button
-              onClick={() => navigateDate('prev')}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              title={t('timeline.previous')}
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => handleDateRangeChange('today')}
-              className="px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-            >
-              {t('reports.today')}
-            </button>
-            <button
-              onClick={() => handleDateRangeChange('week')}
-              className="px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-            >
-              {t('reports.week')}
-            </button>
-            <button
-              onClick={() => handleDateRangeChange('month')}
-              className="px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-            >
-              {t('reports.month')}
-            </button>
-            <button
-              onClick={() => navigateDate('next')}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              title={t('timeline.next')}
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+            <DateRangeFilter
+              options={[
+                { value: 'today', label: t('reports.today') },
+                { value: 'week', label: t('reports.week') },
+                { value: 'month', label: t('reports.month') },
+              ]}
+              selectedValue={selectedPeriod}
+              onChange={(value) => handleDateRangeChange(value as 'today' | 'week' | 'month')}
+              withNavigation={true}
+              onNavigate={navigateDate}
+            />
           </motion.div>
         </div>
       </div>

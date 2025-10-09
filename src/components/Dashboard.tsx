@@ -67,7 +67,6 @@ const Dashboard: React.FC = () => {
       return isToday;
     });
 
-    console.log('📊 Dashboard - Today entries count:', todayEntries.length);
 
     const totalSeconds = todayEntries.reduce((sum, entry) => {
       // Calculate duration if missing
@@ -79,8 +78,6 @@ const Dashboard: React.FC = () => {
       }
       return sum + (duration || 0);
     }, 0);
-
-    console.log('📊 Dashboard - Total seconds:', totalSeconds);
 
     return {
       totalTime: totalSeconds,

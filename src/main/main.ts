@@ -211,7 +211,6 @@ class LumeApp {
       autoStartOnLogin: false,
       autoStartTracking: false,
       defaultCategory: null,
-      trackingInterval: 30,
     };
   }
 
