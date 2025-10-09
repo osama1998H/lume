@@ -37,6 +37,9 @@ import type {
   ProductivityTrend,
   BehavioralInsight,
   AnalyticsSummary,
+  ExportData,
+  ImportOptions,
+  ImportResult,
 } from '../types';
 import type { ActivitySession } from '../types/activity';
 
@@ -187,6 +190,448 @@ export class DatabaseManager {
       console.error('❌ Failed to clear database:', error);
       return false;
     }
+  }
+
+  /**
+   * Export all data from the database
+   * @returns ExportData object containing all tables and metadata
+   */
+  exportAllData(): ExportData {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+
+    try {
+      console.log('📦 Starting database export...');
+
+      const exportData: ExportData = {
+        version: '2.5.4', // App version from package.json
+        schemaVersion: 1, // Current schema version
+        exportDate: new Date().toISOString(),
+        tables: {
+          timeEntries: this.getTimeEntries(),
+          appUsage: this.getAppUsage(),
+          categories: this.getCategories(),
+          tags: this.getTags(),
+          pomodoroSessions: this.getPomodoroSessions(),
+          productivityGoals: this.getGoals(false), // Get all goals, not just active
+          goalProgress: this.getAllGoalProgress(),
+          appCategoryMappings: this.getAppCategoryMappings(),
+          domainCategoryMappings: this.getDomainCategoryMappings(),
+          timeEntryTags: this.getTimeEntryTagsRelations(),
+          appUsageTags: this.getAppUsageTagsRelations(),
+          pomodoroSessionTags: this.getPomodoroSessionTagsRelations(),
+          productivityGoalTags: this.getProductivityGoalTagsRelations(),
+        },
+      };
+
+      console.log('✅ Database export completed successfully');
+      console.log(`📊 Exported ${exportData.tables.timeEntries.length} time entries`);
+      console.log(`📊 Exported ${exportData.tables.appUsage.length} app usage records`);
+      console.log(`📊 Exported ${exportData.tables.categories.length} categories`);
+      console.log(`📊 Exported ${exportData.tables.tags.length} tags`);
+      console.log(`📊 Exported ${exportData.tables.pomodoroSessions.length} pomodoro sessions`);
+      console.log(`📊 Exported ${exportData.tables.productivityGoals.length} productivity goals`);
+
+      return exportData;
+    } catch (error) {
+      console.error('❌ Failed to export database:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Import data into the database
+   * @param data - ExportData object to import
+   * @param options - Import options (strategy, validateOnly)
+   * @returns ImportResult with statistics and errors
+   */
+  importAllData(data: ExportData, options: ImportOptions = { strategy: 'merge' }): ImportResult {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+
+    const result: ImportResult = {
+      success: false,
+      recordsImported: 0,
+      recordsSkipped: 0,
+      recordsUpdated: 0,
+      errors: [],
+      warnings: [],
+    };
+
+    try {
+      console.log('📥 Starting database import...');
+      console.log(`📋 Import strategy: ${options.strategy}`);
+
+      // Validate data structure
+      if (!this.validateExportData(data)) {
+        result.errors.push('Invalid export data structure');
+        return result;
+      }
+
+      // Check version compatibility
+      if (data.schemaVersion > 1) {
+        result.errors.push(`Incompatible schema version: ${data.schemaVersion}. Current version: 1`);
+        return result;
+      }
+
+      if (data.schemaVersion < 1) {
+        result.warnings.push(`Importing from older schema version: ${data.schemaVersion}`);
+      }
+
+      // If validateOnly mode, return here
+      if (options.validateOnly) {
+        result.success = true;
+        return result;
+      }
+
+      // Use a transaction to ensure atomicity
+      const importTransaction = this.db.transaction(() => {
+        // If replace strategy, clear all data first
+        if (options.strategy === 'replace') {
+          console.log('🗑️  Clearing existing data (replace mode)...');
+          if (!this.clearAllData()) {
+            throw new Error('Failed to clear existing data');
+          }
+        }
+
+        // Import categories first (they're referenced by other tables)
+        result.recordsImported += this.importCategories(data.tables.categories, options.strategy);
+
+        // Import tags
+        result.recordsImported += this.importTags(data.tables.tags, options.strategy);
+
+        // Import mappings
+        result.recordsImported += this.importAppCategoryMappings(data.tables.appCategoryMappings, options.strategy);
+        result.recordsImported += this.importDomainCategoryMappings(data.tables.domainCategoryMappings, options.strategy);
+
+        // Import time entries
+        result.recordsImported += this.importTimeEntries(data.tables.timeEntries, options.strategy);
+
+        // Import app usage
+        result.recordsImported += this.importAppUsage(data.tables.appUsage, options.strategy);
+
+        // Import pomodoro sessions
+        result.recordsImported += this.importPomodoroSessions(data.tables.pomodoroSessions, options.strategy);
+
+        // Import productivity goals
+        result.recordsImported += this.importProductivityGoals(data.tables.productivityGoals, options.strategy);
+
+        // Import goal progress
+        result.recordsImported += this.importGoalProgress(data.tables.goalProgress, options.strategy);
+
+        // Import tag relations
+        result.recordsImported += this.importTagRelations(data.tables, options.strategy);
+
+        console.log('✅ Database import completed successfully');
+      });
+
+      // Execute the transaction
+      importTransaction();
+
+      result.success = true;
+      console.log(`📊 Imported ${result.recordsImported} records`);
+      console.log(`⏭️  Skipped ${result.recordsSkipped} records`);
+      console.log(`🔄 Updated ${result.recordsUpdated} records`);
+
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to import database:', error);
+      result.errors.push(error instanceof Error ? error.message : 'Unknown error');
+      return result;
+    }
+  }
+
+  // ==================== EXPORT HELPER METHODS ====================
+
+  private getAllGoalProgress(): GoalProgress[] {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT
+        id,
+        goal_id as goalId,
+        date,
+        progress_minutes as progressMinutes,
+        achieved,
+        notified,
+        created_at as createdAt,
+        updated_at as updatedAt
+      FROM goal_progress
+      ORDER BY date DESC
+    `);
+
+    return stmt.all() as GoalProgress[];
+  }
+
+  private getTimeEntryTagsRelations(): Array<{ timeEntryId: number; tagId: number }> {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT time_entry_id as timeEntryId, tag_id as tagId
+      FROM time_entry_tags
+    `);
+
+    return stmt.all() as Array<{ timeEntryId: number; tagId: number }>;
+  }
+
+  private getAppUsageTagsRelations(): Array<{ appUsageId: number; tagId: number }> {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT app_usage_id as appUsageId, tag_id as tagId
+      FROM app_usage_tags
+    `);
+
+    return stmt.all() as Array<{ appUsageId: number; tagId: number }>;
+  }
+
+  private getPomodoroSessionTagsRelations(): Array<{ pomodoroSessionId: number; tagId: number }> {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT pomodoro_session_id as pomodoroSessionId, tag_id as tagId
+      FROM pomodoro_session_tags
+    `);
+
+    return stmt.all() as Array<{ pomodoroSessionId: number; tagId: number }>;
+  }
+
+  private getProductivityGoalTagsRelations(): Array<{ productivityGoalId: number; tagId: number }> {
+    if (!this.db) return [];
+
+    const stmt = this.db.prepare(`
+      SELECT productivity_goal_id as productivityGoalId, tag_id as tagId
+      FROM productivity_goal_tags
+    `);
+
+    return stmt.all() as Array<{ productivityGoalId: number; tagId: number }>;
+  }
+
+  // ==================== IMPORT HELPER METHODS ====================
+
+  private validateExportData(data: ExportData): boolean {
+    if (!data || typeof data !== 'object') return false;
+    if (!data.version || !data.schemaVersion || !data.exportDate) return false;
+    if (!data.tables || typeof data.tables !== 'object') return false;
+
+    // Check if all required tables exist
+    const requiredTables = [
+      'timeEntries', 'appUsage', 'categories', 'tags',
+      'pomodoroSessions', 'productivityGoals', 'goalProgress',
+      'appCategoryMappings', 'domainCategoryMappings',
+      'timeEntryTags', 'appUsageTags', 'pomodoroSessionTags', 'productivityGoalTags'
+    ];
+
+    return requiredTables.every(table => Array.isArray(data.tables[table as keyof typeof data.tables]));
+  }
+
+  private importCategories(categories: Category[], strategy: string): number {
+    let count = 0;
+    for (const category of categories) {
+      try {
+        if (strategy === 'skip_duplicates') {
+          const existing = this.getCategoryByName(category.name);
+          if (existing) continue;
+        }
+        this.addCategory(category);
+        count++;
+      } catch (error) {
+        console.warn(`Failed to import category: ${category.name}`, error);
+      }
+    }
+    return count;
+  }
+
+  private importTags(tags: Tag[], strategy: string): number {
+    let count = 0;
+    for (const tag of tags) {
+      try {
+        if (strategy === 'skip_duplicates') {
+          const existing = this.getTagByName(tag.name);
+          if (existing) continue;
+        }
+        this.addTag(tag);
+        count++;
+      } catch (error) {
+        console.warn(`Failed to import tag: ${tag.name}`, error);
+      }
+    }
+    return count;
+  }
+
+  private importAppCategoryMappings(mappings: AppCategoryMapping[], strategy: string): number {
+    let count = 0;
+    for (const mapping of mappings) {
+      try {
+        if (strategy === 'skip_duplicates') {
+          const existing = this.getCategoryIdForApp(mapping.appName);
+          if (existing) continue;
+        }
+        this.addAppCategoryMapping(mapping.appName, mapping.categoryId);
+        count++;
+      } catch (error) {
+        console.warn(`Failed to import app mapping: ${mapping.appName}`, error);
+      }
+    }
+    return count;
+  }
+
+  private importDomainCategoryMappings(mappings: DomainCategoryMapping[], strategy: string): number {
+    let count = 0;
+    for (const mapping of mappings) {
+      try {
+        if (strategy === 'skip_duplicates') {
+          const existing = this.getCategoryIdForDomain(mapping.domain);
+          if (existing) continue;
+        }
+        this.addDomainCategoryMapping(mapping.domain, mapping.categoryId);
+        count++;
+      } catch (error) {
+        console.warn(`Failed to import domain mapping: ${mapping.domain}`, error);
+      }
+    }
+    return count;
+  }
+
+  private importTimeEntries(entries: TimeEntry[], strategy: string): number {
+    let count = 0;
+    for (const entry of entries) {
+      try {
+        const entryWithoutId = { ...entry };
+        delete entryWithoutId.id;
+        delete entryWithoutId.tags; // Tags are imported separately
+        this.addTimeEntry(entryWithoutId);
+        count++;
+      } catch (error) {
+        console.warn(`Failed to import time entry: ${entry.task}`, error);
+      }
+    }
+    return count;
+  }
+
+  private importAppUsage(usages: AppUsage[], strategy: string): number {
+    let count = 0;
+    for (const usage of usages) {
+      try {
+        const usageWithoutId = { ...usage };
+        delete usageWithoutId.id;
+        delete usageWithoutId.tags; // Tags are imported separately
+        this.addAppUsage(usageWithoutId);
+        count++;
+      } catch (error) {
+        console.warn(`Failed to import app usage: ${usage.appName}`, error);
+      }
+    }
+    return count;
+  }
+
+  private importPomodoroSessions(sessions: PomodoroSession[], strategy: string): number {
+    let count = 0;
+    for (const session of sessions) {
+      try {
+        const sessionWithoutId = { ...session };
+        delete sessionWithoutId.id;
+        delete sessionWithoutId.tags; // Tags are imported separately
+        this.addPomodoroSession(sessionWithoutId);
+        count++;
+      } catch (error) {
+        console.warn(`Failed to import pomodoro session: ${session.task}`, error);
+      }
+    }
+    return count;
+  }
+
+  private importProductivityGoals(goals: ProductivityGoal[], strategy: string): number {
+    let count = 0;
+    for (const goal of goals) {
+      try {
+        const goalWithoutId = { ...goal };
+        delete goalWithoutId.id;
+        delete goalWithoutId.tags; // Tags are imported separately
+        this.addGoal(goalWithoutId);
+        count++;
+      } catch (error) {
+        console.warn(`Failed to import productivity goal: ${goal.name}`, error);
+      }
+    }
+    return count;
+  }
+
+  private importGoalProgress(progress: GoalProgress[], strategy: string): number {
+    if (!this.db) return 0;
+
+    let count = 0;
+    for (const prog of progress) {
+      try {
+        this.updateGoalProgress(prog.goalId, prog.date, prog.progressMinutes);
+        count++;
+      } catch (error) {
+        console.warn(`Failed to import goal progress for goal ${prog.goalId}`, error);
+      }
+    }
+    return count;
+  }
+
+  private importTagRelations(tables: ExportData['tables'], strategy: string): number {
+    if (!this.db) return 0;
+
+    let count = 0;
+
+    // Import time entry tags
+    for (const relation of tables.timeEntryTags) {
+      try {
+        this.db.prepare(`
+          INSERT OR IGNORE INTO time_entry_tags (time_entry_id, tag_id)
+          VALUES (?, ?)
+        `).run(relation.timeEntryId, relation.tagId);
+        count++;
+      } catch (error) {
+        console.warn(`Failed to import time entry tag relation`, error);
+      }
+    }
+
+    // Import app usage tags
+    for (const relation of tables.appUsageTags) {
+      try {
+        this.db.prepare(`
+          INSERT OR IGNORE INTO app_usage_tags (app_usage_id, tag_id)
+          VALUES (?, ?)
+        `).run(relation.appUsageId, relation.tagId);
+        count++;
+      } catch (error) {
+        console.warn(`Failed to import app usage tag relation`, error);
+      }
+    }
+
+    // Import pomodoro session tags
+    for (const relation of tables.pomodoroSessionTags) {
+      try {
+        this.db.prepare(`
+          INSERT OR IGNORE INTO pomodoro_session_tags (pomodoro_session_id, tag_id)
+          VALUES (?, ?)
+        `).run(relation.pomodoroSessionId, relation.tagId);
+        count++;
+      } catch (error) {
+        console.warn(`Failed to import pomodoro session tag relation`, error);
+      }
+    }
+
+    // Import productivity goal tags
+    for (const relation of tables.productivityGoalTags) {
+      try {
+        this.db.prepare(`
+          INSERT OR IGNORE INTO productivity_goal_tags (productivity_goal_id, tag_id)
+          VALUES (?, ?)
+        `).run(relation.productivityGoalId, relation.tagId);
+        count++;
+      } catch (error) {
+        console.warn(`Failed to import productivity goal tag relation`, error);
+      }
+    }
+
+    return count;
   }
 
   // ==================== TIME ENTRIES ====================
