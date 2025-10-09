@@ -13,159 +13,111 @@
 
 Lume helps you understand your productivity patterns by automatically tracking time spent on different applications and websites. Get clear insights to improve focus, productivity, and time management.
 
-<img width="1747" height="1147" alt="Screenshot 2025-10-05 at 9 48 09 PM" src="https://github.com/user-attachments/assets/f2b84f07-1ede-4590-a6d0-76f8ccd3d4c4" />
-<img width="1497" height="1059" alt="Screenshot 2025-10-05 at 10 57 46 PM" src="https://github.com/user-attachments/assets/2551184e-b9d7-49f3-b96d-1c769af033c6" />
+<details>
+<summary>📸 Screenshots</summary>
 
+<img width="1747" height="1147" alt="Screenshot 2025-10-05 at 9 48 09 PM" src="https://github.com/user-attachments/assets/f2b84f07-1ede-4590-a6d0-76f8ccd3d4c4" />
+<img width="1497" height="1059" alt="Screenshot 2025-10-05 at 10 57 46 PM" src="https://github.com/user-attachments/assets/2551184e-b9d7-49f3-b96d-1c769af033c6" />
 
+</details>
 
 ## ✨ Features
 
-### 🌍 Internationalization (i18n)
-- **Multi-language support** - English and Arabic available
-- **RTL (Right-to-Left) support** - Automatic layout mirroring for RTL languages
-- **Easy to add languages** - See [Translation Guide](TRANSLATION_GUIDE.md)
-- **Language switcher** - Change language from Settings
-
-### 🎯 Automatic Activity Tracking
+### 🎯 Core Tracking
 - **Cross-platform monitoring** - Works on macOS, Windows, and Linux
-- **Application tracking** - Monitor time spent in desktop applications
-- **Website tracking** - Track browsing time by domain
-- **Smart session detection** - Automatically detects when you switch contexts
+- **Automatic activity tracking** - Monitor time spent in applications and websites
+- **Smart session detection** - Detects context switches automatically
 - **Idle detection** - Pauses tracking when you're away
+- **Timeline view** - Visual timeline of your daily activities with summaries
 
-### 📊 Rich Visualizations
-- **Time by category** - See how you spend time across different areas
-- **Top applications** - Identify your most-used applications
-- **Top websites** - Track your browsing patterns
-- **Activity sessions** - Detailed log of all your activities
+### 🚀 Productivity Tools
+- **Productivity Goals** - Set daily/weekly goals with progress tracking and notifications
+- **Pomodoro Timer** - Built-in focus timer with customizable work/break intervals
+- **Tag Management** - Organize sessions and goals with custom tags
+- **Advanced Analytics**
+  - Calendar heatmap visualization
+  - Hourly activity patterns
+  - Weekly summaries with trends
+  - Behavioral insights and recommendations
+  - Daily productivity statistics
+
+### ⚙️ Customization & Settings
+- **Multi-language support** - English and Arabic with RTL support ([add more languages!](TRANSLATION_GUIDE.md))
+- **Collapsible sidebar** - Maximize your workspace
 - **Flexible time periods** - View data by day, week, or month
+- **Tracking controls** - Adjust intervals, idle thresholds, and blacklists
+- **Auto-start on login** - Launch automatically when you boot your system
+- **Custom themes** - Personalize your experience
 
-### ⚙️ Customizable Settings
-- **Tracking intervals** - Adjust how often activity is monitored
-- **Idle thresholds** - Configure when to consider you idle
-- **Blacklisting** - Exclude specific apps or domains from tracking
-- **Privacy controls** - Fine-tune what gets tracked
-
-### 📈 Productivity Insights
-- **Total tracked time** - See your overall activity
-- **Task completion** - Track completed tasks and average duration
-- **Usage patterns** - Understand your digital habits
-- **Export data** - Save your data for external analysis
+### 🔒 Privacy & Security
+- **Local-first** - All data stays on your device
+- **No cloud sync** - No data sent to external servers
+- **Data export** - Full control over your data
+- **Optional crash reporting** - Privacy-focused error tracking with PII filtering ([learn more](CRASH_REPORTING.md))
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-
 - Node.js 18+
 - npm or yarn
-- Git
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/lume.git
-   cd lume
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/lume.git
+cd lume
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+# Install dependencies
+npm install
 
-3. **Configure environment (optional)**
-   ```bash
-   cp .env.example .env
-   # Edit .env to add your Sentry DSN for crash reporting
-   ```
+# Start development server
+npm run dev
 
-4. **Start development server**
-   ```bash
-   npm run dev
-   ```
+# Build for production
+npm run build
+npm run package
+```
 
-5. **Build for production**
-   ```bash
-   npm run build
-   npm run package
-   ```
+### Configuration (Optional)
+```bash
+cp .env.example .env
+# Add your Sentry DSN for crash reporting
+```
 
 ## 🔧 Development
 
-### Project Structure
+### Tech Stack
+- **Frontend**: React 19, TypeScript, Tailwind CSS v4
+- **Backend**: Electron, Node.js
+- **Database**: SQLite with better-sqlite3 (Repository pattern)
+- **Build**: Vite, electron-builder
+- **Testing**: Jest, React Testing Library
+- **i18n**: react-i18next
+- **Monitoring**: Sentry (optional)
 
+### Project Structure
 ```
 lume/
 ├── src/
-│   ├── main/           # Electron main process
-│   ├── renderer/       # React frontend
-│   ├── components/     # React components
-│   ├── services/       # Activity tracking services
-│   ├── database/       # SQLite database management
-│   └── types/          # TypeScript type definitions
-├── dist/               # Built application
-└── assets/            # Static assets
+│   ├── main/              # Electron main process
+│   ├── renderer/          # React frontend
+│   ├── components/        # React components
+│   ├── services/          # Business logic services
+│   ├── database/          # Database layer (repositories, analytics)
+│   └── types/             # TypeScript definitions
+├── dist/                  # Built application
+└── assets/               # Static assets
 ```
 
-### Tech Stack
-
-- **Frontend**: React 19, TypeScript, Tailwind CSS v4
-- **Backend**: Electron, Node.js
-- **Database**: SQLite with better-sqlite3
-- **Build**: Vite, electron-builder
-- **Testing**: Jest, React Testing Library
-- **Internationalization**: react-i18next
-- **Error Tracking**: Sentry (optional)
-- **Crash Reporting**: Electron crashReporter
-
 ### Available Scripts
-
 - `npm run dev` - Start development environment
 - `npm run build` - Build for production
 - `npm run test` - Run tests
 - `npm run lint` - Lint code
 - `npm run package` - Package for distribution
 
-### Crash Reporting Setup
-
-Lume includes comprehensive crash reporting to help improve stability. See the [Crash Reporting Setup Guide](CRASH_REPORTING.md) for:
-
-- How to configure Sentry for error tracking
-- Setting up native crash reporting
-- Privacy and security features
-- Testing crash reporting
-- User consent and data controls
-
-**Quick start:**
-1. Copy `.env.example` to `.env`
-2. Add your Sentry DSN
-3. Configure crash report URL (optional)
-4. See full guide in [CRASH_REPORTING.md](CRASH_REPORTING.md)
-
-### Activity Monitoring
-
-Lume uses platform-specific APIs to monitor active windows:
-
-- **macOS**: AppleScript for window detection
-- **Windows**: PowerShell with Win32 APIs
-- **Linux**: X11 tools (xprop)
-
-Browser activity is detected by analyzing window titles and extracting domain information.
-
-## 🔒 Privacy & Security
-
-Lume is designed with privacy in mind:
-
-- **Local data only** - All data stays on your device
-- **No cloud sync** - No data is sent to external servers
-- **Configurable tracking** - Control what gets monitored
-- **Data export** - Full control over your data
-- **Secure crash reporting** - Optional error tracking with privacy controls (see [Crash Reporting Setup](CRASH_REPORTING.md))
-  - PII automatically filtered
-  - Sensitive data redacted
-  - User consent respected
-
-## 📱 Platform Support
+### Platform Support
 
 | Platform | Status | Notes |
 |----------|--------|-------|
@@ -175,24 +127,19 @@ Lume is designed with privacy in mind:
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ### Translation Contributions
-
 Want to add support for your language? See our [Translation Guide](TRANSLATION_GUIDE.md)!
 
-**Currently supported languages:**
+**Currently supported:**
 - 🇬🇧 English
 - 🇸🇦 Arabic (العربية)
 
-We're actively looking for translations in:
-- French (Français)
-- Spanish (Español)
-- German (Deutsch)
-- And more!
+**Help wanted:**
+- French, Spanish, German, and more!
 
-### Quick Contribution Steps
-
+### Quick Steps
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
@@ -203,16 +150,9 @@ We're actively looking for translations in:
 
 - [ ] Cloud sync (optional)
 - [ ] Mobile companion app
-- [ ] Advanced analytics
-- [ ] Team collaboration features
 - [ ] Plugin system
-- [ ] Custom themes
-
-## 🐛 Known Issues
-
-- Browser detection may not work with all browsers
-- Some applications may not be detected properly
-- Wayland support on Linux is limited
+- [ ] Team collaboration features
+- [ ] AI-powered productivity recommendations
 
 ## 📄 License
 
