@@ -495,7 +495,7 @@ export class DatabaseManager {
     return count;
   }
 
-  private importTimeEntries(entries: TimeEntry[], strategy: string): number {
+  private importTimeEntries(entries: TimeEntry[], _strategy: string): number {
     let count = 0;
     for (const entry of entries) {
       try {
@@ -511,7 +511,7 @@ export class DatabaseManager {
     return count;
   }
 
-  private importAppUsage(usages: AppUsage[], strategy: string): number {
+  private importAppUsage(usages: AppUsage[], _strategy: string): number {
     let count = 0;
     for (const usage of usages) {
       try {
@@ -527,7 +527,7 @@ export class DatabaseManager {
     return count;
   }
 
-  private importPomodoroSessions(sessions: PomodoroSession[], strategy: string): number {
+  private importPomodoroSessions(sessions: PomodoroSession[], _strategy: string): number {
     let count = 0;
     for (const session of sessions) {
       try {
@@ -543,7 +543,7 @@ export class DatabaseManager {
     return count;
   }
 
-  private importProductivityGoals(goals: ProductivityGoal[], strategy: string): number {
+  private importProductivityGoals(goals: ProductivityGoal[], _strategy: string): number {
     let count = 0;
     for (const goal of goals) {
       try {
@@ -559,7 +559,7 @@ export class DatabaseManager {
     return count;
   }
 
-  private importGoalProgress(progress: GoalProgress[], strategy: string): number {
+  private importGoalProgress(progress: GoalProgress[], _strategy: string): number {
     if (!this.db) return 0;
 
     let count = 0;
@@ -574,7 +574,7 @@ export class DatabaseManager {
     return count;
   }
 
-  private importTagRelations(tables: ExportData['tables'], strategy: string): number {
+  private importTagRelations(tables: ExportData['tables'], _strategy: string): number {
     if (!this.db) return 0;
 
     let count = 0;
