@@ -36,12 +36,6 @@ const Reports: React.FC = () => {
           window.electronAPI.getTopWebsites(10),
         ]);
 
-        console.log('📊 Reports - Loaded time entries:', entries.length);
-        console.log('📊 Reports - Sample time entry:', entries[0]);
-        console.log('📊 Reports - Loaded app usage:', usage.length);
-        console.log('📊 Reports - Sample app usage:', usage[0]);
-        console.log('📊 Reports - Loaded categories:', cats.length);
-
         setTimeEntries(entries);
         setAppUsage(usage);
         setCategories(cats);
@@ -72,11 +66,6 @@ const Reports: React.FC = () => {
         break;
     }
 
-    console.log('📊 Reports - Filter period:', selectedPeriod);
-    console.log('📊 Reports - Start date:', startDate.toISOString());
-    console.log('📊 Reports - Total timeEntries before filter:', timeEntries.length);
-    console.log('📊 Reports - Total appUsage before filter:', appUsage.length);
-
     const filteredEntries = timeEntries.filter(entry => {
       const entryDate = new Date(entry.startTime);
       const matches = entryDate >= startDate;
@@ -90,9 +79,6 @@ const Reports: React.FC = () => {
       const usageDate = new Date(usage.startTime);
       return usageDate >= startDate;
     });
-
-    console.log('📊 Reports - Filtered entries count:', filteredEntries.length);
-    console.log('📊 Reports - Filtered usage count:', filteredUsage.length);
 
     return { filteredEntries, filteredUsage };
   };
@@ -162,9 +148,6 @@ const Reports: React.FC = () => {
   const getTotalStats = () => {
     const { filteredEntries, filteredUsage } = getFilteredData();
 
-    console.log('📊 Reports - Filtered entries:', filteredEntries.length);
-    console.log('📊 Reports - Filtered usage:', filteredUsage.length);
-
     if (filteredEntries.length > 0) {
       console.log('📊 Reports - First filtered entry FULL DATA:', filteredEntries[0]);
     }
@@ -185,18 +168,12 @@ const Reports: React.FC = () => {
     }, 0);
 
     const totalAppTime = filteredUsage.reduce((sum, usage) => {
-      console.log('📊 Reports - Usage duration:', usage.duration);
       return sum + (usage.duration || 0);
     }, 0);
 
     const completedTasks = filteredEntries.filter(entry => entry.endTime).length;
 
-    console.log('📊 Reports - Total tracked time:', totalTrackedTime);
-    console.log('📊 Reports - Total app time:', totalAppTime);
-    console.log('📊 Reports - Completed tasks:', completedTasks);
-
     const averageTaskTime = completedTasks > 0 ? Math.round(totalTrackedTime / completedTasks) : 0;
-    console.log('📊 Reports - Avg task time:', averageTaskTime);
 
     return {
       totalTrackedTime,

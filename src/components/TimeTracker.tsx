@@ -7,6 +7,7 @@ import Button from './ui/Button';
 import Input from './ui/Input';
 import TagSelector from './ui/TagSelector';
 import { formatDuration } from '../utils/format';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
 const TimeTracker: React.FC = () => {
   const { t } = useTranslation();
@@ -20,6 +21,31 @@ const TimeTracker: React.FC = () => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [recentEntries, setRecentEntries] = useState<TimeEntry[]>([]);
   const [activeEntryId, setActiveEntryId] = useState<number | null>(null);
+
+  // Clear form function for keyboard shortcut
+  const clearForm = () => {
+    if (!isTracking) {
+      setCurrentTask('');
+      setCategory('');
+      setSelectedCategoryId(null);
+      setSelectedTags([]);
+    }
+  };
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'Enter',
+      ctrl: true,
+      description: t('timeTracker.shortcuts.toggleTracking'),
+      action: () => isTracking ? stopTracking() : startTracking()
+    },
+    {
+      key: 'Escape',
+      description: t('timeTracker.shortcuts.clearForm'),
+      action: clearForm
+    },
+  ]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -209,27 +235,40 @@ const TimeTracker: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto">
-      <div className="mb-6 lg:mb-8 animate-fade-in">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('timeTracker.title')}</h2>
+    <main
+      className="p-4 sm:p-6 lg:p-8 overflow-y-auto"
+      role="main"
+      aria-label={t('timeTracker.ariaLabel', 'Time Tracker main content')}
+    >
+      <header className="mb-6 lg:mb-8 animate-fade-in">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('timeTracker.title')}</h1>
         <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">{t('timeTracker.subtitle')}</p>
-      </div>
+      </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Column 1: Timer Card */}
-        <div className="card lg:min-h-[600px] flex flex-col justify-between">
-          <div className="text-center mb-4 sm:mb-6">
-            <div className="inline-flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-2xl">
-              <div className="text-4xl sm:text-5xl lg:text-6xl font-mono font-bold text-primary-600 dark:text-primary-400 tracking-tight">
-                {formatTime(elapsedTime)}
+        <section aria-labelledby="timer-heading">
+          <h2 id="timer-heading" className="sr-only">
+            {t('timeTracker.timerHeading', 'Time Tracker')}
+          </h2>
+          <div className="card lg:min-h-[600px] flex flex-col justify-between">
+            <div className="text-center mb-4 sm:mb-6">
+              <div
+                className="inline-flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-2xl"
+                role="timer"
+                aria-live="off"
+                aria-label={t('timeTracker.elapsedTimeLabel', 'Elapsed time')}
+              >
+                <div className="text-4xl sm:text-5xl lg:text-6xl font-mono font-bold text-primary-600 dark:text-primary-400 tracking-tight">
+                  {formatTime(elapsedTime)}
+                </div>
               </div>
+              {isTracking && currentTask && (
+                <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 animate-fade-in">
+                  {t('timeTracker.workingOn')} <span className="font-semibold text-gray-900 dark:text-gray-100">{currentTask}</span>
+                </p>
+              )}
             </div>
-            {isTracking && currentTask && (
-              <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 animate-fade-in">
-                {t('timeTracker.workingOn')} <span className="font-semibold text-gray-900 dark:text-gray-100">{currentTask}</span>
-              </p>
-            )}
-          </div>
 
           <div className="space-y-3 sm:space-y-4">
             <Input
@@ -250,13 +289,15 @@ const TimeTracker: React.FC = () => {
                 </label>
                 <div className="relative">
                   <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                    <TagIcon className="h-5 w-5 text-gray-400" />
+                    <TagIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                   </div>
                   <select
                     id="category"
                     value={selectedCategoryId || ''}
                     onChange={handleCategoryChange}
                     disabled={isTracking}
+                    aria-label={t('timeTracker.selectCategoryLabel', 'Select task category')}
+                    aria-disabled={isTracking}
                     className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="">{t('timeTracker.categoryPlaceholder')}</option>
@@ -298,6 +339,7 @@ const TimeTracker: React.FC = () => {
                   size="lg"
                   icon={Play}
                   className="px-6 sm:px-8"
+                  aria-label={t('timeTracker.startTrackingLabel', 'Start tracking time (Ctrl+Enter)')}
                 >
                   {t('timeTracker.startTracking')}
                 </Button>
@@ -308,6 +350,7 @@ const TimeTracker: React.FC = () => {
                   size="lg"
                   icon={Square}
                   className="px-6 sm:px-8"
+                  aria-label={t('timeTracker.stopTrackingLabel', 'Stop tracking time (Ctrl+Enter)')}
                 >
                   {t('timeTracker.stopTracking')}
                 </Button>
@@ -315,23 +358,29 @@ const TimeTracker: React.FC = () => {
             </div>
           </div>
         </div>
+        </section>
 
         {/* Column 2: Recent Entries */}
-        <ActivityListCard
-          title={t('timeTracker.recentEntries')}
-          items={recentEntries.map((entry, index) => ({
-            key: entry.id || index,
-            mainLabel: entry.task,
-            subLabel: `${new Date(entry.startTime).toLocaleDateString()} ${t('timeTracker.at')} ${new Date(entry.startTime).toLocaleTimeString()}`,
-            category: entry.category,
-            tags: entry.tags,
-            value: entry.duration ? formatDuration(entry.duration, t) : t('timeTracker.active'),
-          }))}
-          emptyStateText={t('timeTracker.noEntries')}
-          className="max-h-80 lg:max-h-[550px] overflow-y-auto"
-        />
+        <section aria-labelledby="recent-entries-heading">
+          <h2 id="recent-entries-heading" className="sr-only">
+            {t('timeTracker.recentEntriesHeading', 'Recent Time Entries')}
+          </h2>
+          <ActivityListCard
+            title={t('timeTracker.recentEntries')}
+            items={recentEntries.map((entry, index) => ({
+              key: entry.id || index,
+              mainLabel: entry.task,
+              subLabel: `${new Date(entry.startTime).toLocaleDateString()} ${t('timeTracker.at')} ${new Date(entry.startTime).toLocaleTimeString()}`,
+              category: entry.category,
+              tags: entry.tags,
+              value: entry.duration ? formatDuration(entry.duration, t) : t('timeTracker.active'),
+            }))}
+            emptyStateText={t('timeTracker.noEntries')}
+            className="max-h-80 lg:max-h-[550px] overflow-y-auto"
+          />
+        </section>
       </div>
-    </div>
+    </main>
   );
 };
 
