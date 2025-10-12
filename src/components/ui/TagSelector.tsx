@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Plus, LucideIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Tag } from '../../types';
 
 export interface TagSelectorProps {
@@ -25,6 +26,7 @@ const TagSelector: React.FC<TagSelectorProps> = ({
   className = '',
   icon: Icon,
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [allTags, setAllTags] = useState<Tag[]>(availableTags);
@@ -171,7 +173,7 @@ const TagSelector: React.FC<TagSelectorProps> = ({
         <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {filteredTags.length === 0 && !canCreateNewTag ? (
             <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
-              No tags available
+              {t('common.noTagsAvailable', 'No tags available')}
             </div>
           ) : (
             <>

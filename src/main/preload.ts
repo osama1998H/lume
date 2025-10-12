@@ -12,7 +12,15 @@ import type {
   TagStats,
   ExportResult,
   ImportOptions,
-  ImportResult
+  ImportResult,
+  UnifiedActivity,
+  UnifiedActivityFilters,
+  UnifiedActivityUpdateOptions,
+  BulkActivityOperation,
+  ActivityConflict,
+  UnifiedActivityStats,
+  ActivitySourceType,
+  TimeGap
 } from '../types';
 
 // Note: Sentry is initialized in the main process only, not in preload
@@ -111,6 +119,56 @@ export interface IElectronAPI {
   clearAllData: () => Promise<boolean>;
   exportData: (format: 'json' | 'csv') => Promise<ExportResult>;
   importData: (format: 'json' | 'csv', options?: ImportOptions) => Promise<ImportResult>;
+  // Unified Activity Log API
+  getUnifiedActivities: (startDate: string, endDate: string, filters?: UnifiedActivityFilters) => Promise<UnifiedActivity[]>;
+  getUnifiedActivity: (id: number, sourceType: ActivitySourceType) => Promise<UnifiedActivity | null>;
+  updateUnifiedActivity: (options: UnifiedActivityUpdateOptions) => Promise<boolean>;
+  deleteUnifiedActivity: (id: number, sourceType: ActivitySourceType) => Promise<boolean>;
+  bulkUpdateActivities: (operation: BulkActivityOperation) => Promise<{ success: boolean; updated: number; failed: number }>;
+  bulkDeleteActivities: (activityIds: Array<{ id: number; sourceType: ActivitySourceType }>) => Promise<{ success: boolean; deleted: number; failed: number }>;
+  getActivityConflicts: (startDate: string, endDate: string) => Promise<ActivityConflict[]>;
+  getUnifiedActivityStats: (startDate: string, endDate: string) => Promise<UnifiedActivityStats>;
+  searchActivities: (query: string, filters?: UnifiedActivityFilters) => Promise<UnifiedActivity[]>;
+  mergeActivities: (activityIds: Array<{ id: number; sourceType: ActivitySourceType }>, strategy?: 'longest' | 'earliest' | 'latest') => Promise<{ success: boolean; mergedActivity?: UnifiedActivity; error?: string }>;
+
+  // Data Quality API
+  detectActivityGaps: (startDate: string, endDate: string, minGapMinutes?: number) => Promise<TimeGap[]>;
+  getGapStatistics: (startDate: string, endDate: string, minGapMinutes?: number) => Promise<{
+    totalGaps: number;
+    totalUntrackedSeconds: number;
+    averageGapSeconds: number;
+    longestGapSeconds: number;
+  }>;
+  detectDuplicateActivities: (startDate: string, endDate: string, similarityThreshold?: number) => Promise<Array<{
+    activities: UnifiedActivity[];
+    avgSimilarity: number;
+  }>>;
+  findMergeableGroups: (startDate: string, endDate: string, maxGapSeconds?: number) => Promise<UnifiedActivity[][]>;
+  findOrphanedActivities: (startDate: string, endDate: string) => Promise<UnifiedActivity[]>;
+  validateActivitiesBatch: (startDate: string, endDate: string) => Promise<{
+    valid: Array<{ activity: UnifiedActivity; warnings: string[] }>;
+    invalid: Array<{ activity: UnifiedActivity; errors: string[]; warnings: string[] }>;
+  }>;
+  recalculateActivityDurations: (startDate: string, endDate: string) => Promise<{
+    success: boolean;
+    recalculated: number;
+    errors: string[];
+  }>;
+  findZeroDurationActivities: (startDate: string, endDate: string, removeIfConfirmed?: boolean) => Promise<{
+    activities: UnifiedActivity[];
+    removed: number;
+  }>;
+  getDataQualityReport: (startDate: string, endDate: string) => Promise<{
+    totalActivities: number;
+    validActivities: number;
+    invalidActivities: number;
+    warningsCount: number;
+    orphanedCount: number;
+    zeroDurationCount: number;
+    gapsCount: number;
+    duplicateGroupsCount: number;
+    qualityScore: number;
+  }>;
 }
 
 const electronAPI: IElectronAPI = {
@@ -206,6 +264,28 @@ const electronAPI: IElectronAPI = {
   clearAllData: () => ipcRenderer.invoke('clear-all-data'),
   exportData: (format) => ipcRenderer.invoke('export-data', format),
   importData: (format, options) => ipcRenderer.invoke('import-data', format, options),
+  // Unified Activity Log API
+  getUnifiedActivities: (startDate, endDate, filters) => ipcRenderer.invoke('get-unified-activities', startDate, endDate, filters),
+  getUnifiedActivity: (id, sourceType) => ipcRenderer.invoke('get-unified-activity', id, sourceType),
+  updateUnifiedActivity: (options) => ipcRenderer.invoke('update-unified-activity', options),
+  deleteUnifiedActivity: (id, sourceType) => ipcRenderer.invoke('delete-unified-activity', id, sourceType),
+  bulkUpdateActivities: (operation) => ipcRenderer.invoke('bulk-update-activities', operation),
+  bulkDeleteActivities: (activityIds) => ipcRenderer.invoke('bulk-delete-activities', activityIds),
+  getActivityConflicts: (startDate, endDate) => ipcRenderer.invoke('get-activity-conflicts', startDate, endDate),
+  getUnifiedActivityStats: (startDate, endDate) => ipcRenderer.invoke('get-unified-activity-stats', startDate, endDate),
+  searchActivities: (query, filters) => ipcRenderer.invoke('search-activities', query, filters),
+  mergeActivities: (activityIds, strategy) => ipcRenderer.invoke('merge-activities', activityIds, strategy),
+
+  // Data Quality API
+  detectActivityGaps: (startDate, endDate, minGapMinutes) => ipcRenderer.invoke('detect-activity-gaps', startDate, endDate, minGapMinutes),
+  getGapStatistics: (startDate, endDate, minGapMinutes) => ipcRenderer.invoke('get-gap-statistics', startDate, endDate, minGapMinutes),
+  detectDuplicateActivities: (startDate, endDate, similarityThreshold) => ipcRenderer.invoke('detect-duplicate-activities', startDate, endDate, similarityThreshold),
+  findMergeableGroups: (startDate, endDate, maxGapSeconds) => ipcRenderer.invoke('find-mergeable-groups', startDate, endDate, maxGapSeconds),
+  findOrphanedActivities: (startDate, endDate) => ipcRenderer.invoke('find-orphaned-activities', startDate, endDate),
+  validateActivitiesBatch: (startDate, endDate) => ipcRenderer.invoke('validate-activities-batch', startDate, endDate),
+  recalculateActivityDurations: (startDate, endDate) => ipcRenderer.invoke('recalculate-activity-durations', startDate, endDate),
+  findZeroDurationActivities: (startDate, endDate, removeIfConfirmed) => ipcRenderer.invoke('find-zero-duration-activities', startDate, endDate, removeIfConfirmed),
+  getDataQualityReport: (startDate, endDate) => ipcRenderer.invoke('get-data-quality-report', startDate, endDate),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
