@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import type { HourlyPattern } from '../../types';
 import { ChartCard } from './ChartCard';
@@ -16,11 +17,12 @@ export const HourlyHeatmap: React.FC<HourlyHeatmapProps> = ({
   description,
   isLoading = false,
 }) => {
+  const { t } = useTranslation();
   // Sort data by hour and format for chart
   const chartData = [...data]
     .sort((a, b) => a.hour - b.hour)
     .map(item => ({
-      hour: formatHour(item.hour),
+      hour: formatHour(item.hour, t),
       minutes: item.avgMinutes,
       hours: (item.avgMinutes / 60).toFixed(1),
     }));
@@ -56,7 +58,7 @@ export const HourlyHeatmap: React.FC<HourlyHeatmapProps> = ({
           <YAxis
             stroke="#94a3b8"
             style={{ fontSize: '12px' }}
-            label={{ value: 'Avg Hours', angle: -90, position: 'insideLeft', style: { fill: '#94a3b8' } }}
+            label={{ value: t('analytics.avgHours'), angle: -90, position: 'insideLeft', style: { fill: '#94a3b8' } }}
           />
           <Tooltip
             contentStyle={{
@@ -67,7 +69,7 @@ export const HourlyHeatmap: React.FC<HourlyHeatmapProps> = ({
             }}
             labelStyle={{ color: '#f1f5f9', fontWeight: 600 }}
             itemStyle={{ color: '#cbd5e1' }}
-            formatter={(value: number) => [`${value} hours`, 'Average Activity']}
+            formatter={(value: number) => [`${value} ${t('analytics.hours').toLowerCase()}`, t('analytics.averageActivity')]}
           />
           <Bar dataKey="hours" radius={[4, 4, 0, 0]}>
             {chartData.map((entry, index) => (
@@ -81,9 +83,12 @@ export const HourlyHeatmap: React.FC<HourlyHeatmapProps> = ({
 };
 
 // Helper function to format hour (0-23) to 12-hour format
-function formatHour(hour: number): string {
-  if (hour === 0) return '12 AM';
-  if (hour === 12) return '12 PM';
-  if (hour < 12) return `${hour} AM`;
-  return `${hour - 12} PM`;
+function formatHour(hour: number, t: any): string {
+  const am = t('analytics.am');
+  const pm = t('analytics.pm');
+
+  if (hour === 0) return `12 ${am}`;
+  if (hour === 12) return `12 ${pm}`;
+  if (hour < 12) return `${hour} ${am}`;
+  return `${hour - 12} ${pm}`;
 }

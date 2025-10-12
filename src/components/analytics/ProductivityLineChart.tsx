@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import type { ProductivityTrend } from '../../types';
 import { ChartCard } from './ChartCard';
@@ -16,10 +17,11 @@ export const ProductivityLineChart: React.FC<ProductivityLineChartProps> = ({
   description,
   isLoading = false,
 }) => {
+  const { t, i18n } = useTranslation();
   // Format data for chart
   const chartData = data.map(item => ({
     ...item,
-    formattedDate: formatDate(item.date),
+    formattedDate: formatDate(item.date, i18n.language),
     hours: (item.value / 60).toFixed(1),
   }));
 
@@ -47,7 +49,7 @@ export const ProductivityLineChart: React.FC<ProductivityLineChartProps> = ({
           <YAxis
             stroke="#94a3b8"
             style={{ fontSize: '12px' }}
-            label={{ value: 'Hours', angle: -90, position: 'insideLeft', style: { fill: '#94a3b8' } }}
+            label={{ value: t('analytics.hours'), angle: -90, position: 'insideLeft', style: { fill: '#94a3b8' } }}
           />
           <Tooltip
             contentStyle={{
@@ -58,7 +60,7 @@ export const ProductivityLineChart: React.FC<ProductivityLineChartProps> = ({
             }}
             labelStyle={{ color: '#f1f5f9', fontWeight: 600 }}
             itemStyle={{ color: '#cbd5e1' }}
-            formatter={(value: number) => [`${value} hours`, 'Productivity']}
+            formatter={(value: number) => [`${value} ${t('analytics.hours').toLowerCase()}`, t('analytics.productivity')]}
           />
           <Legend
             wrapperStyle={{ paddingTop: '20px' }}
@@ -71,7 +73,7 @@ export const ProductivityLineChart: React.FC<ProductivityLineChartProps> = ({
             strokeWidth={3}
             dot={{ fill: '#0ea5e9', r: 4 }}
             activeDot={{ r: 6, fill: '#38bdf8' }}
-            name="Hours Tracked"
+            name={t('analytics.hoursTracked')}
             fill="url(#productivityGradient)"
           />
         </LineChart>
@@ -81,20 +83,23 @@ export const ProductivityLineChart: React.FC<ProductivityLineChartProps> = ({
 };
 
 // Helper function to format dates
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: string): string {
+  const lang = locale === 'ar' ? 'ar' : 'en-US';
+
   // Handle different date formats (day, week, month)
   if (dateStr.includes('W')) {
     // Week format: 2025-W14
     const [_year, week] = dateStr.split('-W');
-    return `Week ${week}`;
+    // "Week" is already translated in the parent component via t()
+    return `${locale === 'ar' ? 'أسبوع' : 'Week'} ${week}`;
   } else if (dateStr.match(/^\d{4}-\d{2}$/)) {
     // Month format: 2025-01
     const [year, month] = dateStr.split('-');
     const date = new Date(parseInt(year), parseInt(month) - 1);
-    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    return date.toLocaleDateString(lang, { month: 'short', year: 'numeric' });
   } else {
     // Day format: 2025-01-15
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString(lang, { month: 'short', day: 'numeric' });
   }
 }
