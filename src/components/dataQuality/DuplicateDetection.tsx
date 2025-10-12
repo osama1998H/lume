@@ -33,7 +33,12 @@ const DuplicateDetection: React.FC<DuplicateDetectionProps> = ({
   }, [startDate, endDate, similarityThreshold]);
 
   const loadDuplicateData = async () => {
-    if (!window.electronAPI) return;
+    // Guard against non-Electron environments
+    if (!window.electronAPI) {
+      setLoading(false);
+      setError(t('dataQuality.duplicates.electronRequired', 'This feature requires the Electron app'));
+      return;
+    }
 
     try {
       setLoading(true);

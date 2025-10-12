@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { List, Calendar, Clock, Filter, RefreshCw, Plus, BarChart3, RotateCcw, RotateCw, ChevronDown, Sparkles } from 'lucide-react';
 import { ActivityLogProvider, useActivityLog, parseSelectionKey } from '../contexts/ActivityLogContext';
@@ -111,14 +111,14 @@ const ActivityLogContent: React.FC = () => {
   }, [dateRange, filters, setActivities, setRefreshCallback]);
 
   // Handle refresh
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
       await refreshActivities();
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [refreshActivities]);
 
   // Keyboard shortcuts
   useKeyboardShortcuts([

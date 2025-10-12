@@ -150,9 +150,14 @@ export class ActivityMergeService {
       const end = new Date(boundaries[i + 1]).toISOString();
       const duration = Math.floor((boundaries[i + 1] - boundaries[i]) / 1000);
 
+      // Generate unique temporary IDs for split activities
+      // Keep original ID for first split, use negative timestamp-based IDs for others
+      // These temporary IDs will be replaced when saved to database
+      const splitId = i === 0 ? activity.id : -(Date.now() + i);
+
       splitActivities.push({
         ...activity,
-        id: i === 0 ? activity.id : activity.id + i * 10000, // Generate new IDs for splits
+        id: splitId,
         startTime: start,
         endTime: end,
         duration,

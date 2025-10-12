@@ -69,11 +69,6 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
     }
   }, [filters.tags, tags]);
 
-  // Apply filters when debounced search query changes
-  useEffect(() => {
-    applyFilters();
-  }, [debouncedSearchQuery]);
-
   // Apply filters to context
   const applyFilters = useCallback(() => {
     const newFilters: UnifiedActivityFilters = {
@@ -90,6 +85,11 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
     };
     setFilters(newFilters);
   }, [dateRange, selectedSourceTypes, selectedCategories, selectedTags, debouncedSearchQuery, minDuration, maxDuration, setFilters]);
+
+  // Apply filters when debounced search query changes
+  useEffect(() => {
+    applyFilters();
+  }, [debouncedSearchQuery, applyFilters]);
 
   // Handle date range preset changes
   const handleDateRangeChange = (preset: string) => {

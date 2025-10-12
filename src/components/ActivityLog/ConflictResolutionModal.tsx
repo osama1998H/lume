@@ -153,6 +153,11 @@ const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = ({
     const maxTime = Math.max(...endTimes);
     const totalDuration = maxTime - minTime;
 
+    // Guard against division by zero when all activities have same start/end time
+    if (totalDuration === 0) {
+      return { left: '0%', width: '100%' };
+    }
+
     const activityStart = new Date(activity.startTime).getTime();
     const activityEnd = new Date(activity.endTime).getTime();
 

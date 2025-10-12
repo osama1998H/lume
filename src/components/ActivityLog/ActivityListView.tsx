@@ -132,7 +132,7 @@ const ActivityListView: React.FC<ActivityListViewProps> = ({
       label: key,
       activities,
     }));
-  }, [sortedActivities, groupBy, t]);
+  }, [sortedActivities, groupBy]);
 
   // Flatten for virtualization
   const flattenedItems = useMemo(() => {

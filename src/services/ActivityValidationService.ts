@@ -358,6 +358,11 @@ export class ActivityValidationService {
     const duration2 = end2 - start2;
     const averageDuration = (duration1 + duration2) / 2;
 
+    // Guard against division by zero when both activities have zero duration
+    if (averageDuration === 0) {
+      return 0;
+    }
+
     return Math.round((overlapDuration / averageDuration) * 100);
   }
 

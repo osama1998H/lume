@@ -66,8 +66,11 @@ const ActivityEditModal: React.FC<ActivityEditModalProps> = ({
   };
 
   // Helper: Combine date and time strings to Date
+  // Explicitly constructs Date in local timezone to avoid ambiguity
   const combineDateTime = (dateStr: string, timeStr: string): Date => {
-    return new Date(`${dateStr}T${timeStr}:00`);
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return new Date(year, month - 1, day, hours, minutes, 0, 0);
   };
 
   // Validation
@@ -113,6 +116,10 @@ const ActivityEditModal: React.FC<ActivityEditModalProps> = ({
         endTime: end.toISOString(),
         duration,
         categoryId: categoryId || undefined,
+        // Include tags if changed - construct Tag objects from selected IDs
+        tags: selectedTags.length > 0
+          ? tags.filter(tag => tag.id && selectedTags.includes(tag.id))
+          : undefined,
         // Note: Description is not part of metadata in the current interface
       };
 
