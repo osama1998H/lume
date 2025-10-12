@@ -10,6 +10,7 @@ import {
 import { motion } from 'framer-motion';
 import Modal from './ui/Modal';
 import DateRangeFilter from './ui/DateRangeFilter';
+import { formatDuration as formatDurationUtil } from '../utils/format';
 import type {
   TimelineActivity,
   TimelineFilters,
@@ -119,16 +120,6 @@ const TimelineView: React.FC = () => {
         break;
     }
     setDateRange({ start, end });
-  };
-
-  // Format duration for display
-  const formatDuration = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-    return `${minutes}m`;
   };
 
   // Format time for display
@@ -269,7 +260,7 @@ const TimelineView: React.FC = () => {
                   {t('timeline.totalTime')}
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {formatDuration(summary.totalDuration)}
+                  {formatDurationUtil(summary.totalDuration, t)}
                 </p>
               </div>
             </div>
@@ -283,7 +274,7 @@ const TimelineView: React.FC = () => {
                   {t('timeline.averageDuration')}
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {formatDuration(summary.averageDuration)}
+                  {formatDurationUtil(summary.averageDuration, t)}
                 </p>
               </div>
             </div>
@@ -419,11 +410,11 @@ const TimelineView: React.FC = () => {
                           onClick={() => handleActivityClick(activity)}
                           onMouseEnter={() => setHoveredActivity(activityId)}
                           onMouseLeave={() => setHoveredActivity(null)}
-                          title={`${activity.title} - ${formatDuration(activity.duration)}`}
+                          title={`${activity.title} - ${formatDurationUtil(activity.duration, t)}`}
                         >
                           <div className="h-full flex items-center justify-between px-3 text-white text-sm font-medium overflow-hidden">
                             <span className="truncate flex-1 pr-2">{activity.title}</span>
-                            <span className="flex-shrink-0 text-xs opacity-90">{formatDuration(activity.duration)}</span>
+                            <span className="flex-shrink-0 text-xs opacity-90">{formatDurationUtil(activity.duration, t)}</span>
                           </div>
                         </div>
                       );
@@ -440,14 +431,14 @@ const TimelineView: React.FC = () => {
       <Modal
         isOpen={showDetailsModal && !!selectedActivity}
         onClose={() => setShowDetailsModal(false)}
-        title="Activity Details"
+        title={t('timeline.activityDetails')}
         size="lg"
       >
         {selectedActivity && (
           <div className="space-y-4">
             <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                Title
+                {t('timeline.detailsTitle')}
               </p>
               <p className="text-lg font-bold text-gray-900 dark:text-white">
                 {selectedActivity.title}
@@ -457,7 +448,7 @@ const TimelineView: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
                 <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                  Type
+                  {t('timeline.detailsType')}
                 </p>
                 <p className="text-base font-semibold text-gray-900 dark:text-white capitalize">
                   {selectedActivity.type.replace('_', ' ')}
@@ -466,17 +457,17 @@ const TimelineView: React.FC = () => {
 
               <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
                 <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                  Duration
+                  {t('timeline.detailsDuration')}
                 </p>
                 <p className="text-base font-semibold text-gray-900 dark:text-white">
-                  {formatDuration(selectedActivity.duration)}
+                  {formatDurationUtil(selectedActivity.duration, t)}
                 </p>
               </div>
             </div>
 
             <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                Time Range
+                {t('timeline.detailsTimeRange')}
               </p>
               <p className="text-base font-semibold text-gray-900 dark:text-white">
                 {formatTime(selectedActivity.startTime)} - {formatTime(selectedActivity.endTime)}
@@ -486,7 +477,7 @@ const TimelineView: React.FC = () => {
             {selectedActivity.categoryName && (
               <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
                 <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                  Category
+                  {t('timeline.detailsCategory')}
                 </p>
                 <div className="flex items-center gap-2">
                   <div
@@ -503,7 +494,7 @@ const TimelineView: React.FC = () => {
             {selectedActivity.metadata?.appName && (
               <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
                 <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                  Application
+                  {t('timeline.detailsApplication')}
                 </p>
                 <p className="text-base font-semibold text-gray-900 dark:text-white">
                   {selectedActivity.metadata.appName}
@@ -514,7 +505,7 @@ const TimelineView: React.FC = () => {
             {selectedActivity.metadata?.domain && (
               <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
                 <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                  Website
+                  {t('timeline.detailsWebsite')}
                 </p>
                 <p className="text-base font-semibold text-gray-900 dark:text-white">
                   {selectedActivity.metadata.domain}

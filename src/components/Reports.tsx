@@ -7,6 +7,7 @@ import StatCard from './ui/StatCard';
 import ProgressListCard from './ui/ProgressListCard';
 import Badge from './ui/Badge';
 import DateRangeFilter from './ui/DateRangeFilter';
+import { formatDuration } from '../utils/format';
 
 const Reports: React.FC = () => {
   const { t } = useTranslation();
@@ -52,20 +53,6 @@ const Reports: React.FC = () => {
       console.error('Failed to load data:', error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const formatDuration = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours}h ${mins}m`;
-    } else if (mins > 0) {
-      return `${mins}m ${secs}s`;
-    } else {
-      return `${secs}s`;
     }
   };
 
@@ -255,7 +242,7 @@ const Reports: React.FC = () => {
         <StatCard
           icon={Clock}
           title={t('reports.totalTrackedTime')}
-          value={formatDuration(stats.totalTrackedTime)}
+          value={formatDuration(stats.totalTrackedTime, t)}
           colorScheme="primary"
         />
         <StatCard
@@ -267,13 +254,13 @@ const Reports: React.FC = () => {
         <StatCard
           icon={Timer}
           title={t('reports.avgTaskDuration')}
-          value={formatDuration(stats.averageTaskTime)}
+          value={formatDuration(stats.averageTaskTime, t)}
           colorScheme="orange"
         />
         <StatCard
           icon={Smartphone}
           title={t('reports.totalAppUsage')}
-          value={formatDuration(stats.totalAppTime)}
+          value={formatDuration(stats.totalAppTime, t)}
           colorScheme="purple"
         />
       </div>
@@ -285,7 +272,7 @@ const Reports: React.FC = () => {
             key: cat.name,
             label: cat.name,
             value: cat.time,
-            formattedValue: formatDuration(cat.time),
+            formattedValue: formatDuration(cat.time, t),
             color: cat.color,
           }))}
           colorScheme="primary"
@@ -298,7 +285,7 @@ const Reports: React.FC = () => {
             key: appName,
             label: appName,
             value: time,
-            formattedValue: formatDuration(time),
+            formattedValue: formatDuration(time, t),
           }))}
           colorScheme="green"
           emptyStateText={t('reports.noData')}
@@ -312,7 +299,7 @@ const Reports: React.FC = () => {
             key: app.name,
             label: app.name,
             value: app.totalDuration,
-            formattedValue: formatDuration(app.totalDuration),
+            formattedValue: formatDuration(app.totalDuration, t),
           }))}
           colorScheme="blue"
           emptyStateText={t('reports.noActivityData')}
@@ -324,7 +311,7 @@ const Reports: React.FC = () => {
             key: site.domain,
             label: site.domain,
             value: site.totalDuration,
-            formattedValue: formatDuration(site.totalDuration),
+            formattedValue: formatDuration(site.totalDuration, t),
           }))}
           colorScheme="purple"
           emptyStateText={t('reports.noWebsiteData')}
@@ -369,7 +356,7 @@ const Reports: React.FC = () => {
                     {session.domain || session.window_title || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {session.duration ? formatDuration(session.duration) : '-'}
+                    {session.duration ? formatDuration(session.duration, t) : '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {session.start_time ? new Date(session.start_time).toLocaleString() : '-'}

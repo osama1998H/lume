@@ -391,7 +391,7 @@ const Categories: React.FC = () => {
                         <textarea
                           value={editForm.description || ''}
                           onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                          placeholder="Description (optional)"
+                          placeholder={t('categories.descriptionOptional')}
                           className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
                           rows={2}
                         />
@@ -400,13 +400,13 @@ const Categories: React.FC = () => {
                             onClick={() => saveEditingCategory(category.id!)}
                             className="flex-1 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
                           >
-                            <Check className="h-3 w-3" /> Save
+                            <Check className="h-3 w-3" /> {t('categories.save')}
                           </button>
                           <button
                             onClick={cancelEditingCategory}
                             className="flex-1 px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
                           >
-                            <X className="h-3 w-3" /> Cancel
+                            <X className="h-3 w-3" /> {t('categories.cancel')}
                           </button>
                         </div>
                       </div>
@@ -425,14 +425,14 @@ const Categories: React.FC = () => {
                             <button
                               onClick={() => startEditingCategory(category)}
                               className="p-1.5 text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                              title="Edit category"
+                              title={t('categories.editCategory')}
                             >
                               <Edit2 className="h-3.5 w-3.5" />
                             </button>
                             <button
                               onClick={() => handleDelete('category', category.id!)}
                               className="p-1.5 text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                              title="Delete category"
+                              title={t('categories.deleteCategory')}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
@@ -524,7 +524,7 @@ const Categories: React.FC = () => {
                         className="px-4 py-2 rounded-full text-sm font-medium text-white cursor-pointer flex items-center gap-2 hover:scale-105 transition-transform"
                         style={{ backgroundColor: tag.color }}
                         onClick={() => startEditingTag(tag)}
-                        title="Click to edit"
+                        title={t('categories.clickToEdit')}
                       >
                         {tag.name}
                         <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -573,29 +573,29 @@ const Categories: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                Application Mappings
+                {t('categories.applicationMappings')}
               </h4>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Map applications to categories for automatic categorization
+                {t('categories.applicationMappingsDesc')}
               </p>
             </div>
             <div className="overflow-x-auto">
               {appMappings.length === 0 ? (
                 <div className="p-6 text-center text-gray-500 dark:text-gray-400 text-sm">
-                  No application mappings yet
+                  {t('categories.noApplicationMappings')}
                 </div>
               ) : (
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead className="bg-gray-50 dark:bg-gray-700/50">
                     <tr>
                       <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Application
+                        {t('categories.application')}
                       </th>
                       <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Category
+                        {t('categories.category')}
                       </th>
                       <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Actions
+                        {t('categories.actions')}
                       </th>
                     </tr>
                   </thead>
@@ -620,7 +620,7 @@ const Categories: React.FC = () => {
                           <button
                             onClick={() => mapping.id && handleDelete('appMapping', mapping.id)}
                             className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-                            title="Delete mapping"
+                            title={t('categories.deleteMapping')}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -637,29 +637,29 @@ const Categories: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                Domain Mappings
+                {t('categories.domainMappings')}
               </h4>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Map website domains to categories for automatic categorization
+                {t('categories.domainMappingsDesc')}
               </p>
             </div>
             <div className="overflow-x-auto">
               {domainMappings.length === 0 ? (
                 <div className="p-6 text-center text-gray-500 dark:text-gray-400 text-sm">
-                  No domain mappings yet
+                  {t('categories.noDomainMappings')}
                 </div>
               ) : (
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead className="bg-gray-50 dark:bg-gray-700/50">
                     <tr>
                       <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Domain
+                        {t('categories.domain')}
                       </th>
                       <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Category
+                        {t('categories.category')}
                       </th>
                       <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Actions
+                        {t('categories.actions')}
                       </th>
                     </tr>
                   </thead>
@@ -684,7 +684,7 @@ const Categories: React.FC = () => {
                           <button
                             onClick={() => mapping.id && handleDelete('domainMapping', mapping.id)}
                             className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-                            title="Delete mapping"
+                            title={t('categories.deleteMapping')}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -826,13 +826,13 @@ const Categories: React.FC = () => {
             value={mappingForm.type}
             onChange={(e) => setMappingForm({ ...mappingForm, type: e.target.value as 'app' | 'domain' })}
             options={[
-              { value: 'app', label: 'Application' },
-              { value: 'domain', label: 'Website Domain' },
+              { value: 'app', label: t('categories.mappingTypeApplication') },
+              { value: 'domain', label: t('categories.mappingTypeWebsiteDomain') },
             ]}
             required
           />
           <FormField
-            label={mappingForm.type === 'app' ? 'Application Name' : 'Domain'}
+            label={mappingForm.type === 'app' ? t('categories.applicationName') : t('categories.domain')}
             name="value"
             value={mappingForm.value}
             onChange={(e) => setMappingForm({ ...mappingForm, value: e.target.value })}
@@ -847,7 +847,7 @@ const Categories: React.FC = () => {
             onChange={(e) => setMappingForm({ ...mappingForm, categoryId: Number(e.target.value) })}
             error={formErrors.categoryId}
             options={[
-              { value: '0', label: 'Select a category' },
+              { value: '0', label: t('categories.selectCategory') },
               ...categories.map((cat) => ({ value: cat.id!.toString(), label: cat.name })),
             ]}
             required

@@ -7,6 +7,7 @@ import GoalProgressWidget from './GoalProgressWidget';
 import StatCard from './ui/StatCard';
 import ActivityListCard from './ui/ActivityListCard';
 import Skeleton from './ui/Skeleton';
+import { formatDuration } from '../utils/format';
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -32,20 +33,6 @@ const Dashboard: React.FC = () => {
       console.error('Failed to load data:', error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const formatDuration = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours}h ${mins}m`;
-    } else if (mins > 0) {
-      return `${mins}m ${secs}s`;
-    } else {
-      return `${secs}s`;
     }
   };
 
@@ -149,7 +136,7 @@ const Dashboard: React.FC = () => {
           <StatCard
             icon={Clock}
             title={t('dashboard.todayTime')}
-            value={formatDuration(stats.totalTime)}
+            value={formatDuration(stats.totalTime, t)}
             colorScheme="primary"
           />
         </motion.div>
@@ -185,7 +172,7 @@ const Dashboard: React.FC = () => {
               mainLabel: entry.task,
               subLabel: new Date(entry.startTime).toLocaleTimeString(),
               category: entry.category,
-              value: entry.duration ? formatDuration(entry.duration) : t('dashboard.active'),
+              value: entry.duration ? formatDuration(entry.duration, t) : t('dashboard.active'),
             }))}
             emptyStateText={t('dashboard.noEntries')}
           />
@@ -198,7 +185,7 @@ const Dashboard: React.FC = () => {
               key: usage.id || index,
               mainLabel: usage.appName,
               subLabel: usage.windowTitle,
-              value: usage.duration ? formatDuration(usage.duration) : t('dashboard.active'),
+              value: usage.duration ? formatDuration(usage.duration, t) : t('dashboard.active'),
             }))}
             emptyStateText={t('dashboard.noAppUsage')}
             showCategory={false}

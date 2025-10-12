@@ -329,7 +329,7 @@ const FocusMode: React.FC = () => {
                   {t('focusMode.stats.totalFocusTime')}
                 </p>
                 <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                  {Math.floor((stats?.totalFocusTime || 0) / 60)}m
+                  {Math.floor((stats?.totalFocusTime || 0) / 60)}{t('common.m')}
                 </p>
               </div>
               <div>
@@ -351,15 +351,15 @@ const FocusMode: React.FC = () => {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-400">{t('focusMode.settings.focus')}</span>
-                <span className="font-medium dark:text-gray-200">{settings.focusDuration}m</span>
+                <span className="font-medium dark:text-gray-200">{settings.focusDuration}{t('common.m')}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-400">{t('focusMode.settings.shortBreak')}</span>
-                <span className="font-medium dark:text-gray-200">{settings.shortBreakDuration}m</span>
+                <span className="font-medium dark:text-gray-200">{settings.shortBreakDuration}{t('common.m')}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-400">{t('focusMode.settings.longBreak')}</span>
-                <span className="font-medium dark:text-gray-200">{settings.longBreakDuration}m</span>
+                <span className="font-medium dark:text-gray-200">{settings.longBreakDuration}{t('common.m')}</span>
               </div>
             </div>
           </div>

@@ -16,6 +16,7 @@ import { HourlyHeatmap } from './analytics/HourlyHeatmap';
 import { CalendarHeatmap } from './analytics/CalendarHeatmap';
 import { InsightCard } from './analytics/InsightCard';
 import Skeleton from './ui/Skeleton';
+import { formatDuration } from '../utils/format';
 
 export const Analytics: React.FC = () => {
   const { t } = useTranslation();
@@ -138,13 +139,6 @@ export const Analytics: React.FC = () => {
     loadAnalytics();
   }, [loadAnalytics]);
 
-  // Format duration in hours
-  const formatHours = (minutes: number): string => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
-  };
-
   return (
     <div className="flex flex-col h-full overflow-hidden bg-background">
       {/* Header */}
@@ -193,7 +187,7 @@ export const Analytics: React.FC = () => {
               <StatCard
                 icon={Clock}
                 title={t('analytics.totalProductiveTime', 'Total Productive Time')}
-                value={formatHours(summary.totalProductiveMinutes)}
+                value={formatDuration(summary.totalProductiveMinutes * 60, t)}
                 colorScheme="blue"
               />
               <StatCard
@@ -239,12 +233,12 @@ export const Analytics: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-text-secondary">{t('analytics.totalTime', 'Total Time')}</span>
-                    <span className="text-text-primary font-bold">{formatHours(weeklySummary.totalMinutes)}</span>
+                    <span className="text-text-primary font-bold">{formatDuration(weeklySummary.totalMinutes * 60, t)}</span>
                   </div>
 
                   <div className="flex justify-between items-center">
                     <span className="text-text-secondary">{t('analytics.avgDaily', 'Avg Daily')}</span>
-                    <span className="text-text-primary font-bold">{formatHours(weeklySummary.avgDailyMinutes)}</span>
+                    <span className="text-text-primary font-bold">{formatDuration(weeklySummary.avgDailyMinutes * 60, t)}</span>
                   </div>
 
                   <div className="flex justify-between items-center">

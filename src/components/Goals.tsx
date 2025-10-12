@@ -14,6 +14,18 @@ import TagDisplay from './ui/TagDisplay';
 import { showToast } from '../utils/toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
+interface CategoryData {
+  id?: number;
+  name: string;
+  color: string;
+  description?: string;
+}
+
+interface ApplicationData {
+  name: string;
+  totalDuration: number;
+}
+
 const Goals: React.FC = () => {
   const { t } = useTranslation();
   const [goals, setGoals] = useState<GoalWithProgress[]>([]);
@@ -24,6 +36,8 @@ const Goals: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteGoalId, setDeleteGoalId] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [categories, setCategories] = useState<CategoryData[]>([]);
+  const [applications, setApplications] = useState<ApplicationData[]>([]);
 
   // Form state
   const [formData, setFormData] = useState<{
@@ -89,10 +103,34 @@ const Goals: React.FC = () => {
     }
   }, []);
 
+  const loadCategories = useCallback(async () => {
+    try {
+      if (window.electronAPI) {
+        const categoriesData = await window.electronAPI.getCategories();
+        setCategories(categoriesData);
+      }
+    } catch (error) {
+      console.error('Failed to load categories:', error);
+    }
+  }, []);
+
+  const loadApplications = useCallback(async () => {
+    try {
+      if (window.electronAPI) {
+        const appsData = await window.electronAPI.getTopApplications(100);
+        setApplications(appsData);
+      }
+    } catch (error) {
+      console.error('Failed to load applications:', error);
+    }
+  }, []);
+
   useEffect(() => {
     loadGoals();
     loadStats();
-  }, [loadGoals, loadStats]);
+    loadCategories();
+    loadApplications();
+  }, [loadGoals, loadStats, loadCategories, loadApplications]);
 
   const handleCreateGoal = () => {
     setEditingGoal(null);
@@ -552,24 +590,28 @@ const Goals: React.FC = () => {
 
           {/* Category (for category goals) */}
           {formData.goalType === 'category' && (
-            <FormField
-              type="text"
+            <SelectField
               label={`${t('goals.category')} *`}
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              placeholder={t('goals.categoryPlaceholder')}
+              options={[
+                { value: '', label: t('goals.categoryPlaceholder') },
+                ...categories.map((cat) => ({ value: cat.name, label: cat.name })),
+              ]}
               required
             />
           )}
 
           {/* App Name (for app_limit goals) */}
           {formData.goalType === 'app_limit' && (
-            <FormField
-              type="text"
+            <SelectField
               label={`${t('goals.appName')} *`}
               value={formData.appName}
               onChange={(e) => setFormData({ ...formData, appName: e.target.value })}
-              placeholder={t('goals.appNamePlaceholder')}
+              options={[
+                { value: '', label: t('goals.appNamePlaceholder') },
+                ...applications.map((app) => ({ value: app.name, label: app.name })),
+              ]}
               required
             />
           )}

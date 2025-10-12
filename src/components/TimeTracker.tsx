@@ -6,6 +6,7 @@ import ActivityListCard from './ui/ActivityListCard';
 import Button from './ui/Button';
 import Input from './ui/Input';
 import TagSelector from './ui/TagSelector';
+import { formatDuration } from '../utils/format';
 
 const TimeTracker: React.FC = () => {
   const { t } = useTranslation();
@@ -194,20 +195,6 @@ const TimeTracker: React.FC = () => {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const formatDuration = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours}h ${mins}m`;
-    } else if (mins > 0) {
-      return `${mins}m ${secs}s`;
-    } else {
-      return `${secs}s`;
-    }
-  };
-
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const categoryId = e.target.value ? Number(e.target.value) : null;
     setSelectedCategoryId(categoryId);
@@ -338,7 +325,7 @@ const TimeTracker: React.FC = () => {
             subLabel: `${new Date(entry.startTime).toLocaleDateString()} ${t('timeTracker.at')} ${new Date(entry.startTime).toLocaleTimeString()}`,
             category: entry.category,
             tags: entry.tags,
-            value: entry.duration ? formatDuration(entry.duration) : t('timeTracker.active'),
+            value: entry.duration ? formatDuration(entry.duration, t) : t('timeTracker.active'),
           }))}
           emptyStateText={t('timeTracker.noEntries')}
           className="max-h-80 lg:max-h-[550px] overflow-y-auto"
