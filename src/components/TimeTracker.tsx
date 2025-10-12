@@ -136,23 +136,27 @@ const TimeTracker: React.FC = () => {
           startDate.toISOString(),
           endDate.toISOString(),
           {
-            dateRange: { start: startDate.toISOString(), end: endDate.toISOString() },
             sourceTypes: ['manual'],
           }
         );
 
-        // Convert UnifiedActivity to TimeEntry format (tags already included!)
-        const entries: TimeEntry[] = activities.slice(0, 10).map(activity => ({
-          id: activity.id,
-          task: activity.title,
-          startTime: activity.startTime,
-          endTime: activity.endTime,
-          duration: activity.duration,
-          category: activity.categoryName,
-          categoryId: activity.categoryId,
-          tags: activity.tags,
-          createdAt: activity.createdAt,
-        }));
+        // Sort by most recent first, then take top 10 and convert to TimeEntry format
+        // Tags are already included in the unified API response
+        const entries: TimeEntry[] = activities
+          .slice()
+          .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
+          .slice(0, 10)
+          .map(activity => ({
+            id: activity.id,
+            task: activity.title,
+            startTime: activity.startTime,
+            endTime: activity.endTime,
+            duration: activity.duration,
+            category: activity.categoryName,
+            categoryId: activity.categoryId,
+            tags: activity.tags,
+            createdAt: activity.createdAt,
+          }));
 
         setRecentEntries(entries);
       }
