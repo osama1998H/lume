@@ -91,9 +91,6 @@ const Reports: React.FC = () => {
       return usageDate >= startDate;
     });
 
-    console.log('📊 Reports - Filtered entries count:', filteredEntries.length);
-    console.log('📊 Reports - Filtered usage count:', filteredUsage.length);
-
     return { filteredEntries, filteredUsage };
   };
 
@@ -185,7 +182,6 @@ const Reports: React.FC = () => {
     }, 0);
 
     const totalAppTime = filteredUsage.reduce((sum, usage) => {
-      console.log('📊 Reports - Usage duration:', usage.duration);
       return sum + (usage.duration || 0);
     }, 0);
 

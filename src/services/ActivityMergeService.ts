@@ -202,7 +202,7 @@ export class ActivityMergeService {
     const resolved: ResolvedActivity[] = [];
 
     switch (resolution) {
-      case 'merge':
+      case 'merge': {
         // Merge all overlapping activities into one
         const merged = await this.mergeActivities(activities, 'longest');
         resolved.push({ activity: merged, action: 'update' });
@@ -212,6 +212,7 @@ export class ActivityMergeService {
           resolved.push({ activity, action: 'delete' });
         }
         break;
+      }
 
       case 'delete_one':
         // Keep first, delete rest
@@ -221,13 +222,14 @@ export class ActivityMergeService {
         }
         break;
 
-      case 'adjust_time':
+      case 'adjust_time': {
         // Adjust times to remove overlap
         const adjusted = this.adjustTimesToRemoveOverlap(activities);
         for (const activity of adjusted) {
           resolved.push({ activity, action: 'update' });
         }
         break;
+      }
 
       case 'split':
         // Split overlapping activities at overlap points
@@ -251,13 +253,14 @@ export class ActivityMergeService {
     const resolved: ResolvedActivity[] = [];
 
     switch (resolution) {
-      case 'merge':
+      case 'merge': {
         const merged = await this.mergeActivities(activities, 'earliest');
         resolved.push({ activity: merged, action: 'update' });
         for (const activity of activities.slice(1)) {
           resolved.push({ activity, action: 'delete' });
         }
         break;
+      }
 
       case 'delete_one':
         // Keep first duplicate, delete rest
