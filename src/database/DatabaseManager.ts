@@ -130,13 +130,16 @@ export class DatabaseManager {
    * Clear all data from the database
    * Deletes all records from all tables while preserving the schema
    * Uses a transaction to ensure atomicity
+   * @param options - Optional settings to control compaction behavior
    * @returns true if successful, false otherwise
    */
-  clearAllData(): boolean {
+  clearAllData(options: { compact?: boolean } = {}): boolean {
     if (!this.db) {
       console.error('❌ Database not initialized');
       return false;
     }
+
+    const doCompact = options.compact !== false; // Default to true
 
     try {
       console.log('🗑️  Starting database clear operation...');
@@ -176,15 +179,20 @@ export class DatabaseManager {
       console.log('🔄 Resetting AUTO_INCREMENT sequences...');
       this.db.prepare("DELETE FROM sqlite_sequence").run();
 
-      // Checkpoint the Write-Ahead Log to ensure changes are flushed
-      console.log('💾 Flushing Write-Ahead Log...');
-      this.db.pragma('wal_checkpoint(TRUNCATE)');
+      // Only checkpoint and vacuum if compaction is enabled and not inside another transaction
+      if (doCompact) {
+        // Checkpoint the Write-Ahead Log to ensure changes are flushed
+        console.log('💾 Flushing Write-Ahead Log...');
+        this.db.pragma('wal_checkpoint(TRUNCATE)');
 
-      // VACUUM to reclaim space and compact the database file
-      console.log('🗜️  Compacting database (VACUUM)...');
-      this.db.prepare('VACUUM').run();
+        // VACUUM to reclaim space and compact the database file
+        console.log('🗜️  Compacting database (VACUUM)...');
+        this.db.prepare('VACUUM').run();
+        console.log('✅ Database cleared and compacted successfully');
+      } else {
+        console.log('✅ Database cleared successfully (compaction skipped)');
+      }
 
-      console.log('✅ Database cleared and compacted successfully');
       return true;
     } catch (error) {
       console.error('❌ Failed to clear database:', error);
@@ -288,10 +296,10 @@ export class DatabaseManager {
 
       // Use a transaction to ensure atomicity
       const importTransaction = this.db.transaction(() => {
-        // If replace strategy, clear all data first
+        // If replace strategy, clear all data first (skip compaction to avoid VACUUM in transaction)
         if (options.strategy === 'replace') {
           console.log('🗑️  Clearing existing data (replace mode)...');
-          if (!this.clearAllData()) {
+          if (!this.clearAllData({ compact: false })) {
             throw new Error('Failed to clear existing data');
           }
         }
@@ -329,6 +337,14 @@ export class DatabaseManager {
 
       // Execute the transaction
       importTransaction();
+
+      // Compact database after transaction if replace strategy was used
+      if (options.strategy === 'replace') {
+        console.log('💾 Compacting database after replace...');
+        this.db.pragma('wal_checkpoint(TRUNCATE)');
+        this.db.prepare('VACUUM').run();
+        console.log('✅ Database compacted successfully');
+      }
 
       result.success = true;
       console.log(`📊 Imported ${result.recordsImported} records`);
