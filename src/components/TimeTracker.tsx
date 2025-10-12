@@ -136,7 +136,7 @@ const TimeTracker: React.FC = () => {
           startDate.toISOString(),
           endDate.toISOString(),
           {
-            sourceTypes: ['manual'],
+            sourceType: 'manual',
           }
         );
 
