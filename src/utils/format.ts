@@ -22,11 +22,11 @@ export const formatDuration = (
     parts.push(`${hours}${t('common.h')}`);
   }
 
-  if (minutes > 0 || (hours > 0 && includeSeconds && secs > 0)) {
+  if (minutes > 0) {
     parts.push(`${minutes}${t('common.m')}`);
   }
 
-  if (includeSeconds && secs > 0 && hours === 0) {
+  if (includeSeconds && secs > 0) {
     parts.push(`${secs}${t('common.s')}`);
   }
 

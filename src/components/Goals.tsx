@@ -14,6 +14,18 @@ import TagDisplay from './ui/TagDisplay';
 import { showToast } from '../utils/toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
+interface CategoryData {
+  id?: number;
+  name: string;
+  color: string;
+  description?: string;
+}
+
+interface ApplicationData {
+  name: string;
+  totalDuration: number;
+}
+
 const Goals: React.FC = () => {
   const { t } = useTranslation();
   const [goals, setGoals] = useState<GoalWithProgress[]>([]);
@@ -24,8 +36,8 @@ const Goals: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteGoalId, setDeleteGoalId] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [applications, setApplications] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategoryData[]>([]);
+  const [applications, setApplications] = useState<ApplicationData[]>([]);
 
   // Form state
   const [formData, setFormData] = useState<{
@@ -598,7 +610,7 @@ const Goals: React.FC = () => {
               onChange={(e) => setFormData({ ...formData, appName: e.target.value })}
               options={[
                 { value: '', label: t('goals.appNamePlaceholder') },
-                ...applications.map((app) => ({ value: app.appName, label: app.appName })),
+                ...applications.map((app) => ({ value: app.name, label: app.name })),
               ]}
               required
             />
