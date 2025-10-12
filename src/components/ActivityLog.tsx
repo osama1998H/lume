@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { List, Calendar, Clock, Search, Filter, X, RefreshCw, Plus, BarChart3, RotateCcw, RotateCw, ChevronDown, Sparkles } from 'lucide-react';
+import { List, Calendar, Clock, Filter, RefreshCw, Plus, BarChart3, RotateCcw, RotateCw, ChevronDown, Sparkles } from 'lucide-react';
 import { ActivityLogProvider, useActivityLog, parseSelectionKey } from '../contexts/ActivityLogContext';
 import BulkActionToolbar from './ActivityLog/BulkActionToolbar';
 import ActivityFilters from './ActivityLog/ActivityFilters';
@@ -8,7 +8,7 @@ import ActivityStatsPanel from './ActivityLog/ActivityStatsPanel';
 import DataQualityPanel from './dataQuality/DataQualityPanel';
 import { formatActionDescription } from '../utils/activityHistory';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
-import type { UnifiedActivityFilters, ActivitySourceType, UnifiedActivity, Category, Tag, TimeGap } from '../types';
+import type { UnifiedActivity, Category, Tag, TimeGap } from '../types';
 
 // View components
 import ActivityListView from './ActivityLog/ActivityListView';
@@ -38,8 +38,6 @@ const ActivityLogContent: React.FC = () => {
     setActivities,
     selectedActivities,
     clearSelection,
-    bulkMode,
-    editMode,
     refreshActivities,
     setRefreshCallback,
     undo,
@@ -109,7 +107,7 @@ const ActivityLogContent: React.FC = () => {
     };
 
     loadActivities();
-    setRefreshCallback(() => loadActivities);
+    setRefreshCallback(loadActivities);
   }, [dateRange, filters, setActivities, setRefreshCallback]);
 
   // Handle refresh
@@ -215,12 +213,11 @@ const ActivityLogContent: React.FC = () => {
   const handleCreateActivity = async (data: NewActivityData) => {
     try {
       await window.electronAPI.addTimeEntry({
-        title: data.title,
+        task: data.title,
         startTime: data.startTime,
         endTime: data.endTime,
         duration: data.duration,
         categoryId: data.categoryId,
-        description: data.description,
       });
 
       // Add tags if specified
@@ -237,7 +234,7 @@ const ActivityLogContent: React.FC = () => {
   };
 
   // Handler for creating activity from gap
-  const handleCreateActivityFromGap = (gap: TimeGap) => {
+  const handleCreateActivityFromGap = (_gap: TimeGap) => {
     // Pre-fill create modal with gap time range
     setCreateModalOpen(true);
     // Note: We would need to pass initial data to the modal
@@ -249,7 +246,10 @@ const ActivityLogContent: React.FC = () => {
     try {
       await window.electronAPI.bulkUpdateActivities({
         activityIds: updates.activityIds,
-        categoryId: updates.categoryId,
+        operation: 'update',
+        updates: {
+          categoryId: updates.categoryId ?? undefined,
+        },
         addTagIds: updates.addTagIds,
         removeTagIds: updates.removeTagIds,
       });
@@ -263,10 +263,15 @@ const ActivityLogContent: React.FC = () => {
   };
 
   // Merge handler
-  const handleMerge = async (mergedActivity: Partial<UnifiedActivity>) => {
+  const handleMerge = async (_mergedActivity: Partial<UnifiedActivity>) => {
     try {
       const activityIds = Array.from(selectedActivities).map(parseSelectionKey);
-      await window.electronAPI.mergeActivities(activityIds);
+      // Use bulk operations for merging
+      await window.electronAPI.bulkUpdateActivities({
+        activityIds,
+        operation: 'merge',
+        mergeStrategy: 'longest',
+      });
 
       await refreshActivities();
       clearSelection();
@@ -284,7 +289,7 @@ const ActivityLogContent: React.FC = () => {
       await window.electronAPI.updateUnifiedActivity({
         id: selectedActivityForEdit.id,
         sourceType: selectedActivityForEdit.sourceType,
-        ...updates,
+        updates,
       });
 
       await refreshActivities();

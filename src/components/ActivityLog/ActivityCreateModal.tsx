@@ -426,13 +426,13 @@ const ActivityCreateModal: React.FC<ActivityCreateModalProps> = ({
                 {t('activityLog.tags', 'Tags')}
               </label>
               <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => {
-                  const isSelected = selectedTags.includes(tag.id);
+                {tags.filter(tag => tag.id != null).map((tag) => {
+                  const isSelected = selectedTags.includes(tag.id!);
                   return (
                     <button
                       key={tag.id}
                       type="button"
-                      onClick={() => toggleTag(tag.id)}
+                      onClick={() => toggleTag(tag.id!)}
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                         isSelected
                           ? 'ring-2 ring-offset-2 ring-primary-500 dark:ring-offset-gray-800'

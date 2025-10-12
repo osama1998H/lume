@@ -134,14 +134,7 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
     });
   };
 
-  // Handle category toggle
-  const toggleCategory = (categoryId: number) => {
-    setSelectedCategories(prev =>
-      prev.includes(categoryId)
-        ? prev.filter(id => id !== categoryId)
-        : [...prev, categoryId]
-    );
-  };
+  // Note: Category selection is handled directly via the select element's onChange
 
   // Clear all filters
   const clearFilters = () => {

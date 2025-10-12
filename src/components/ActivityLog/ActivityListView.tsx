@@ -102,7 +102,6 @@ const ActivityListView: React.FC<ActivityListViewProps> = ({
 
     sortedActivities.forEach((activity) => {
       let groupKey = '';
-      let groupLabel = '';
 
       switch (groupBy) {
         case 'date': {
@@ -112,21 +111,13 @@ const ActivityListView: React.FC<ActivityListViewProps> = ({
             month: '2-digit',
             day: '2-digit',
           });
-          groupLabel = date.toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          });
           break;
         }
         case 'type':
           groupKey = activity.sourceType;
-          groupLabel = activity.sourceType.charAt(0).toUpperCase() + activity.sourceType.slice(1);
           break;
         case 'category':
           groupKey = activity.categoryName || 'uncategorized';
-          groupLabel = activity.categoryName || t('common.uncategorized', 'Uncategorized');
           break;
       }
 
@@ -178,8 +169,8 @@ const ActivityListView: React.FC<ActivityListViewProps> = ({
       // Calculate expanded height based on content
       // Base: 72px (main row) + 180px (details grid) + padding
       // If metadata exists, add significant extra height for JSON display
-      const hasMetadata = activity.metadata && Object.keys(activity.metadata).length > 0;
-      const metadataKeys = hasMetadata ? Object.keys(activity.metadata).length : 0;
+      const hasMetadata = activity.metadata && Object.keys(activity.metadata || {}).length > 0;
+      const metadataKeys = hasMetadata ? Object.keys(activity.metadata || {}).length : 0;
       // Estimate ~30px per metadata line, plus base height
       const expandedHeight = hasMetadata ? 280 + (metadataKeys * 30) : 260;
       return isExpanded ? expandedHeight : 72;

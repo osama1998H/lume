@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, GitMerge, Scissors, Clock, Trash2, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, GitMerge, Clock, Trash2, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { UnifiedActivity } from '../../types';
 import SourceTypeIcon from './SourceTypeIcon';
 import { formatDuration } from '../../utils/format';
@@ -295,7 +295,7 @@ const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = ({
                 {t('activityLog.conflictingActivities', 'Conflicting Activities')}
               </h3>
               <div className="space-y-4">
-                {currentConflict.activities.map((activity, idx) => {
+                {currentConflict.activities.map((activity, _idx) => {
                   const position = getActivityPosition(activity);
                   const isSelectedForDeletion = activityToDelete === activity.id;
 

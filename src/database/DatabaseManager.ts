@@ -1201,7 +1201,7 @@ export class DatabaseManager {
   private queryTimeEntriesAsUnified(
     startDate: string,
     endDate: string,
-    filters?: UnifiedActivityFilters
+    _filters?: UnifiedActivityFilters
   ): UnifiedActivity[] {
     if (!this.db) return [];
 
@@ -1260,7 +1260,7 @@ export class DatabaseManager {
   private queryAppUsageAsUnified(
     startDate: string,
     endDate: string,
-    filters?: UnifiedActivityFilters
+    _filters?: UnifiedActivityFilters
   ): UnifiedActivity[] {
     if (!this.db) return [];
 
@@ -1332,7 +1332,7 @@ export class DatabaseManager {
   private queryPomodoroAsUnified(
     startDate: string,
     endDate: string,
-    filters?: UnifiedActivityFilters
+    _filters?: UnifiedActivityFilters
   ): UnifiedActivity[] {
     if (!this.db) return [];
 
@@ -1473,7 +1473,7 @@ export class DatabaseManager {
   updateUnifiedActivity(options: UnifiedActivityUpdateOptions): boolean {
     if (!this.db) return false;
 
-    const { id, sourceType, updates, validateOverlap = true } = options;
+    const { id, sourceType, updates, validateOverlap: _validateOverlap = true } = options;
 
     try {
       // Validate that only editable fields are being updated

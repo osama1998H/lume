@@ -65,7 +65,7 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
     const tagMap = new Map<number, Tag>();
     editableActivities.forEach((activity) => {
       activity.tags?.forEach((tag) => {
-        if (!tagMap.has(tag.id)) {
+        if (tag.id !== undefined && !tagMap.has(tag.id)) {
           tagMap.set(tag.id, tag);
         }
       });
@@ -343,13 +343,13 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                   {t('activityLog.selectTagsToAdd', 'Select tags to add')} *
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {tags.map((tag) => {
-                    const isSelected = selectedTagsToAdd.includes(tag.id);
+                  {tags.filter(tag => tag.id != null).map((tag) => {
+                    const isSelected = selectedTagsToAdd.includes(tag.id!);
                     return (
                       <button
                         key={tag.id}
                         type="button"
-                        onClick={() => toggleTagToAdd(tag.id)}
+                        onClick={() => toggleTagToAdd(tag.id!)}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                           isSelected
                             ? 'ring-2 ring-offset-2 ring-primary-500 dark:ring-offset-gray-800 scale-105'
@@ -388,13 +388,13 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                 </label>
                 {tagsInSelection.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
-                    {tagsInSelection.map((tag) => {
-                      const isSelected = selectedTagsToRemove.includes(tag.id);
+                    {tagsInSelection.filter(tag => tag.id != null).map((tag) => {
+                      const isSelected = selectedTagsToRemove.includes(tag.id!);
                       return (
                         <button
                           key={tag.id}
                           type="button"
-                          onClick={() => toggleTagToRemove(tag.id)}
+                          onClick={() => toggleTagToRemove(tag.id!)}
                           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                             isSelected
                               ? 'ring-2 ring-offset-2 ring-red-500 dark:ring-offset-gray-800 scale-105'

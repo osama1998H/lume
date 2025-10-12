@@ -154,6 +154,9 @@ const Timeline: React.FC<TimelineProps> = ({ dateRange: externalDateRange, onAct
         const a1 = acts[i];
         const a2 = acts[j];
 
+        // Skip activities without endTime
+        if (!a1.endTime || !a2.endTime) continue;
+
         const start1 = new Date(a1.startTime).getTime();
         const end1 = new Date(a1.endTime).getTime();
         const start2 = new Date(a2.startTime).getTime();
@@ -172,8 +175,8 @@ const Timeline: React.FC<TimelineProps> = ({ dateRange: externalDateRange, onAct
 
   // Filter activities
   const filteredActivities = activities.filter((activity) => {
-    if (!filters.sourceTypes.includes(activity.sourceType)) return false;
-    if (filters.categories.length > 0 && !filters.categories.includes(activity.categoryId || 0)) {
+    if (!filters.sourceTypes?.includes(activity.sourceType)) return false;
+    if (filters.categories && filters.categories.length > 0 && !filters.categories.includes(activity.categoryId || 0)) {
       return false;
     }
     if (filters.searchQuery) {
@@ -238,7 +241,7 @@ const Timeline: React.FC<TimelineProps> = ({ dateRange: externalDateRange, onAct
   // Calculate position and width for activity blocks
   const getActivityStyle = (activity: UnifiedActivity) => {
     const startTime = new Date(activity.startTime).getTime();
-    const endTime = new Date(activity.endTime).getTime();
+    const endTime = activity.endTime ? new Date(activity.endTime).getTime() : Date.now();
     const dayStart = dateRange.start.getTime();
     const dayEnd = dateRange.end.getTime();
 
@@ -270,7 +273,8 @@ const Timeline: React.FC<TimelineProps> = ({ dateRange: externalDateRange, onAct
   // Handle activity double-click (edit)
   const handleActivityDoubleClick = (activity: UnifiedActivity, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!activity.isEditable) return;
+    // Only manual activities are editable
+    if (activity.sourceType !== 'manual') return;
     onActivityClick?.(activity);
   };
 
@@ -280,7 +284,8 @@ const Timeline: React.FC<TimelineProps> = ({ dateRange: externalDateRange, onAct
     edge: 'left' | 'right',
     e: React.MouseEvent
   ) => {
-    if (!editMode || !activity.isEditable) return;
+    // Only manual activities are editable
+    if (!editMode || activity.sourceType !== 'manual') return;
 
     e.stopPropagation();
     const initialTime =
@@ -346,7 +351,7 @@ const Timeline: React.FC<TimelineProps> = ({ dateRange: externalDateRange, onAct
       (a) => a.id === dragState.activityId && a.sourceType === dragState.sourceType
     );
 
-    if (updatedActivity) {
+    if (updatedActivity && updatedActivity.endTime) {
       try {
         // Validate no overlaps
         const start = new Date(updatedActivity.startTime).getTime();
@@ -357,9 +362,11 @@ const Timeline: React.FC<TimelineProps> = ({ dateRange: externalDateRange, onAct
         await window.electronAPI.updateUnifiedActivity({
           id: updatedActivity.id,
           sourceType: updatedActivity.sourceType,
-          startTime: updatedActivity.startTime,
-          endTime: updatedActivity.endTime,
-          duration,
+          updates: {
+            startTime: updatedActivity.startTime,
+            endTime: updatedActivity.endTime,
+            duration,
+          },
         });
 
         // Refresh data
@@ -571,17 +578,17 @@ const Timeline: React.FC<TimelineProps> = ({ dateRange: externalDateRange, onAct
               <label key={type} className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
-                  checked={filters.sourceTypes.includes(type)}
+                  checked={filters.sourceTypes?.includes(type) || false}
                   onChange={(e) => {
                     if (e.target.checked) {
                       setFilters({
                         ...filters,
-                        sourceTypes: [...filters.sourceTypes, type],
+                        sourceTypes: [...(filters.sourceTypes || []), type],
                       });
                     } else {
                       setFilters({
                         ...filters,
-                        sourceTypes: filters.sourceTypes.filter((t) => t !== type),
+                        sourceTypes: (filters.sourceTypes || []).filter((t) => t !== type),
                       });
                     }
                   }}
@@ -689,7 +696,7 @@ const Timeline: React.FC<TimelineProps> = ({ dateRange: externalDateRange, onAct
                         <div
                           key={activityId}
                           className={`absolute h-12 rounded-lg cursor-pointer transition-all duration-200 group ${
-                            editMode && activity.isEditable ? 'cursor-ew-resize' : ''
+                            editMode && activity.sourceType === 'manual' ? 'cursor-ew-resize' : ''
                           }`}
                           style={{
                             ...style,
@@ -716,7 +723,7 @@ const Timeline: React.FC<TimelineProps> = ({ dateRange: externalDateRange, onAct
                           )}
 
                           {/* Resize handles (edit mode only) */}
-                          {editMode && activity.isEditable && (
+                          {editMode && activity.sourceType === 'manual' && (
                             <>
                               <div
                                 className="absolute left-0 top-0 bottom-0 w-2 cursor-w-resize hover:bg-black/20 transition-colors"

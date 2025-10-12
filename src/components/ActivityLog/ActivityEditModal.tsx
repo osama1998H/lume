@@ -32,9 +32,10 @@ const ActivityEditModal: React.FC<ActivityEditModalProps> = ({
   const [endTime, setEndTime] = useState('');
   const [categoryId, setCategoryId] = useState<number | null>(activity.categoryId || null);
   const [selectedTags, setSelectedTags] = useState<number[]>(
-    activity.tags?.map(t => t.id) || []
+    activity.tags?.map(t => t.id).filter((id): id is number => id !== undefined) || []
   );
-  const [description, setDescription] = useState(activity.metadata?.description || '');
+  // Note: Description is not currently supported in UnifiedActivityMetadata interface
+  const [description, setDescription] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -112,10 +113,7 @@ const ActivityEditModal: React.FC<ActivityEditModalProps> = ({
         endTime: end.toISOString(),
         duration,
         categoryId: categoryId || undefined,
-        metadata: {
-          ...activity.metadata,
-          description,
-        },
+        // Note: Description is not part of metadata in the current interface
       };
 
       await onSave(updates);
@@ -293,13 +291,13 @@ const ActivityEditModal: React.FC<ActivityEditModalProps> = ({
                 {t('activityLog.tags', 'Tags')}
               </label>
               <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => {
-                  const isSelected = selectedTags.includes(tag.id);
+                {tags.filter(tag => tag.id != null).map((tag) => {
+                  const isSelected = selectedTags.includes(tag.id!);
                   return (
                     <button
                       key={tag.id}
                       type="button"
-                      onClick={() => toggleTag(tag.id)}
+                      onClick={() => toggleTag(tag.id!)}
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                         isSelected
                           ? 'ring-2 ring-offset-2 ring-primary-500 dark:ring-offset-gray-800'

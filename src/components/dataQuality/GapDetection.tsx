@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, AlertCircle, TrendingUp, Calendar, Plus } from 'lucide-react';
 import { TimeGap } from '../../types';
-import { formatDuration, formatTime, formatDate } from '../../utils/format';
+import { formatDuration, formatTime } from '../../utils/format';
 
 interface GapDetectionProps {
   startDate: string;
@@ -189,7 +189,7 @@ const GapDetection: React.FC<GapDetectionProps> = ({ startDate, endDate, onCreat
         ) : (
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
             {gaps.map((gap, index) => {
-              const severity = getGapSeverity(gap.durationSeconds);
+              const severity = getGapSeverity(gap.duration);
               const severityColor = getSeverityColor(severity);
 
               return (
@@ -201,20 +201,20 @@ const GapDetection: React.FC<GapDetectionProps> = ({ startDate, endDate, onCreat
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <span className={`px-2 py-1 rounded text-xs font-medium ${severityColor}`}>
-                          {formatDuration(gap.durationSeconds, t)}
+                          {formatDuration(gap.duration, t)}
                         </span>
                         <span className="text-sm text-gray-600 dark:text-gray-400">
                           {formatTime(gap.startTime)} - {formatTime(gap.endTime)}
                         </span>
                       </div>
-                      {gap.previousActivity && (
+                      {gap.beforeActivity && (
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {t('dataQuality.gaps.after', 'After')}: {gap.previousActivity.title}
+                          {t('dataQuality.gaps.after', 'After')}: {gap.beforeActivity.title}
                         </div>
                       )}
-                      {gap.nextActivity && (
+                      {gap.afterActivity && (
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {t('dataQuality.gaps.before', 'Before')}: {gap.nextActivity.title}
+                          {t('dataQuality.gaps.before', 'Before')}: {gap.afterActivity.title}
                         </div>
                       )}
                     </div>

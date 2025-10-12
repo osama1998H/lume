@@ -2,8 +2,7 @@ import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, PieChart, TrendingUp, AlertCircle, Activity, Target } from 'lucide-react';
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
-import type { UnifiedActivity, CategoryStats, TimeGap } from '../../types';
-import StatCard from '../ui/StatCard';
+import type { UnifiedActivity, TimeGap } from '../../types';
 import { formatDuration } from '../../utils/format';
 
 interface ActivityStatsPanelProps {
@@ -129,12 +128,7 @@ const ActivityStatsPanel: React.FC<ActivityStatsPanelProps> = ({ activities, dat
     };
   }, [activities, dateRange]);
 
-  // Get color for data quality score
-  const getQualityColor = (score: number) => {
-    if (score >= 80) return 'green';
-    if (score >= 50) return 'orange';
-    return 'red';
-  };
+  // Note: Quality color is determined inline in the JSX below based on score thresholds
 
   return (
     <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-6 space-y-6 overflow-y-auto">

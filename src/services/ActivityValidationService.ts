@@ -11,10 +11,8 @@ import {
  * Validates unified activities before database operations to ensure data integrity
  */
 export class ActivityValidationService {
-  private db: DatabaseManager;
-
-  constructor(db: DatabaseManager) {
-    this.db = db;
+  constructor(_db: DatabaseManager) {
+    // db parameter reserved for future database operations
   }
 
   /**

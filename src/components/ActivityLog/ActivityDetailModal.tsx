@@ -34,18 +34,6 @@ const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
   const { t } = useTranslation();
 
   // Format date and time
-  const formatDateTime = (dateString: string): string => {
-    return new Date(dateString).toLocaleString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-  };
-
   const formatTime = (dateString: string): string => {
     return new Date(dateString).toLocaleTimeString('en-US', {
       hour: '2-digit',
@@ -175,21 +163,11 @@ const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                   <Tag className="w-4 h-4" />
                   {t('activityLog.tags', 'Tags')}
                 </div>
-                <TagDisplay tags={activity.tags} maxVisible={10} size="md" />
+                <TagDisplay tags={activity.tags} maxDisplay={10} size="md" />
               </div>
             )}
 
-            {/* Description (for manual activities) */}
-            {activity.type === 'manual' && activity.metadata?.description && (
-              <div>
-                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('activityLog.description', 'Description')}
-                </div>
-                <p className="text-gray-900 dark:text-white whitespace-pre-wrap">
-                  {activity.metadata.description}
-                </p>
-              </div>
-            )}
+            {/* Description (for manual activities) - Note: Description not currently supported in metadata */}
 
             {/* Metadata (for automatic activities) */}
             {activity.sourceType === 'automatic' && activity.metadata && (

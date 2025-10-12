@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Copy, AlertCircle, Percent, GitMerge, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Copy, AlertCircle, Percent, GitMerge, ChevronDown, ChevronUp } from 'lucide-react';
 import { UnifiedActivity } from '../../types';
 import { formatDuration, formatTime, formatDate } from '../../utils/format';
 

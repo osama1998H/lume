@@ -14,11 +14,10 @@ import {
  * Handles merging, splitting, and conflict resolution for unified activities
  */
 export class ActivityMergeService {
-  private db: DatabaseManager;
   private validationService: ActivityValidationService;
 
-  constructor(db: DatabaseManager, validationService: ActivityValidationService) {
-    this.db = db;
+  constructor(_db: DatabaseManager, validationService: ActivityValidationService) {
+    // db parameter reserved for future database operations
     this.validationService = validationService;
   }
 
@@ -174,8 +173,6 @@ export class ActivityMergeService {
     conflict: ActivityConflict,
     resolution: 'merge' | 'split' | 'delete_one' | 'adjust_time'
   ): Promise<ResolvedActivity[]> {
-    const resolved: ResolvedActivity[] = [];
-
     switch (conflict.conflictType) {
       case 'overlap':
         return this.resolveOverlapConflict(conflict.activities, resolution);

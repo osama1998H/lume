@@ -92,7 +92,7 @@ const ActivityRow: React.FC<ActivityRowProps> = ({
     // Don't trigger if clicking on checkbox, buttons, or other interactive elements
     const target = e.target as HTMLElement;
     if (
-      target.type === 'checkbox' ||
+      (target as HTMLInputElement).type === 'checkbox' ||
       target.tagName === 'BUTTON' ||
       target.closest('button')
     ) {
@@ -181,7 +181,7 @@ const ActivityRow: React.FC<ActivityRowProps> = ({
         {/* Tags */}
         <div className="flex-shrink-0 min-w-[150px]">
           {activity.tags && activity.tags.length > 0 ? (
-            <TagDisplay tags={activity.tags} maxVisible={2} size="sm" />
+            <TagDisplay tags={activity.tags} maxDisplay={2} size="sm" />
           ) : (
             <span className="text-xs text-gray-400 dark:text-gray-500">{t('common.noTags', 'No tags')}</span>
           )}

@@ -233,6 +233,7 @@ export interface TimelineSummary {
 // Unified Activity Types (for Activity Log feature)
 export type ActivitySourceType = 'manual' | 'automatic' | 'pomodoro';
 export type UnifiedActivityType = 'time_entry' | 'app' | 'browser' | 'pomodoro_focus' | 'pomodoro_break';
+export type ConflictType = 'overlap' | 'duplicate' | 'gap';
 
 /**
  * Unified Activity - Combines TimeEntry, AppUsage, and PomodoroSession
@@ -325,6 +326,8 @@ export interface BulkActivityOperation {
   operation: 'update' | 'delete' | 'merge';
   updates?: Partial<UnifiedActivity>; // For bulk updates
   mergeStrategy?: 'longest' | 'earliest' | 'latest'; // For merge operations
+  addTagIds?: number[]; // Tag IDs to add to activities
+  removeTagIds?: number[]; // Tag IDs to remove from activities
 }
 
 /**

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, X } from 'lucide-react';
 import { useActivityLog } from '../../contexts/ActivityLogContext';
 import ActivityCard from './ActivityCard';
 import type { UnifiedActivity } from '../../types';
@@ -350,8 +350,7 @@ const ActivityCalendarView: React.FC<ActivityCalendarViewProps> = ({
                         activity={activity}
                         compact={true}
                         showDate={false}
-                        onClick={(e) => {
-                          e?.stopPropagation();
+                        onClick={() => {
                           onActivityClick?.(activity);
                         }}
                       />

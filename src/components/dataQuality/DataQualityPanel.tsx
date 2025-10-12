@@ -32,7 +32,11 @@ const DataQualityPanel: React.FC<DataQualityPanelProps> = ({
     if (!window.electronAPI) return;
 
     try {
-      const result = await window.electronAPI.mergeActivities(activityIds, 'longest');
+      const result = await window.electronAPI.bulkUpdateActivities({
+        activityIds: activityIds as Array<{ id: number; sourceType: 'manual' | 'automatic' | 'pomodoro' }>,
+        operation: 'merge',
+        mergeStrategy: 'longest',
+      });
 
       if (result.success) {
         // Refresh activities after successful merge
@@ -40,7 +44,7 @@ const DataQualityPanel: React.FC<DataQualityPanelProps> = ({
           onRefreshActivities();
         }
       } else {
-        throw new Error(result.error || 'Failed to merge activities');
+        throw new Error('Failed to merge activities');
       }
     } catch (error) {
       console.error('Error merging activities:', error);

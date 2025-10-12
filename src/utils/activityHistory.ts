@@ -324,7 +324,7 @@ export const createMergeAction = (
 /**
  * Format action description for display
  */
-export const formatActionDescription = (action: HistoryAction, t: any): string => {
+export const formatActionDescription = (action: HistoryAction, _t: any): string => {
   const timeDiff = Date.now() - new Date(action.timestamp).getTime();
   const minutesAgo = Math.floor(timeDiff / 60000);
   const hoursAgo = Math.floor(minutesAgo / 60);
