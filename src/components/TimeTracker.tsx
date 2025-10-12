@@ -127,18 +127,34 @@ const TimeTracker: React.FC = () => {
   const loadRecentEntries = async () => {
     try {
       if (window.electronAPI) {
-        const entries = await window.electronAPI.getTimeEntries();
-        // Load tags for each entry
-        const entriesWithTags = await Promise.all(
-          entries.slice(0, 10).map(async (entry) => {
-            if (entry.id) {
-              const tags = await window.electronAPI.getTimeEntryTags(entry.id);
-              return { ...entry, tags };
-            }
-            return entry;
-          })
+        // Get last 30 days of manual activities (time entries)
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30); // Last 30 days
+
+        const activities = await window.electronAPI.getUnifiedActivities(
+          startDate.toISOString(),
+          endDate.toISOString(),
+          {
+            dateRange: { start: startDate.toISOString(), end: endDate.toISOString() },
+            sourceTypes: ['manual'],
+          }
         );
-        setRecentEntries(entriesWithTags);
+
+        // Convert UnifiedActivity to TimeEntry format (tags already included!)
+        const entries: TimeEntry[] = activities.slice(0, 10).map(activity => ({
+          id: activity.id,
+          task: activity.title,
+          startTime: activity.startTime,
+          endTime: activity.endTime,
+          duration: activity.duration,
+          category: activity.categoryName,
+          categoryId: activity.categoryId,
+          tags: activity.tags,
+          createdAt: activity.createdAt,
+        }));
+
+        setRecentEntries(entries);
       }
     } catch (error) {
       console.error('Failed to load recent entries:', error);
