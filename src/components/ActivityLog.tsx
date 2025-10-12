@@ -112,6 +112,16 @@ const ActivityLogContent: React.FC = () => {
     setRefreshCallback(() => loadActivities);
   }, [dateRange, filters, setActivities, setRefreshCallback]);
 
+  // Handle refresh
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshActivities();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   // Keyboard shortcuts
   useKeyboardShortcuts([
     {
@@ -164,16 +174,6 @@ const ActivityLogContent: React.FC = () => {
     { id: 'timeline', label: t('activityLog.timelineView', 'Timeline'), icon: Clock },
     { id: 'calendar', label: t('activityLog.calendarView', 'Calendar'), icon: Calendar },
   ] as const;
-
-  // Handle refresh
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      await refreshActivities();
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
 
   // Bulk action handlers
   const handleBulkDelete = async () => {
