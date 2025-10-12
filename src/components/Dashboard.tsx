@@ -45,8 +45,6 @@ const Dashboard: React.FC = () => {
 
   const getTodayStats = () => {
     const today = new Date().toISOString().split('T')[0];
-    console.log('📊 Dashboard - Total entries:', timeEntries.length);
-    console.log('📊 Dashboard - Today date:', today);
 
     const todayEntries = timeEntries.filter(entry => {
       if (!entry.startTime) return false;
