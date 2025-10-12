@@ -13,6 +13,7 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
   const [activities, setActivities] = useState<UnifiedActivity[]>([]);
+  const [activeEntry, setActiveEntry] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Keyboard shortcut for refreshing data
@@ -34,19 +35,24 @@ const Dashboard: React.FC = () => {
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
 
-        const unifiedActivities = await window.electronAPI.getUnifiedActivities(
-          today.toISOString(),
-          tomorrow.toISOString(),
-          {
-            dateRange: {
-              start: today.toISOString(),
-              end: tomorrow.toISOString(),
-            },
-            sourceTypes: ['manual', 'automatic', 'pomodoro'],
-          }
-        );
+        // Fetch both completed activities and active entry in parallel
+        const [unifiedActivities, activeTimeEntry] = await Promise.all([
+          window.electronAPI.getUnifiedActivities(
+            today.toISOString(),
+            tomorrow.toISOString(),
+            {
+              dateRange: {
+                start: today.toISOString(),
+                end: tomorrow.toISOString(),
+              },
+              sourceTypes: ['manual', 'automatic', 'pomodoro'],
+            }
+          ),
+          window.electronAPI.getActiveTimeEntry(),
+        ]);
 
         setActivities(unifiedActivities);
+        setActiveEntry(activeTimeEntry);
       }
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -64,12 +70,11 @@ const Dashboard: React.FC = () => {
     }, 0);
 
     const completedTasks = manualActivities.filter(activity => activity.endTime).length;
-    const activeActivity = manualActivities.find(activity => !activity.endTime);
 
     return {
       totalTime: totalSeconds,
       tasksCompleted: completedTasks,
-      activeTask: activeActivity?.title || null,
+      activeTask: activeEntry?.task || null,
     };
   };
 
