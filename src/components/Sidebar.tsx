@@ -77,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
   return (
     <aside
       className={`
-        ${isCollapsed ? 'w-20' : 'w-64'}
+        ${isCollapsed ? 'w-24' : 'w-64'}
         bg-white dark:bg-gray-800 h-full border-r border-gray-200 dark:border-gray-700
         transition-all duration-300 ease-in-out
         flex flex-col
@@ -85,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
       role="navigation"
       aria-label={t('navigation.mainNavigation', 'Main navigation')}
     >
-      <div className="flex-1 p-6">
+      <div className={`flex-1 ${isCollapsed ? 'px-3 py-6' : 'p-6'}`}>
         <div className={`mb-8 flex items-center ${isCollapsed ? 'justify-center' : 'gap-2'}`}>
           <div className={`
             ${isCollapsed ? 'w-11 h-11' : 'w-8 h-8'}
@@ -105,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
             </h1>
           )}
         </div>
-        <nav className="space-y-2.5" aria-label={t('navigation.primaryNavigation', 'Primary navigation')}>
+        <nav className={`space-y-2.5 ${isCollapsed ? 'flex flex-col items-center' : ''}`} aria-label={t('navigation.primaryNavigation', 'Primary navigation')}>
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = currentView === item.id;
@@ -149,7 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
       </div>
 
       {/* Toggle Button */}
-      <div className={`p-4 border-t border-gray-200 dark:border-gray-700 ${isCollapsed ? 'flex justify-center' : ''}`}>
+      <div className={`${isCollapsed ? 'px-3 py-4' : 'p-4'} border-t border-gray-200 dark:border-gray-700 ${isCollapsed ? 'flex justify-center' : ''}`}>
         <button
           onClick={toggleSidebar}
           title={isCollapsed ? t('navigation.expandSidebar') : t('navigation.collapseSidebar')}
