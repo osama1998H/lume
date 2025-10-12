@@ -31,10 +31,6 @@ const Reports: React.FC = () => {
             startDate.toISOString(),
             endDate.toISOString(),
             {
-              dateRange: {
-                start: startDate.toISOString(),
-                end: endDate.toISOString(),
-              },
               sourceTypes: ['manual', 'automatic', 'pomodoro'],
             }
           ),

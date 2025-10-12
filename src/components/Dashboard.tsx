@@ -41,10 +41,6 @@ const Dashboard: React.FC = () => {
             today.toISOString(),
             tomorrow.toISOString(),
             {
-              dateRange: {
-                start: today.toISOString(),
-                end: tomorrow.toISOString(),
-              },
               sourceTypes: ['manual', 'automatic', 'pomodoro'],
             }
           ),

@@ -293,7 +293,7 @@ export interface UnifiedActivityMetadata {
  * Filters for querying unified activities
  */
 export interface UnifiedActivityFilters {
-  dateRange: {
+  dateRange?: {
     start: string; // ISO string
     end: string; // ISO string
   };
