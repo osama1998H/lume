@@ -1,22 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, CheckCircle2, Timer, Smartphone } from 'lucide-react';
-import { TimeEntry, AppUsage, Category } from '../types';
-import { ActivitySession } from '../types/activity';
+import { UnifiedActivity, Category } from '../types';
 import StatCard from './ui/StatCard';
 import ProgressListCard from './ui/ProgressListCard';
-import Badge from './ui/Badge';
 import DateRangeFilter from './ui/DateRangeFilter';
 import { formatDuration } from '../utils/format';
 
 const Reports: React.FC = () => {
   const { t } = useTranslation();
-  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
-  const [appUsage, setAppUsage] = useState<AppUsage[]>([]);
+  const [activities, setActivities] = useState<UnifiedActivity[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [topApplications, setTopApplications] = useState<Array<{name: string, totalDuration: number}>>([]);
-  const [topWebsites, setTopWebsites] = useState<Array<{domain: string, totalDuration: number}>>([]);
-  const [activitySessions, setActivitySessions] = useState<ActivitySession[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<'day' | 'week' | 'month'>('week');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -27,21 +21,24 @@ const Reports: React.FC = () => {
   const loadData = async () => {
     try {
       if (window.electronAPI) {
-        const [entries, usage, cats, sessions, topApps, topSites] = await Promise.all([
-          window.electronAPI.getTimeEntries(),
-          window.electronAPI.getAppUsage(),
+        // Get date range for the last 3 months to have enough data for all periods
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 3);
+
+        const [unifiedActivities, cats] = await Promise.all([
+          window.electronAPI.getUnifiedActivities(
+            startDate.toISOString(),
+            endDate.toISOString(),
+            {
+              sourceTypes: ['manual', 'automatic', 'pomodoro'],
+            }
+          ),
           window.electronAPI.getCategories(),
-          window.electronAPI.getRecentActivitySessions(100),
-          window.electronAPI.getTopApplications(10),
-          window.electronAPI.getTopWebsites(10),
         ]);
 
-        setTimeEntries(entries);
-        setAppUsage(usage);
+        setActivities(unifiedActivities);
         setCategories(cats);
-        setActivitySessions(sessions);
-        setTopApplications(topApps);
-        setTopWebsites(topSites);
       }
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -66,37 +63,39 @@ const Reports: React.FC = () => {
         break;
     }
 
-    const filteredEntries = timeEntries.filter(entry => {
-      const entryDate = new Date(entry.startTime);
-      const matches = entryDate >= startDate;
-      if (!matches && timeEntries.indexOf(entry) < 3) {
-        console.log('📊 Reports - Excluded time entry:', entry.startTime, 'vs', startDate.toISOString());
-      }
-      return matches;
+    const filteredActivities = activities.filter(activity => {
+      if (!activity.startTime) return false;
+      const activityDate = new Date(activity.startTime);
+      return activityDate >= startDate;
     });
 
-    const filteredUsage = appUsage.filter(usage => {
-      const usageDate = new Date(usage.startTime);
-      return usageDate >= startDate;
-    });
+    // Separate by source type for specific statistics
+    const manualActivities = filteredActivities.filter(a => a.sourceType === 'manual');
+    const automaticActivities = filteredActivities.filter(a => a.sourceType === 'automatic');
+    const pomodoroActivities = filteredActivities.filter(a => a.sourceType === 'pomodoro');
 
-    return { filteredEntries, filteredUsage };
+    return {
+      filteredActivities,
+      manualActivities,
+      automaticActivities,
+      pomodoroActivities
+    };
   };
 
   const getTimeByCategory = () => {
-    const { filteredEntries } = getFilteredData();
+    const { filteredActivities } = getFilteredData();
     const categoryTimes: Record<number | string, { name: string; color: string; time: number }> = {};
 
-    filteredEntries.forEach(entry => {
+    filteredActivities.forEach(activity => {
       // Use categoryId to lookup actual category data
       let categoryKey: number | string;
       let categoryName: string;
       let categoryColor: string;
 
-      if (entry.categoryId) {
-        const category = categories.find(c => c.id === entry.categoryId);
+      if (activity.categoryId) {
+        const category = categories.find(c => c.id === activity.categoryId);
         if (category) {
-          categoryKey = entry.categoryId;
+          categoryKey = activity.categoryId;
           categoryName = category.name;
           categoryColor = category.color;
         } else {
@@ -106,25 +105,17 @@ const Reports: React.FC = () => {
           categoryColor = '#6B7280';
         }
       } else {
-        // No categoryId - backward compatibility or truly uncategorized
+        // No categoryId - uncategorized
         categoryKey = 'uncategorized';
         categoryName = 'Uncategorized';
         categoryColor = '#6B7280';
-      }
-
-      // Calculate duration if missing
-      let {duration} = entry;
-      if (!duration && entry.startTime && entry.endTime) {
-        const start = new Date(entry.startTime).getTime();
-        const end = new Date(entry.endTime).getTime();
-        duration = Math.floor((end - start) / 1000);
       }
 
       // Initialize or update category time
       if (!categoryTimes[categoryKey]) {
         categoryTimes[categoryKey] = { name: categoryName, color: categoryColor, time: 0 };
       }
-      categoryTimes[categoryKey].time += duration || 0;
+      categoryTimes[categoryKey].time += activity.duration || 0;
     });
 
     return Object.values(categoryTimes)
@@ -133,11 +124,12 @@ const Reports: React.FC = () => {
   };
 
   const getTopApps = () => {
-    const { filteredUsage } = getFilteredData();
+    const { automaticActivities } = getFilteredData();
     const appTimes: Record<string, number> = {};
 
-    filteredUsage.forEach(usage => {
-      appTimes[usage.appName] = (appTimes[usage.appName] || 0) + (usage.duration || 0);
+    automaticActivities.forEach(activity => {
+      const appName = activity.metadata?.appName || activity.title || 'Unknown';
+      appTimes[appName] = (appTimes[appName] || 0) + (activity.duration || 0);
     });
 
     return Object.entries(appTimes)
@@ -146,33 +138,22 @@ const Reports: React.FC = () => {
   };
 
   const getTotalStats = () => {
-    const { filteredEntries, filteredUsage } = getFilteredData();
+    const { manualActivities, automaticActivities } = getFilteredData();
 
-    if (filteredEntries.length > 0) {
-      console.log('📊 Reports - First filtered entry FULL DATA:', filteredEntries[0]);
-    }
-
-    const totalTrackedTime = filteredEntries.reduce((sum, entry) => {
-      // Calculate duration if missing but start/end times exist
-      let {duration} = entry;
-
-      if (!duration && entry.startTime && entry.endTime) {
-        const start = new Date(entry.startTime).getTime();
-        const end = new Date(entry.endTime).getTime();
-        duration = Math.floor((end - start) / 1000); // in seconds
-        console.log('📊 Reports - Calculated duration from times:', duration, 'seconds');
-      }
-
-      console.log('📊 Reports - Entry duration:', entry.duration, 'Calculated:', duration);
-      return sum + (duration || 0);
+    // Total tracked time from manual activities
+    const totalTrackedTime = manualActivities.reduce((sum, activity) => {
+      return sum + (activity.duration || 0);
     }, 0);
 
-    const totalAppTime = filteredUsage.reduce((sum, usage) => {
-      return sum + (usage.duration || 0);
+    // Total app usage time from automatic activities
+    const totalAppTime = automaticActivities.reduce((sum, activity) => {
+      return sum + (activity.duration || 0);
     }, 0);
 
-    const completedTasks = filteredEntries.filter(entry => entry.endTime).length;
+    // Count completed manual tasks (tasks with endTime)
+    const completedTasks = manualActivities.filter(activity => activity.endTime).length;
 
+    // Average time per task
     const averageTaskTime = completedTasks > 0 ? Math.round(totalTrackedTime / completedTasks) : 0;
 
     return {
@@ -267,89 +248,6 @@ const Reports: React.FC = () => {
           colorScheme="green"
           emptyStateText={t('reports.noData')}
         />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        <ProgressListCard
-          title={t('reports.activityTrackingTopApps')}
-          items={topApplications.map((app) => ({
-            key: app.name,
-            label: app.name,
-            value: app.totalDuration,
-            formattedValue: formatDuration(app.totalDuration, t),
-          }))}
-          colorScheme="blue"
-          emptyStateText={t('reports.noActivityData')}
-        />
-
-        <ProgressListCard
-          title={t('reports.activityTrackingTopWebsites')}
-          items={topWebsites.map((site) => ({
-            key: site.domain,
-            label: site.domain,
-            value: site.totalDuration,
-            formattedValue: formatDuration(site.totalDuration, t),
-          }))}
-          colorScheme="purple"
-          emptyStateText={t('reports.noWebsiteData')}
-        />
-      </div>
-
-      <div className="card mt-8">
-        <h3 className="text-xl font-semibold mb-4 dark:text-gray-100">{t('reports.recentActivitySessions')}</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700/50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('reports.application')}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('reports.category')}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('reports.domain')}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('reports.duration')}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('reports.startTime')}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {activitySessions.slice(0, 20).map((session, index) => (
-                <tr key={session.id || index} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {session.app_name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    <Badge variant={session.category === 'website' ? 'primary' : 'info'} size="sm">
-                      {session.category}
-                    </Badge>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {session.domain || session.window_title || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {session.duration ? formatDuration(session.duration, t) : '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {session.start_time ? new Date(session.start_time).toLocaleString() : '-'}
-                  </td>
-                </tr>
-              ))}
-              {activitySessions.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                    {t('reports.noActivityData')}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
   );

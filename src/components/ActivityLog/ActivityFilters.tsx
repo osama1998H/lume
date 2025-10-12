@@ -182,10 +182,12 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
     const { filters: presetFilters } = preset;
 
     // Load date range
-    setDateRange({
-      start: new Date(presetFilters.dateRange.start),
-      end: new Date(presetFilters.dateRange.end),
-    });
+    if (presetFilters.dateRange) {
+      setDateRange({
+        start: new Date(presetFilters.dateRange.start),
+        end: new Date(presetFilters.dateRange.end),
+      });
+    }
 
     // Load other filters
     setSelectedSourceTypes(presetFilters.sourceTypes || ['manual', 'automatic', 'pomodoro']);

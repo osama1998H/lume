@@ -1457,7 +1457,7 @@ export class DatabaseManager {
       const activities = this.getUnifiedActivities(
         new Date('1970-01-01').toISOString(),
         new Date('2100-12-31').toISOString(),
-        { dateRange: { start: '', end: '' }, sourceTypes: [sourceType] }
+        { sourceTypes: [sourceType] }
       );
 
       return activities.find(a => a.id === id && a.sourceType === sourceType) || null;
@@ -1794,18 +1794,20 @@ export class DatabaseManager {
     }
 
     // Create search filter
+    const dateRange = filters?.dateRange || {
+      start: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), // Last 90 days
+      end: new Date().toISOString(),
+    };
+
     const searchFilters: UnifiedActivityFilters = {
       ...filters,
-      dateRange: filters?.dateRange || {
-        start: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), // Last 90 days
-        end: new Date().toISOString(),
-      },
+      dateRange,
       searchQuery: query,
     };
 
     return this.getUnifiedActivities(
-      searchFilters.dateRange.start,
-      searchFilters.dateRange.end,
+      dateRange.start,
+      dateRange.end,
       searchFilters
     );
   }

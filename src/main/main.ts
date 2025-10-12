@@ -239,15 +239,6 @@ class LumeApp {
   }
 
   private setupIPC(): void {
-    ipcMain.handle('get-time-entries', async () => {
-      try {
-        return this.dbManager?.getTimeEntries() || [];
-      } catch (error) {
-        console.error('Failed to get time entries:', error);
-        return [];
-      }
-    });
-
     ipcMain.handle('add-time-entry', async (_, entry) => {
       try {
         console.log('Add time entry:', entry);
@@ -276,15 +267,6 @@ class LumeApp {
       } catch (error) {
         console.error('Failed to get active time entry:', error);
         return null;
-      }
-    });
-
-    ipcMain.handle('get-app-usage', async () => {
-      try {
-        return this.dbManager?.getAppUsage() || [];
-      } catch (error) {
-        console.error('Failed to get app usage:', error);
-        return [];
       }
     });
 
@@ -540,15 +522,6 @@ class LumeApp {
       } catch (error) {
         console.error('Failed to update pomodoro session:', error);
         return false;
-      }
-    });
-
-    ipcMain.handle('get-pomodoro-sessions', async (_, limit = 100) => {
-      try {
-        return this.dbManager?.getPomodoroSessions(limit) || [];
-      } catch (error) {
-        console.error('Failed to get pomodoro sessions:', error);
-        return [];
       }
     });
 

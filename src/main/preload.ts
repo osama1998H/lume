@@ -27,11 +27,9 @@ import type {
 // Preload script should not initialize Sentry to avoid duplicate tracking
 
 export interface IElectronAPI {
-  getTimeEntries: () => Promise<any[]>;
   addTimeEntry: (entry: any) => Promise<number>;
   updateTimeEntry: (id: number, updates: any) => Promise<boolean>;
   getActiveTimeEntry: () => Promise<any | null>;
-  getAppUsage: () => Promise<any[]>;
   addAppUsage: (usage: any) => Promise<number>;
   getSettings: () => Promise<any>;
   saveSettings: (settings: any) => Promise<boolean>;
@@ -53,7 +51,6 @@ export interface IElectronAPI {
   savePomodoroSettings: (settings: any) => Promise<boolean>;
   addPomodoroSession: (session: any) => Promise<number>;
   updatePomodoroSession: (id: number, updates: any) => Promise<boolean>;
-  getPomodoroSessions: (limit?: number) => Promise<any[]>;
   getPomodoroStats: (startDate?: string, endDate?: string) => Promise<any>;
   // Pomodoro Timer Control
   startPomodoroSession: (task: string, sessionType: string) => Promise<void>;
@@ -172,11 +169,9 @@ export interface IElectronAPI {
 }
 
 const electronAPI: IElectronAPI = {
-  getTimeEntries: () => ipcRenderer.invoke('get-time-entries'),
   addTimeEntry: (entry) => ipcRenderer.invoke('add-time-entry', entry),
   updateTimeEntry: (id, updates) => ipcRenderer.invoke('update-time-entry', id, updates),
   getActiveTimeEntry: () => ipcRenderer.invoke('get-active-time-entry'),
-  getAppUsage: () => ipcRenderer.invoke('get-app-usage'),
   addAppUsage: (usage) => ipcRenderer.invoke('add-app-usage', usage),
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
@@ -198,7 +193,6 @@ const electronAPI: IElectronAPI = {
   savePomodoroSettings: (settings) => ipcRenderer.invoke('save-pomodoro-settings', settings),
   addPomodoroSession: (session) => ipcRenderer.invoke('add-pomodoro-session', session),
   updatePomodoroSession: (id, updates) => ipcRenderer.invoke('update-pomodoro-session', id, updates),
-  getPomodoroSessions: (limit) => ipcRenderer.invoke('get-pomodoro-sessions', limit),
   getPomodoroStats: (startDate, endDate) => ipcRenderer.invoke('get-pomodoro-stats', startDate, endDate),
   // Pomodoro Timer Control
   startPomodoroSession: (task, sessionType) => ipcRenderer.invoke('start-pomodoro-session', task, sessionType),

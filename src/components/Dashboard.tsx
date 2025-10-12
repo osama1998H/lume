@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, CheckCircle2, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { TimeEntry, AppUsage } from '../types';
+import { UnifiedActivity } from '../types';
 import GoalProgressWidget from './GoalProgressWidget';
 import StatCard from './ui/StatCard';
 import ActivityListCard from './ui/ActivityListCard';
@@ -12,8 +12,8 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
-  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
-  const [appUsage, setAppUsage] = useState<AppUsage[]>([]);
+  const [activities, setActivities] = useState<UnifiedActivity[]>([]);
+  const [activeEntry, setActiveEntry] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Keyboard shortcut for refreshing data
@@ -29,12 +29,26 @@ const Dashboard: React.FC = () => {
   const loadData = async () => {
     try {
       if (window.electronAPI) {
-        const [entries, usage] = await Promise.all([
-          window.electronAPI.getTimeEntries(),
-          window.electronAPI.getAppUsage(),
+        // Get today's activities
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        // Fetch both completed activities and active entry in parallel
+        const [unifiedActivities, activeTimeEntry] = await Promise.all([
+          window.electronAPI.getUnifiedActivities(
+            today.toISOString(),
+            tomorrow.toISOString(),
+            {
+              sourceTypes: ['manual', 'automatic', 'pomodoro'],
+            }
+          ),
+          window.electronAPI.getActiveTimeEntry(),
         ]);
-        setTimeEntries(entries);
-        setAppUsage(usage);
+
+        setActivities(unifiedActivities);
+        setActiveEntry(activeTimeEntry);
       }
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -44,37 +58,19 @@ const Dashboard: React.FC = () => {
   };
 
   const getTodayStats = () => {
-    const today = new Date().toISOString().split('T')[0];
+    // Filter for manual activities only (tasks) for task-related stats
+    const manualActivities = activities.filter(a => a.sourceType === 'manual');
 
-    const todayEntries = timeEntries.filter(entry => {
-      if (!entry.startTime) return false;
-      // Normalize entry.startTime to date string (YYYY-MM-DD)
-      const entryDate = new Date(entry.startTime);
-      // Use toISOString to get UTC date, or use toLocaleDateString for local date
-      const entryDateString = entryDate.toISOString().split('T')[0];
-      const isToday = entryDateString === today;
-      if (isToday) {
-        console.log('📊 Dashboard - Found today entry:', entry);
-      }
-      return isToday;
-    });
-
-
-    const totalSeconds = todayEntries.reduce((sum, entry) => {
-      // Calculate duration if missing
-      let {duration} = entry;
-      if (!duration && entry.startTime && entry.endTime) {
-        const start = new Date(entry.startTime).getTime();
-        const end = new Date(entry.endTime).getTime();
-        duration = Math.floor((end - start) / 1000);
-      }
-      return sum + (duration || 0);
+    const totalSeconds = manualActivities.reduce((sum, activity) => {
+      return sum + (activity.duration || 0);
     }, 0);
+
+    const completedTasks = manualActivities.filter(activity => activity.endTime).length;
 
     return {
       totalTime: totalSeconds,
-      tasksCompleted: todayEntries.filter(entry => entry.endTime).length,
-      activeTask: todayEntries.find(entry => !entry.endTime)?.task || null,
+      tasksCompleted: completedTasks,
+      activeTask: activeEntry?.task || null,
     };
   };
 
@@ -192,13 +188,16 @@ const Dashboard: React.FC = () => {
           <motion.div variants={itemVariants}>
             <ActivityListCard
               title={t('dashboard.recentEntries')}
-              items={timeEntries.slice(0, 5).map((entry, index) => ({
-                key: entry.id || index,
-                mainLabel: entry.task,
-                subLabel: new Date(entry.startTime).toLocaleTimeString(),
-                category: entry.category,
-                value: entry.duration ? formatDuration(entry.duration, t) : t('dashboard.active'),
-              }))}
+              items={activities
+                .filter(a => a.sourceType === 'manual')
+                .slice(0, 5)
+                .map((activity, index) => ({
+                  key: activity.id ? `${activity.id}-${activity.sourceType}` : index,
+                  mainLabel: activity.title,
+                  subLabel: new Date(activity.startTime).toLocaleTimeString(),
+                  category: activity.categoryName,
+                  value: activity.duration ? formatDuration(activity.duration, t) : t('dashboard.active'),
+                }))}
               emptyStateText={t('dashboard.noEntries')}
             />
           </motion.div>
@@ -206,12 +205,15 @@ const Dashboard: React.FC = () => {
           <motion.div variants={itemVariants}>
             <ActivityListCard
               title={t('dashboard.appUsageSummary')}
-              items={appUsage.slice(0, 5).map((usage, index) => ({
-                key: usage.id || index,
-                mainLabel: usage.appName,
-                subLabel: usage.windowTitle,
-                value: usage.duration ? formatDuration(usage.duration, t) : t('dashboard.active'),
-              }))}
+              items={activities
+                .filter(a => a.sourceType === 'automatic')
+                .slice(0, 5)
+                .map((activity, index) => ({
+                  key: activity.id ? `${activity.id}-${activity.sourceType}` : index,
+                  mainLabel: activity.metadata?.appName || activity.title,
+                  subLabel: activity.metadata?.windowTitle || '',
+                  value: activity.duration ? formatDuration(activity.duration, t) : t('dashboard.active'),
+                }))}
               emptyStateText={t('dashboard.noAppUsage')}
               showCategory={false}
             />
