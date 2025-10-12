@@ -9,7 +9,10 @@ import type {
   AppCategoryMapping,
   DomainCategoryMapping,
   CategoryStats,
-  TagStats
+  TagStats,
+  ExportResult,
+  ImportOptions,
+  ImportResult
 } from '../types';
 
 // Note: Sentry is initialized in the main process only, not in preload
@@ -106,6 +109,8 @@ export interface IElectronAPI {
   getDistractionAnalysis: (days: number) => Promise<any[]>;
   // Data Management API
   clearAllData: () => Promise<boolean>;
+  exportData: (format: 'json' | 'csv') => Promise<ExportResult>;
+  importData: (format: 'json' | 'csv', options?: ImportOptions) => Promise<ImportResult>;
 }
 
 const electronAPI: IElectronAPI = {
@@ -199,6 +204,8 @@ const electronAPI: IElectronAPI = {
   getDistractionAnalysis: (days) => ipcRenderer.invoke('get-distraction-analysis', days),
   // Data Management API
   clearAllData: () => ipcRenderer.invoke('clear-all-data'),
+  exportData: (format) => ipcRenderer.invoke('export-data', format),
+  importData: (format, options) => ipcRenderer.invoke('import-data', format, options),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
