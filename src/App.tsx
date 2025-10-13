@@ -1,21 +1,21 @@
 import { useState, lazy, Suspense } from 'react';
-import ErrorBoundary from './components/ErrorBoundary';
-import TitleBar from './components/TitleBar';
-import Sidebar from './components/Sidebar';
+import ErrorBoundary from './components/layout/ErrorBoundary';
+import TitleBar from './components/layout/TitleBar';
+import Sidebar from './components/layout/Sidebar';
 import ToastContainer from './components/ui/Toast';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PomodoroProvider } from './contexts/PomodoroContext';
 
 // Lazy load view components for better startup performance
-const Dashboard = lazy(() => import('./components/Dashboard'));
-const TimeTracker = lazy(() => import('./components/TimeTracker'));
-const Reports = lazy(() => import('./components/Reports'));
-const Analytics = lazy(() => import('./components/Analytics').then(module => ({ default: module.Analytics })));
-const Goals = lazy(() => import('./components/Goals'));
-const FocusMode = lazy(() => import('./components/FocusMode'));
-const Settings = lazy(() => import('./components/Settings'));
-const Categories = lazy(() => import('./components/Categories'));
-const ActivityLog = lazy(() => import('./components/ActivityLog'));
+const Dashboard = lazy(() => import('./components/pages/Dashboard'));
+const TimeTracker = lazy(() => import('./components/pages/TimeTracker'));
+const Reports = lazy(() => import('./components/pages/Reports'));
+const Analytics = lazy(() => import('./components/pages/Analytics'));
+const Goals = lazy(() => import('./components/pages/Goals'));
+const FocusMode = lazy(() => import('./components/pages/FocusMode'));
+const Settings = lazy(() => import('./components/pages/Settings'));
+const Categories = lazy(() => import('./components/pages/Categories'));
+const ActivityLog = lazy(() => import('./components/pages/ActivityLog'));
 
 type View = 'dashboard' | 'tracker' | 'reports' | 'analytics' | 'activitylog' | 'goals' | 'focus' | 'categories' | 'settings';
 

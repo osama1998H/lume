@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import Settings from '../Settings';
+import Settings from '../pages/Settings';
 import { ThemeProvider } from '../../contexts/ThemeContext';
 import * as ThemeContext from '../../contexts/ThemeContext';
 

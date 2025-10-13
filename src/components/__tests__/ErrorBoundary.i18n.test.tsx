@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '../../i18n/config';
-import ErrorBoundary from '../ErrorBoundary';
+import ErrorBoundary from '../layout/ErrorBoundary';
 import { ThemeProvider } from '../../contexts/ThemeContext';
 
 // Mock window.matchMedia
