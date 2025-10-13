@@ -71,17 +71,25 @@ const ActivityLogContent: React.FC = () => {
   // Load categories, tags, and settings
   useEffect(() => {
     const loadData = async () => {
+      // Load categories and tags together (essential for UI)
       try {
-        const [categoriesData, tagsData, settings] = await Promise.all([
+        const [categoriesData, tagsData] = await Promise.all([
           window.electronAPI.getCategories(),
           window.electronAPI.getTags(),
-          window.electronAPI.getSettings(),
         ]);
         setCategories(categoriesData);
         setTags(tagsData);
-        setDefaultCategory(settings?.defaultCategory || null);
       } catch (error) {
         console.error('Failed to load categories and tags:', error);
+      }
+
+      // Load settings separately so failure doesn't block categories/tags
+      try {
+        const settings = await window.electronAPI.getSettings();
+        setDefaultCategory(settings?.defaultCategory || null);
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+        // Categories and tags still work even if settings fails
       }
     };
     loadData();
