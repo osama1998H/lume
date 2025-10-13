@@ -557,7 +557,7 @@ const Settings: React.FC = () => {
         </div>
 
         {/* Fixed Save Button */}
-        <div className="fixed-save-button p-4 sm:p-6 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 md:bg-transparent md:border-0">
+        <div className="fixed-save-button p-4 sm:p-6 bg-white dark:bg-transparent border-t border-gray-200 dark:border-gray-700 md:bg-transparent md:border-0">
           <Button
             onClick={saveSettings}
             disabled={isSaving}
