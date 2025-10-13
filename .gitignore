@@ -82,3 +82,8 @@ userData/
 # Temporary files
 .tmp/
 temp/
+
+# Playwright test artifacts
+test-results/
+playwright-report/
+playwright/.cache/

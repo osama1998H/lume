@@ -41,6 +41,8 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Allow Docker containers to access the dev server
+    allowedHosts: ['host.docker.internal'],
   },
   // Optimize dependencies
   optimizeDeps: {
