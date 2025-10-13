@@ -1,7 +1,7 @@
 import { PomodoroService } from '../PomodoroService';
-import { DatabaseManager } from '../../database/DatabaseManager';
-import { NotificationService } from '../NotificationService';
-import { PomodoroSettings } from '../../types';
+import { DatabaseManager } from '../../../database/DatabaseManager';
+import { NotificationService } from '../../notifications/NotificationService';
+import { PomodoroSettings } from '../../../types';
 
 // Mock dependencies
 jest.mock('../../../database/DatabaseManager');

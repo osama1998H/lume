@@ -1,1 +1,1 @@
-export { default as NotificationService } from './NotificationService';
+export { NotificationService } from './NotificationService';

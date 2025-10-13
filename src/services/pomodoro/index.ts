@@ -1,1 +1,1 @@
-export { default as PomodoroService } from './PomodoroService';
+export { PomodoroService } from './PomodoroService';

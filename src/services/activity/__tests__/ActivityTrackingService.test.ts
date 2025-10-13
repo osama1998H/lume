@@ -1,7 +1,7 @@
 import { ActivityTrackingService } from '../ActivityTrackingService';
 import { ActivityMonitor } from '../ActivityMonitor';
-import { DatabaseManager } from '../../database/DatabaseManager';
-import { CurrentActivity, ActivitySession } from '../../types/activity';
+import { DatabaseManager } from '../../../database/DatabaseManager';
+import { CurrentActivity, ActivitySession } from '../../../types/activity';
 
 // Mock ActivityMonitor
 jest.mock('../ActivityMonitor');

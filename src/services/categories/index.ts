@@ -1,1 +1,1 @@
-export { default as CategoriesService } from './CategoriesService';
+export { CategoriesService } from './CategoriesService';

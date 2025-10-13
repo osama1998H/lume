@@ -1,1 +1,1 @@
-export { default as GoalsService } from './GoalsService';
+export { GoalsService } from './GoalsService';
