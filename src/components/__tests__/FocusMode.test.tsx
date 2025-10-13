@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import FocusMode from '../FocusMode';
+import FocusMode from '../pages/FocusMode';
 import * as PomodoroContext from '../../contexts/PomodoroContext';
 import { PomodoroTimerStatus, SessionType, TimerState } from '../../contexts/PomodoroContext';
 import { PomodoroSettings } from '../../types';

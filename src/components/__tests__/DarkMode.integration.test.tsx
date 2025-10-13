@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import Dashboard from '../Dashboard';
-import TimeTracker from '../TimeTracker';
-import Reports from '../Reports';
-import Sidebar from '../Sidebar';
+import Dashboard from '../pages/Dashboard';
+import TimeTracker from '../pages/TimeTracker';
+import Reports from '../pages/Reports';
+import Sidebar from '../layout/Sidebar';
 import { ThemeProvider } from '../../contexts/ThemeContext';
 
 // Mock window.matchMedia

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '../../i18n/config';
-import Sidebar from '../Sidebar';
+import Sidebar from '../layout/Sidebar';
 import { ThemeProvider } from '../../contexts/ThemeContext';
 
 // Mock window.matchMedia

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '../../i18n/config';
-import Dashboard from '../Dashboard';
+import Dashboard from '../pages/Dashboard';
 import { ThemeProvider } from '../../contexts/ThemeContext';
 
 // Mock window.matchMedia
