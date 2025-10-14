@@ -58,6 +58,8 @@ const DataCleanup: React.FC<DataCleanupProps> = ({ startDate, endDate, onRefresh
     errors: string[];
   } | null>(null);
 
+  // Load functions depend on the same props (startDate, endDate) that are in the dependency array
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (activeTab === 'quality') {
       loadQualityReport();

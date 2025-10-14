@@ -23,6 +23,8 @@ const GapDetection: React.FC<GapDetectionProps> = ({ startDate, endDate, onCreat
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // loadGapData depends on the same props that are in the dependency array
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     loadGapData();
   }, [startDate, endDate, minGapMinutes]);

@@ -32,7 +32,7 @@ const Settings: React.FC = () => {
       dataRetentionDays: 90
     }
   });
-  const [isMacOS, setIsMacOS] = useState(false);
+  const [_isMacOS, _setIsMacOS] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -53,7 +53,7 @@ const Settings: React.FC = () => {
     loadTrackingStatus();
     loadCategories();
     // Detect platform (macOS check)
-    setIsMacOS(navigator.platform.toLowerCase().includes('mac'));
+    _setIsMacOS(navigator.platform.toLowerCase().includes('mac'));
   }, []);
 
   const loadSettings = async () => {

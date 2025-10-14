@@ -28,6 +28,8 @@ const DuplicateDetection: React.FC<DuplicateDetectionProps> = ({
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
   const [mergingGroups, setMergingGroups] = useState<Set<number>>(new Set());
 
+  // loadDuplicateData depends on the same props that are in the dependency array
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     loadDuplicateData();
   }, [startDate, endDate, similarityThreshold]);
