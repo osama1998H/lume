@@ -552,6 +552,32 @@ export interface ExportResult {
   error?: string;
 }
 
+// Application Settings Types
+export interface ActivityTrackingSettings {
+  enabled: boolean;
+  idleThresholdMinutes?: number;
+  trackBrowserActivity?: boolean;
+  trackAppActivity?: boolean;
+}
+
+export interface GlassEffectSettings {
+  enabled: boolean;
+  cornerRadius?: number; // default: 16
+  tintColor?: string; // default: "#44000010"
+}
+
+export interface AppSettings {
+  autoTrackApps?: boolean;
+  showNotifications?: boolean;
+  minimizeToTray?: boolean;
+  autoStartOnLogin?: boolean;
+  autoStartTracking?: boolean;
+  defaultCategory?: number | null;
+  activityTracking?: ActivityTrackingSettings;
+  pomodoro?: PomodoroSettings;
+  glassEffect?: GlassEffectSettings; // macOS only
+}
+
 export interface ElectronAPI {
   getTimeEntries: () => Promise<TimeEntry[]>;
   addTimeEntry: (entry: TimeEntry) => Promise<number>;
@@ -559,8 +585,8 @@ export interface ElectronAPI {
   getActiveTimeEntry: () => Promise<TimeEntry | null>;
   getAppUsage: () => Promise<AppUsage[]>;
   addAppUsage: (usage: AppUsage) => Promise<number>;
-  getSettings: () => Promise<any>;
-  saveSettings: (settings: any) => Promise<boolean>;
+  getSettings: () => Promise<AppSettings>;
+  saveSettings: (settings: AppSettings) => Promise<boolean>;
   getActivityTrackingStatus: () => Promise<boolean>;
   startActivityTracking: () => Promise<boolean>;
   stopActivityTracking: () => Promise<boolean>;

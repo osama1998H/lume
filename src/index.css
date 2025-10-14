@@ -155,9 +155,18 @@
     font-family: var(--font-sans);
   }
 
+  /* Transparent background for glass effect windows on macOS */
+  body.glass-effect {
+    background-color: transparent;
+  }
+
   html.dark body {
     background-color: rgb(17 24 39); /* gray-900 */
     color: rgb(243 244 246); /* gray-100 */
+  }
+
+  html.dark body.glass-effect {
+    background-color: transparent;
   }
 
   * {

@@ -28,8 +28,14 @@ const Settings: React.FC = () => {
       blacklistedApps: [],
       blacklistedDomains: [],
       dataRetentionDays: 90
+    },
+    glassEffect: {
+      enabled: true,
+      cornerRadius: 16,
+      tintColor: '#44000010'
     }
   });
+  const [isMacOS, setIsMacOS] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -40,6 +46,8 @@ const Settings: React.FC = () => {
     loadSettings();
     loadTrackingStatus();
     loadCategories();
+    // Detect platform (macOS check)
+    setIsMacOS(navigator.platform.toLowerCase().includes('mac'));
   }, []);
 
   const loadSettings = async () => {
@@ -51,7 +59,8 @@ const Settings: React.FC = () => {
           setSettings(prev => ({
             ...prev,
             ...savedSettings,
-            activityTracking: savedSettings.activityTracking || prev.activityTracking
+            activityTracking: savedSettings.activityTracking || prev.activityTracking,
+            glassEffect: savedSettings.glassEffect || prev.glassEffect
           }));
         }
       }
@@ -96,6 +105,16 @@ const Settings: React.FC = () => {
       ...prev,
       activityTracking: {
         ...prev.activityTracking,
+        [key]: value,
+      }
+    }));
+  };
+
+  const handleGlassEffectChange = (key: string, value: unknown) => {
+    setSettings(prev => ({
+      ...prev,
+      glassEffect: {
+        ...prev.glassEffect,
         [key]: value,
       }
     }));
@@ -337,6 +356,38 @@ const Settings: React.FC = () => {
               </select>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('settings.selectTheme')}</p>
             </div>
+
+            {/* Glass Effect - macOS Only */}
+            {isMacOS && (
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="font-medium text-gray-900 dark:text-gray-100">
+                      Native Glass Effect
+                      <span className="ml-2 text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-2 py-0.5 rounded">
+                        macOS
+                      </span>
+                    </label>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Enable native macOS glass effect for a modern, translucent window appearance
+                    </p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                      ⚠️ Requires app restart to take effect
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.glassEffect.enabled}
+                      onChange={(e) => handleGlassEffectChange('enabled', e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600 dark:peer-checked:bg-primary-500"></div>
+                  </label>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center justify-between">
               <div>
                 <label className="font-medium text-gray-900 dark:text-gray-100">{t('settings.showNotifications')}</label>

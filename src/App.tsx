@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import ErrorBoundary from './components/layout/ErrorBoundary';
 import TitleBar from './components/layout/TitleBar';
 import Sidebar from './components/layout/Sidebar';
@@ -26,6 +26,28 @@ type View = 'dashboard' | 'tracker' | 'reports' | 'analytics' | 'activitylog' | 
  */
 function App() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
+
+  // Apply glass-effect class to body when enabled (macOS only)
+  useEffect(() => {
+    const checkGlassEffect = async () => {
+      try {
+        if (window.electronAPI) {
+          const settings = await window.electronAPI.getSettings();
+          const isMacOS = navigator.platform.toLowerCase().includes('mac');
+
+          if (isMacOS && settings.glassEffect?.enabled) {
+            document.body.classList.add('glass-effect');
+          } else {
+            document.body.classList.remove('glass-effect');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check glass effect settings:', error);
+      }
+    };
+
+    checkGlassEffect();
+  }, []);
 
   const renderView = () => {
     switch (currentView) {

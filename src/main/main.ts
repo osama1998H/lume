@@ -12,6 +12,7 @@ import { GoalsService } from '../services/goals/GoalsService';
 import { CategoriesService } from '../services/categories/CategoriesService';
 import { ActivityValidationService } from '../services/activity/ActivityValidationService';
 import { ActivityMergeService } from '../services/activity/ActivityMergeService';
+import { GlassEffectService } from '../services/GlassEffectService';
 import { initializeSentry } from '../config/sentry';
 import { initializeCrashReporter, getLastCrashReport, getUploadedReports } from '../config/crashReporter';
 
@@ -35,6 +36,7 @@ class LumeApp {
   private categoriesService: CategoriesService | null = null;
   private activityValidationService: ActivityValidationService | null = null;
   private activityMergeService: ActivityMergeService | null = null;
+  private glassEffectService: GlassEffectService | null = null;
   private settingsPath: string;
   private isQuitting = false;
 
@@ -87,6 +89,17 @@ class LumeApp {
     // Set icon path based on platform
     const iconPath = path.join(__dirname, '../../src/public/logo1.png');
 
+    // Check if glass effect should be enabled
+    const settings = this.getSettings();
+    const shouldUseGlassEffect =
+      process.platform === 'darwin' &&
+      settings.glassEffect?.enabled !== false;
+
+    // Initialize glass effect service
+    if (shouldUseGlassEffect && !this.glassEffectService) {
+      this.glassEffectService = new GlassEffectService();
+    }
+
     this.mainWindow = new BrowserWindow({
       width: 1600,
       height: 1000,
@@ -100,6 +113,9 @@ class LumeApp {
       },
       titleBarStyle: 'hiddenInset',
       show: false,
+      // Enable transparent window for glass effect on macOS
+      transparent: shouldUseGlassEffect,
+      backgroundColor: shouldUseGlassEffect ? undefined : undefined,
     });
 
     const isDevelopment = isDev();
@@ -110,6 +126,18 @@ class LumeApp {
     } else {
       this.mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
     }
+
+    // Apply glass effect after content is loaded (macOS only)
+    this.mainWindow.webContents.once('did-finish-load', () => {
+      if (shouldUseGlassEffect && this.glassEffectService && this.mainWindow) {
+        const glassSettings = settings.glassEffect || {};
+        this.glassEffectService.applyEffect(this.mainWindow, {
+          cornerRadius: glassSettings.cornerRadius ?? 16,
+          tintColor: glassSettings.tintColor ?? '#44000010',
+        });
+        console.log('✨ Glass effect applied to window');
+      }
+    });
 
     this.mainWindow.once('ready-to-show', () => {
       this.mainWindow?.show();
@@ -125,6 +153,10 @@ class LumeApp {
     });
 
     this.mainWindow.on('closed', () => {
+      // Cleanup glass effect service
+      if (this.glassEffectService) {
+        this.glassEffectService.cleanup();
+      }
       this.mainWindow = null;
     });
   }
@@ -224,6 +256,11 @@ class LumeApp {
       autoStartOnLogin: false,
       autoStartTracking: false,
       defaultCategory: null,
+      glassEffect: {
+        enabled: process.platform === 'darwin', // Auto-enable on macOS
+        cornerRadius: 16,
+        tintColor: '#44000010',
+      },
     };
   }
 
@@ -328,6 +365,14 @@ class LumeApp {
           } catch (error) {
             console.error('Failed to update auto-start setting:', error);
           }
+        }
+
+        // Note: Glass effect changes require app restart
+        // The window needs to be recreated with transparent flag
+        if (success &&
+            process.platform === 'darwin' &&
+            settings.glassEffect?.enabled !== previousSettings.glassEffect?.enabled) {
+          console.log('⚠️  Glass effect setting changed - app restart required for changes to take effect');
         }
 
         return success;
