@@ -103,6 +103,7 @@ export class ActivityMonitor implements ActivityTracker {
   private async getWindowsIdleTime(): Promise<number> {
     try {
       // Use PowerShell to get idle time from Windows API
+      // Using -EncodedCommand to avoid quoting issues with embedded strings
       const script = `
         Add-Type @"
           using System;
@@ -128,7 +129,9 @@ export class ActivityMonitor implements ActivityTracker {
         [IdleTime]::GetIdleTime()
       `;
 
-      const { stdout } = await execAsync(`powershell -Command "${script}"`);
+      // Encode the script as base64 UTF-16LE for PowerShell -EncodedCommand
+      const encodedScript = Buffer.from(script, 'utf16le').toString('base64');
+      const { stdout } = await execAsync(`powershell -EncodedCommand ${encodedScript}`);
       const milliseconds = parseInt(stdout.trim());
       const seconds = Math.floor(milliseconds / 1000);
       return seconds;
