@@ -77,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
   return (
     <aside
       className={`
-        ${isCollapsed ? 'w-24' : 'w-64'}
+        ${isCollapsed ? 'w-20' : 'w-64'}
         bg-white dark:bg-gray-800 h-full border-r border-gray-200 dark:border-gray-700
         transition-all duration-300 ease-in-out
         flex flex-col
