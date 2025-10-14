@@ -13,7 +13,7 @@ import { getLastCrashReport, getUploadedReports } from '../../../config/crashRep
  * Dependencies: crashReporter module
  */
 export class CrashReporterHandlers implements IIPCHandlerGroup {
-  register(ipcMain: IpcMain, context: IIPCHandlerContext): void {
+  register(ipcMain: IpcMain, _context: IIPCHandlerContext): void {
     // Get last crash report
     // Extracted from main.ts:256-263
     ipcMain.handle('get-last-crash-report', async () => {

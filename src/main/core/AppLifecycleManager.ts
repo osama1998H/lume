@@ -1,4 +1,4 @@
-import { App, BrowserWindow } from 'electron';
+import { App } from 'electron';
 import { getIconPath } from '../utils';
 
 /**

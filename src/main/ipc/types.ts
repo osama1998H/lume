@@ -1,4 +1,4 @@
-import { IpcMain, BrowserWindow } from 'electron';
+import { IpcMain } from 'electron';
 import { DatabaseManager } from '../../database/DatabaseManager';
 import { ActivityTrackingService } from '../../services/activity/ActivityTrackingService';
 import { PomodoroService } from '../../services/pomodoro/PomodoroService';

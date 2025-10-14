@@ -1,6 +1,4 @@
-import { app, ipcMain, dialog, BrowserWindow, Menu, nativeImage } from 'electron';
-import * as path from 'path';
-import * as fsPromises from 'fs/promises';
+import { app, ipcMain, BrowserWindow } from 'electron';
 import * as dotenv from 'dotenv';
 import { initializeSentry } from '../config/sentry';
 import { initializeCrashReporter } from '../config/crashReporter';

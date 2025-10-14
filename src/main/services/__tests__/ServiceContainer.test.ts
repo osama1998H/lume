@@ -271,8 +271,8 @@ describe('ServiceContainer', () => {
     it('should cleanup all services', async () => {
       await container.initialize('/test/path', mockSettings);
 
-      const activityTracker = container.getActivityTrackingService();
-      const pomodoroService = container.getPomodoroService();
+      const _activityTracker = container.getActivityTrackingService();
+      const _pomodoroService = container.getPomodoroService();
 
       await container.cleanup();
 
