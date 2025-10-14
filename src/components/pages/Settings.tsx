@@ -334,6 +334,7 @@ const Settings: React.FC = () => {
 
             return (
               <button
+                id={`${tab.id}-tab`}
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 role="tab"

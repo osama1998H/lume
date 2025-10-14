@@ -44,6 +44,9 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
   }, []);
 
   const handleCategorySelect = (category: Category) => {
+    // Guard against categories without IDs
+    if (category.id == null) return;
+
     const isSelected = selectedCategories.some((c) => c.id === category.id);
     if (isSelected) {
       onChange(selectedCategories.filter((c) => c.id !== category.id));
@@ -52,7 +55,9 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
     }
   };
 
-  const handleCategoryRemove = (categoryId: number) => {
+  const handleCategoryRemove = (categoryId: number | undefined) => {
+    // Guard against undefined IDs
+    if (categoryId == null) return;
     onChange(selectedCategories.filter((c) => c.id !== categoryId));
   };
 
@@ -60,8 +65,8 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
     category.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const isCategorySelected = (categoryId: number) =>
-    selectedCategories.some((c) => c.id === categoryId);
+  const isCategorySelected = (categoryId: number | undefined) =>
+    categoryId != null && selectedCategories.some((c) => c.id === categoryId);
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
@@ -80,9 +85,9 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
           inputRef.current?.focus();
         }}
       >
-        {selectedCategories.map((category) => (
+        {selectedCategories.map((category, index) => (
           <span
-            key={category.id}
+            key={category.id ?? `category-${index}`}
             className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-white text-sm font-medium"
             style={{ backgroundColor: category.color }}
           >
@@ -91,7 +96,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                handleCategoryRemove(category.id!);
+                handleCategoryRemove(category.id);
               }}
               className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
             >
@@ -122,13 +127,13 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
             </div>
           ) : (
             <>
-              {filteredCategories.map((category) => (
+              {filteredCategories.map((category, index) => (
                 <button
-                  key={category.id}
+                  key={category.id ?? `category-${index}`}
                   type="button"
                   onClick={() => handleCategorySelect(category)}
                   className={`w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between gap-2 ${
-                    isCategorySelected(category.id!)
+                    isCategorySelected(category.id)
                       ? 'bg-gray-50 dark:bg-gray-700/50'
                       : ''
                   }`}
@@ -142,7 +147,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
                       {category.name}
                     </span>
                   </div>
-                  {isCategorySelected(category.id!) && (
+                  {isCategorySelected(category.id) && (
                     <div className="w-4 h-4 rounded-full bg-primary-600 dark:bg-primary-500 flex items-center justify-center">
                       <span className="text-white text-xs">✓</span>
                     </div>
