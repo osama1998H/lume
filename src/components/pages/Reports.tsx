@@ -101,13 +101,13 @@ const Reports: React.FC = () => {
         } else {
           // CategoryId exists but category not found (deleted?)
           categoryKey = 'uncategorized';
-          categoryName = 'Uncategorized';
+          categoryName = t('common.uncategorized');
           categoryColor = '#6B7280';
         }
       } else {
         // No categoryId - uncategorized
         categoryKey = 'uncategorized';
-        categoryName = 'Uncategorized';
+        categoryName = t('common.uncategorized');
         categoryColor = '#6B7280';
       }
 

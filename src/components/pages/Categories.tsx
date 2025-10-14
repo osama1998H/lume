@@ -287,49 +287,57 @@ const Categories: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
-        <div className="flex gap-4 min-w-max">
-          <button
-            onClick={() => setActiveTab('categories')}
-            className={`px-4 py-2 font-medium transition-colors border-b-2 whitespace-nowrap ${
-              activeTab === 'categories'
-                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <FolderOpen className="h-4 w-4" />
-              {t('categories.categoriesTab')}
-            </div>
-          </button>
-          <button
-            onClick={() => setActiveTab('tags')}
-            className={`px-4 py-2 font-medium transition-colors border-b-2 whitespace-nowrap ${
-              activeTab === 'tags'
-                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Tag className="h-4 w-4" />
-              {t('categories.tagsTab')}
-            </div>
-          </button>
-          <button
-            onClick={() => setActiveTab('mappings')}
-            className={`px-4 py-2 font-medium transition-colors border-b-2 whitespace-nowrap ${
-              activeTab === 'mappings'
-                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Link className="h-4 w-4" />
-              {t('categories.mappingsTab')}
-            </div>
-          </button>
-        </div>
-      </div>
+      <nav
+        className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg mb-6 overflow-x-auto"
+        role="tablist"
+        aria-label={t('categories.tabsLabel', 'Categories sections')}
+      >
+        <button
+          onClick={() => setActiveTab('categories')}
+          role="tab"
+          aria-selected={activeTab === 'categories'}
+          aria-controls="categories-tab-panel"
+          tabIndex={activeTab === 'categories' ? 0 : -1}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all flex-1 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+            activeTab === 'categories'
+              ? 'bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 shadow-sm'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          }`}
+        >
+          <FolderOpen className="w-4 h-4" aria-hidden="true" />
+          <span className="text-sm font-medium">{t('categories.categoriesTab')}</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('tags')}
+          role="tab"
+          aria-selected={activeTab === 'tags'}
+          aria-controls="tags-tab-panel"
+          tabIndex={activeTab === 'tags' ? 0 : -1}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all flex-1 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+            activeTab === 'tags'
+              ? 'bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 shadow-sm'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          }`}
+        >
+          <Tag className="w-4 h-4" aria-hidden="true" />
+          <span className="text-sm font-medium">{t('categories.tagsTab')}</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('mappings')}
+          role="tab"
+          aria-selected={activeTab === 'mappings'}
+          aria-controls="mappings-tab-panel"
+          tabIndex={activeTab === 'mappings' ? 0 : -1}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all flex-1 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+            activeTab === 'mappings'
+              ? 'bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 shadow-sm'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          }`}
+        >
+          <Link className="w-4 h-4" aria-hidden="true" />
+          <span className="text-sm font-medium">{t('categories.mappingsTab')}</span>
+        </button>
+      </nav>
 
       {/* Categories Tab */}
       {activeTab === 'categories' && (

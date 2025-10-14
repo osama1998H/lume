@@ -63,6 +63,8 @@ const TimeTracker: React.FC = () => {
     };
   }, [isTracking, startTime]);
 
+  // Load functions are called once on mount; they don't need to be in dependencies
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const init = async () => {
       const categoriesData = await loadCategories();

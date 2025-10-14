@@ -202,7 +202,14 @@
     "crashReportingDesc": "Help improve Lume by sending crash reports",
     "dataLocation": "Data Location",
     "clearData": "Clear All Data",
-    "settingsFailed": "Failed to save settings"
+    "settingsFailed": "Failed to save settings",
+    "tabs": {
+      "general": "General",
+      "tracking": "Activity Tracking",
+      "data": "Data & Privacy",
+      "about": "About"
+    },
+    "tabsLabel": "Settings sections"
   },
   "common": {
     "save": "Save",
@@ -275,7 +282,8 @@
     },
     "less": "Less",
     "more": "More",
-    "noTags": "No tags"
+    "noTags": "No tags",
+    "to": "to"
   },
   "focusMode": {
     "title": "Focus Mode",
@@ -442,6 +450,7 @@
     "categoriesTab": "Categories",
     "tagsTab": "Tags",
     "mappingsTab": "Mappings",
+    "tabsLabel": "Categories sections",
     "manageCategories": "Manage Categories",
     "manageTags": "Manage Tags",
     "manageMappings": "Manage Mappings",
@@ -450,6 +459,7 @@
     "addMapping": "Add Mapping",
     "noCategories": "No categories yet",
     "noCategoriesDesc": "Create your first category to start organizing your time entries",
+    "noCategoriesAvailable": "No categories available",
     "noTags": "No tags yet",
     "noTagsDesc": "Create your first tag to label and filter your activities",
     "noTagsAvailable": "No tags available",
@@ -689,15 +699,32 @@
       "savePreset": "Save Current Filters",
       "loadPreset": "Presets",
       "clearFilters": "Clear All Filters",
-      "filtersActive": "{{count}} filters active"
+      "filtersActive": "{{count}} filters active",
+      "applyFilters": "Apply Filters",
+      "minimum": "Minimum",
+      "maximum": "Maximum",
+      "showingActivities": "Showing activities from",
+      "durationPresets": {
+        "any": "Any",
+        "under30": "< 30m",
+        "30to60": "30m - 1h",
+        "60to120": "1h - 2h",
+        "120to240": "2h - 4h",
+        "over240": "> 4h"
+      }
     },
     "statistics": {
       "title": "Statistics",
+      "totalActivities": "Total Activities",
+      "totalTime": "Total Time",
+      "averageDuration": "Average Duration",
+      "categorized": "Categorized",
       "totalByType": "Time by Type",
       "categoryBreakdown": "Category Breakdown",
       "mostActiveHours": "Most Active Hours",
       "gaps": "Gaps in Tracking",
       "dataQuality": "Data Quality Score",
+      "qualityDescription": "Based on coverage and categorization",
       "gapCount": "{{count}} gaps detected",
       "largestGap": "Largest gap: {{duration}}"
     },

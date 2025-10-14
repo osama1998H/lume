@@ -173,7 +173,7 @@ const TagSelector: React.FC<TagSelectorProps> = ({
         <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {filteredTags.length === 0 && !canCreateNewTag ? (
             <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
-              {t('common.noTagsAvailable', 'No tags available')}
+              {t('categories.noTagsAvailable', 'No tags available')}
             </div>
           ) : (
             <>

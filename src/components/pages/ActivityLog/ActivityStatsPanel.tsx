@@ -153,23 +153,31 @@ const ActivityStatsPanel: React.FC<ActivityStatsPanelProps> = ({ activities, dat
       {/* Summary Metrics */}
       <div className="grid grid-cols-2 gap-4">
         <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Total Activities</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {t('activityLog.statistics.totalActivities', 'Total Activities')}
+          </p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalActivities}</p>
         </div>
         <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Total Time</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {t('activityLog.statistics.totalTime', 'Total Time')}
+          </p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {formatDuration(stats.totalTime, t)}
           </p>
         </div>
         <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Average Duration</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {t('activityLog.statistics.averageDuration', 'Average Duration')}
+          </p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {formatDuration(stats.avgDuration, t)}
           </p>
         </div>
         <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Categorized</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {t('activityLog.statistics.categorized', 'Categorized')}
+          </p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {stats.categorizedCount}/{stats.totalActivities}
           </p>
@@ -356,7 +364,7 @@ const ActivityStatsPanel: React.FC<ActivityStatsPanelProps> = ({ activities, dat
             {stats.dataQualityScore}
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-            Based on coverage and categorization
+            {t('activityLog.statistics.qualityDescription', 'Based on coverage and categorization')}
           </p>
         </div>
       </div>
