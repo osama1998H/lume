@@ -88,7 +88,11 @@ export class ActivityMonitor implements ActivityTracker {
       const match = stdout.match(/HIDIdleTime"\s*=\s*(\d+)/);
 
       if (match) {
-        const nanoseconds = parseInt(match[1]);
+        const nanoseconds = parseInt(match[1], 10);
+        if (isNaN(nanoseconds)) {
+          console.error('Failed to parse macOS idle time: invalid number');
+          return 0;
+        }
         const seconds = Math.floor(nanoseconds / 1000000000); // Convert nanoseconds to seconds
         return seconds;
       }
@@ -132,7 +136,11 @@ export class ActivityMonitor implements ActivityTracker {
       // Encode the script as base64 UTF-16LE for PowerShell -EncodedCommand
       const encodedScript = Buffer.from(script, 'utf16le').toString('base64');
       const { stdout } = await execAsync(`powershell -EncodedCommand ${encodedScript}`);
-      const milliseconds = parseInt(stdout.trim());
+      const milliseconds = parseInt(stdout.trim(), 10);
+      if (isNaN(milliseconds)) {
+        console.error('Failed to parse Windows idle time: invalid number');
+        return 0;
+      }
       const seconds = Math.floor(milliseconds / 1000);
       return seconds;
     } catch (error) {
@@ -146,7 +154,10 @@ export class ActivityMonitor implements ActivityTracker {
       // Try xprintidle first (returns milliseconds)
       try {
         const { stdout } = await execAsync('xprintidle');
-        const milliseconds = parseInt(stdout.trim());
+        const milliseconds = parseInt(stdout.trim(), 10);
+        if (isNaN(milliseconds)) {
+          throw new Error('xprintidle returned invalid number');
+        }
         const seconds = Math.floor(milliseconds / 1000);
         return seconds;
       } catch {
@@ -154,7 +165,12 @@ export class ActivityMonitor implements ActivityTracker {
         const { stdout } = await execAsync('xssstate -i');
         const match = stdout.match(/idle:\s*(\d+)/);
         if (match) {
-          return parseInt(match[1]);
+          const seconds = parseInt(match[1], 10);
+          if (isNaN(seconds)) {
+            console.error('Failed to parse Linux idle time from xssstate');
+            return 0;
+          }
+          return seconds;
         }
         return 0;
       }
