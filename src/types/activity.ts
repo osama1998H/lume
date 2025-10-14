@@ -57,5 +57,6 @@ export interface ActivityTracker {
   start(): void;
   stop(): void;
   getCurrentActivity(): Promise<CurrentActivity | null>;
+  getSystemIdleTime(): Promise<number>; // Returns idle time in seconds
   isTracking(): boolean;
 }

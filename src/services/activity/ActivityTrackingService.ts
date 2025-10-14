@@ -82,13 +82,27 @@ export class ActivityTrackingService {
       if (!this.monitor.isTracking()) return;
 
       try {
-        const currentActivity = await this.monitor.getCurrentActivity();
+        // Check system idle time to detect if user is actually active
+        const systemIdleTime = await this.monitor.getSystemIdleTime();
 
-        if (currentActivity) {
-          await this.handleActivityChange(currentActivity);
+        if (systemIdleTime >= this.settings.idleThreshold) {
+          // User is idle - finish current session if exists
+          if (this.currentSession) {
+            console.log(`😴 User idle for ${systemIdleTime}s (threshold: ${this.settings.idleThreshold}s) - finishing session`);
+            await this.finishCurrentSession();
+          }
+          // Don't reset timer or process activity while idle
+        } else {
+          // User is active - process current activity
+          const currentActivity = await this.monitor.getCurrentActivity();
+
+          if (currentActivity) {
+            await this.handleActivityChange(currentActivity);
+          }
+
+          // Reset idle timer only when user is active
+          this.resetIdleTimer();
         }
-
-        this.resetIdleTimer();
       } catch (error) {
         console.error('Error polling activity:', error);
       }

@@ -60,6 +60,126 @@ export class ActivityMonitor implements ActivityTracker {
     }
   }
 
+  async getSystemIdleTime(): Promise<number> {
+    const platform = process.platform;
+
+    try {
+      switch (platform) {
+        case 'darwin':
+          return await this.getMacOSIdleTime();
+        case 'win32':
+          return await this.getWindowsIdleTime();
+        case 'linux':
+          return await this.getLinuxIdleTime();
+        default:
+          console.warn(`Unsupported platform for idle time detection: ${platform}`);
+          return 0;
+      }
+    } catch (error) {
+      console.error(`Error getting system idle time on ${platform}:`, error);
+      return 0;
+    }
+  }
+
+  private async getMacOSIdleTime(): Promise<number> {
+    try {
+      // Use ioreg to get HIDIdleTime (in nanoseconds)
+      const { stdout } = await execAsync('ioreg -c IOHIDSystem | grep HIDIdleTime');
+      const match = stdout.match(/HIDIdleTime"\s*=\s*(\d+)/);
+
+      if (match) {
+        const nanoseconds = parseInt(match[1], 10);
+        if (isNaN(nanoseconds)) {
+          console.error('Failed to parse macOS idle time: invalid number');
+          return 0;
+        }
+        const seconds = Math.floor(nanoseconds / 1000000000); // Convert nanoseconds to seconds
+        return seconds;
+      }
+
+      return 0;
+    } catch (error) {
+      console.error('Failed to get macOS idle time:', error);
+      return 0;
+    }
+  }
+
+  private async getWindowsIdleTime(): Promise<number> {
+    try {
+      // Use PowerShell to get idle time from Windows API
+      // Using -EncodedCommand to avoid quoting issues with embedded strings
+      const script = `
+        Add-Type @"
+          using System;
+          using System.Runtime.InteropServices;
+          public class IdleTime {
+            [DllImport("user32.dll")]
+            public static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+
+            [StructLayout(LayoutKind.Sequential)]
+            public struct LASTINPUTINFO {
+              public uint cbSize;
+              public uint dwTime;
+            }
+
+            public static uint GetIdleTime() {
+              LASTINPUTINFO lastInputInfo = new LASTINPUTINFO();
+              lastInputInfo.cbSize = (uint)Marshal.SizeOf(lastInputInfo);
+              GetLastInputInfo(ref lastInputInfo);
+              return ((uint)Environment.TickCount - lastInputInfo.dwTime);
+            }
+          }
+"@
+        [IdleTime]::GetIdleTime()
+      `;
+
+      // Encode the script as base64 UTF-16LE for PowerShell -EncodedCommand
+      const encodedScript = Buffer.from(script, 'utf16le').toString('base64');
+      const { stdout } = await execAsync(`powershell -EncodedCommand ${encodedScript}`);
+      const milliseconds = parseInt(stdout.trim(), 10);
+      if (isNaN(milliseconds)) {
+        console.error('Failed to parse Windows idle time: invalid number');
+        return 0;
+      }
+      const seconds = Math.floor(milliseconds / 1000);
+      return seconds;
+    } catch (error) {
+      console.error('Failed to get Windows idle time:', error);
+      return 0;
+    }
+  }
+
+  private async getLinuxIdleTime(): Promise<number> {
+    try {
+      // Try xprintidle first (returns milliseconds)
+      try {
+        const { stdout } = await execAsync('xprintidle');
+        const milliseconds = parseInt(stdout.trim(), 10);
+        if (isNaN(milliseconds)) {
+          throw new Error('xprintidle returned invalid number');
+        }
+        const seconds = Math.floor(milliseconds / 1000);
+        return seconds;
+      } catch {
+        // Fallback to xssstate if xprintidle is not available
+        const { stdout } = await execAsync('xssstate -i');
+        const match = stdout.match(/idle:\s*(\d+)/);
+        if (match) {
+          const seconds = parseInt(match[1], 10);
+          if (isNaN(seconds)) {
+            console.error('Failed to parse Linux idle time from xssstate');
+            return 0;
+          }
+          return seconds;
+        }
+        return 0;
+      }
+    } catch (error) {
+      console.error('Failed to get Linux idle time:', error);
+      return 0;
+    }
+  }
+
   private async captureCurrentActivity(): Promise<void> {
     try {
       const activity = await this.detectActiveWindow();
