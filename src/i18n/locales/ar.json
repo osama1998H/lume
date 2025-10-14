@@ -202,7 +202,14 @@
     "crashReportingDesc": "ساعد في تحسين لومي بإرسال تقارير الأعطال",
     "dataLocation": "موقع البيانات",
     "clearData": "مسح جميع البيانات",
-    "settingsFailed": "فشل في حفظ الإعدادات"
+    "settingsFailed": "فشل في حفظ الإعدادات",
+    "tabs": {
+      "general": "عام",
+      "tracking": "تتبع النشاط",
+      "data": "البيانات والخصوصية",
+      "about": "حول"
+    },
+    "tabsLabel": "أقسام الإعدادات"
   },
   "common": {
     "save": "حفظ",
@@ -275,7 +282,8 @@
     },
     "less": "أقل",
     "more": "أكثر",
-    "noTags": "لا توجد وسوم"
+    "noTags": "لا توجد وسوم",
+    "to": "إلى"
   },
   "focusMode": {
     "title": "وضع التركيز",
@@ -442,6 +450,7 @@
     "categoriesTab": "الفئات",
     "tagsTab": "الوسوم",
     "mappingsTab": "التعيينات",
+    "tabsLabel": "أقسام الفئات",
     "manageCategories": "إدارة الفئات",
     "manageTags": "إدارة الوسوم",
     "manageMappings": "إدارة التعيينات",
@@ -450,6 +459,7 @@
     "addMapping": "إضافة تعيين",
     "noCategories": "لا توجد فئات بعد",
     "noCategoriesDesc": "أنشئ فئتك الأولى لبدء تنظيم سجلات الوقت",
+    "noCategoriesAvailable": "لا توجد فئات متاحة",
     "noTags": "لا توجد وسوم بعد",
     "noTagsDesc": "أنشئ وسمك الأول لتصنيف وتصفية أنشطتك",
     "noTagsAvailable": "لا توجد وسوم متاحة",
@@ -686,15 +696,32 @@
       "savePreset": "حفظ التصفيات الحالية",
       "loadPreset": "الإعدادات المحفوظة",
       "clearFilters": "مسح جميع التصفيات",
-      "filtersActive": "{{count}} تصفية نشطة"
+      "filtersActive": "{{count}} تصفية نشطة",
+      "applyFilters": "تطبيق التصفيات",
+      "minimum": "الحد الأدنى",
+      "maximum": "الحد الأقصى",
+      "showingActivities": "عرض الأنشطة من",
+      "durationPresets": {
+        "any": "أي مدة",
+        "under30": "< 30 دقيقة",
+        "30to60": "30 دقيقة - ساعة",
+        "60to120": "ساعة - ساعتان",
+        "120to240": "ساعتان - 4 ساعات",
+        "over240": "> 4 ساعات"
+      }
     },
     "statistics": {
       "title": "الإحصائيات",
+      "totalActivities": "إجمالي الأنشطة",
+      "totalTime": "إجمالي الوقت",
+      "averageDuration": "متوسط المدة",
+      "categorized": "مصنف",
       "totalByType": "الوقت حسب النوع",
       "categoryBreakdown": "التفصيل حسب الفئة",
       "mostActiveHours": "الساعات الأكثر نشاطًا",
       "gaps": "فجوات في التتبع",
       "dataQuality": "نقاط جودة البيانات",
+      "qualityDescription": "بناءً على التغطية والتصنيف",
       "gapCount": "تم اكتشاف {{count}} فجوة",
       "largestGap": "أكبر فجوة: {{duration}}"
     },

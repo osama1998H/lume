@@ -6,6 +6,8 @@ import { useDebounce } from '../../../hooks/useDebounce';
 import type { UnifiedActivityFilters, Category, Tag, ActivitySourceType } from '../../../types';
 import DateRangeFilter from '../../ui/DateRangeFilter';
 import TagSelector from '../../ui/TagSelector';
+import CategorySelector from '../../ui/CategorySelector';
+import DurationRangeInput from '../../ui/DurationRangeInput';
 
 interface FilterPreset {
   id: string;
@@ -34,7 +36,7 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
   const [selectedSourceTypes, setSelectedSourceTypes] = useState<ActivitySourceType[]>(
     filters.sourceTypes || ['manual', 'automatic', 'pomodoro']
   );
-  const [selectedCategories, setSelectedCategories] = useState<number[]>(filters.categories || []);
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [minDuration, setMinDuration] = useState<number>(filters.minDuration || 0);
   const [maxDuration, setMaxDuration] = useState<number>(filters.maxDuration || 480); // 8 hours default max
@@ -61,6 +63,14 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
     }
   }, []);
 
+  // Load selected categories from filter
+  useEffect(() => {
+    if (filters.categories && filters.categories.length > 0) {
+      const filterCategories = categories.filter(cat => filters.categories?.includes(cat.id!));
+      setSelectedCategories(filterCategories);
+    }
+  }, [filters.categories, categories]);
+
   // Load selected tags from filter
   useEffect(() => {
     if (filters.tags && filters.tags.length > 0) {
@@ -77,7 +87,7 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
         end: dateRange.end.toISOString(),
       },
       sourceTypes: selectedSourceTypes,
-      categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+      categories: selectedCategories.length > 0 ? selectedCategories.map(c => c.id!).filter(id => id !== undefined) : undefined,
       tags: selectedTags.length > 0 ? selectedTags.map(t => t.id!).filter(id => id !== undefined) : undefined,
       searchQuery: debouncedSearchQuery.trim() || undefined,
       minDuration: minDuration > 0 ? minDuration * 60 : undefined, // Convert to seconds
@@ -89,7 +99,7 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
   // Apply filters when debounced search query changes
   useEffect(() => {
     applyFilters();
-  }, [debouncedSearchQuery, applyFilters]);
+  }, [debouncedSearchQuery]);
 
   // Handle date range preset changes
   const handleDateRangeChange = (preset: string) => {
@@ -161,7 +171,7 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
           end: dateRange.end.toISOString(),
         },
         sourceTypes: selectedSourceTypes,
-        categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+        categories: selectedCategories.length > 0 ? selectedCategories.map(c => c.id!).filter(id => id !== undefined) : undefined,
         tags: selectedTags.length > 0 ? selectedTags.map(t => t.id!).filter(id => id !== undefined) : undefined,
         searchQuery: searchQuery.trim() || undefined,
         minDuration: minDuration > 0 ? minDuration * 60 : undefined,
@@ -191,10 +201,17 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
 
     // Load other filters
     setSelectedSourceTypes(presetFilters.sourceTypes || ['manual', 'automatic', 'pomodoro']);
-    setSelectedCategories(presetFilters.categories || []);
     setSearchQuery(presetFilters.searchQuery || '');
     setMinDuration(presetFilters.minDuration ? presetFilters.minDuration / 60 : 0);
     setMaxDuration(presetFilters.maxDuration ? presetFilters.maxDuration / 60 : 480);
+
+    // Load categories
+    if (presetFilters.categories) {
+      const presetCategories = categories.filter(cat => presetFilters.categories?.includes(cat.id!));
+      setSelectedCategories(presetCategories);
+    } else {
+      setSelectedCategories([]);
+    }
 
     // Load tags
     if (presetFilters.tags) {
@@ -354,9 +371,9 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
       )}
 
       {/* Filter Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Date Range */}
-        <div>
+        <div className="lg:col-span-2">
           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
             {t('activityLog.filters.dateRange', 'Date Range')}
           </label>
@@ -425,24 +442,12 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
             {t('activityLog.filters.categories', 'Categories')}
           </label>
-          <div className="relative">
-            <select
-              multiple
-              value={selectedCategories.map(String)}
-              onChange={(e) => {
-                const selected = Array.from(e.target.selectedOptions, option => parseInt(option.value));
-                setSelectedCategories(selected);
-              }}
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              size={3}
-            >
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CategorySelector
+            selectedCategories={selectedCategories}
+            onChange={setSelectedCategories}
+            availableCategories={categories}
+            placeholder="Select categories..."
+          />
         </div>
 
         {/* Tags */}
@@ -460,35 +465,19 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
         </div>
 
         {/* Duration Range */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-4">
           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
-            {t('activityLog.filters.durationRange', 'Duration Range')} ({minDuration}m - {maxDuration === 480 ? '8h+' : `${maxDuration}m`})
+            {t('activityLog.filters.durationRange', 'Duration Range')}
           </label>
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <input
-                type="range"
-                min="0"
-                max="480"
-                step="5"
-                value={minDuration}
-                onChange={(e) => setMinDuration(parseInt(e.target.value))}
-                className="w-full"
-              />
-            </div>
-            <span className="text-sm text-gray-600 dark:text-gray-400">to</span>
-            <div className="flex-1">
-              <input
-                type="range"
-                min="0"
-                max="480"
-                step="5"
-                value={maxDuration}
-                onChange={(e) => setMaxDuration(parseInt(e.target.value))}
-                className="w-full"
-              />
-            </div>
-          </div>
+          <DurationRangeInput
+            minValue={minDuration}
+            maxValue={maxDuration}
+            maxDuration={480}
+            onChange={({ min, max }) => {
+              setMinDuration(min);
+              setMaxDuration(max);
+            }}
+          />
         </div>
       </div>
 
@@ -498,7 +487,7 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
           onClick={applyFilters}
           className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors shadow-lg"
         >
-          Apply Filters
+          {t('activityLog.filters.applyFilters', 'Apply Filters')}
         </button>
       </div>
     </div>
