@@ -95,7 +95,7 @@ export class ActivityTrackingHandlers implements IIPCHandlerGroup {
     // Extracted from main.ts:296-303
     ipcMain.handle('get-top-websites', async (_, limit = 10) => {
       try {
-        return context.activityTracker?.getTopWebsites(limit) || [];
+        return await context.activityTracker?.getTopWebsites(limit) || [];
       } catch (error) {
         console.error('Failed to get top websites:', error);
         return [];
