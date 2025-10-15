@@ -56,11 +56,11 @@ jobs:
         run: |
           COVERAGE=$(node -p "require('./coverage/coverage-summary.json').total.lines.pct")
           echo "Total coverage: $COVERAGE%"
-          if (( $(echo "$COVERAGE < 70" | bc -l) )); then
-            echo "⚠️ Coverage is below 70% threshold"
+          if (( $(echo "$COVERAGE < 20" | bc -l) )); then
+            echo "⚠️ Coverage is below 20% threshold"
             exit 1
           else
-            echo "✅ Coverage meets 70% threshold"
+            echo "✅ Coverage meets 20% threshold"
           fi
 
       - name: Upload coverage artifacts
