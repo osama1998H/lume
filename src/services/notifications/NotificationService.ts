@@ -9,7 +9,7 @@ export interface NotificationConfig {
 }
 
 export class NotificationService {
-  private soundEnabled: boolean = true;
+  private soundEnabled: boolean;
   private notificationsEnabled: boolean = true;
 
   constructor(soundEnabled = true, notificationsEnabled = true) {
