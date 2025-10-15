@@ -2,6 +2,23 @@
 
 > A powerful desktop application for tracking and visualizing time spent on tasks and applications.
 
+## 🎨 **We Need Your Design Skills!**
+
+**Calling all UI/UX Designers!** We're looking for talented designers to help create a new, unified design system for Lume. If you have experience with **Figma** and are passionate about productivity tools, we'd love your contribution!
+
+**What we need:**
+- 🎨 Complete UI/UX redesign in Figma
+- 🎯 Unified design system and component library
+- ✨ Modern, intuitive user experience
+- 🌓 Dark and light mode variants
+- 📱 Responsive layout considerations
+
+**Why Figma?** We use the Figma MCP (Model Context Protocol) for seamless design-to-code workflow, making it easier to implement your designs directly into the application.
+
+**Interested?** Check out our [Contributing Guide](CONTRIBUTING.md) or open an issue to discuss your design ideas!
+
+---
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Electron](https://img.shields.io/badge/Electron-29+-blue.svg)](https://electronjs.org/)
 [![React](https://img.shields.io/badge/React-19+-blue.svg)](https://reactjs.org/)
