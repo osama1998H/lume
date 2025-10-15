@@ -61,7 +61,7 @@ jest.mock('../layout/TitleBar', () => ({
 
 jest.mock('../layout/Sidebar', () => ({
   __esModule: true,
-  default: ({ currentView, onViewChange }: { currentView: string; onViewChange: (view: string) => void }) => (
+  default: ({ onViewChange }: { currentView: string; onViewChange: (view: string) => void }) => (
     <div data-testid="sidebar">
       <button onClick={() => onViewChange('dashboard')}>Dashboard</button>
       <button onClick={() => onViewChange('tracker')}>Tracker</button>
