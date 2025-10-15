@@ -649,7 +649,7 @@ interface IPomodoroAPI {
     getStats: (startDate?: string, endDate?: string) => Promise<any>;
   };
   timer: {
-    start: (task: string, sessionType: string) => Promise<void>;
+    start: (task: string, sessionType: string, todoId?: number) => Promise<void>;
     pause: () => Promise<void>;
     resume: () => Promise<void>;
     stop: () => Promise<void>;
