@@ -32,9 +32,9 @@ jobs:
 
       - name: Run tests with coverage
         run: npm run test -- --coverage --coverageReporters="text" --coverageReporters="lcov" --coverageReporters="json-summary"
-        continue-on-error: true
 
       - name: Upload coverage to Codecov
+        if: always()
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage/lcov.info
@@ -44,7 +44,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Coverage Report Summary
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && always()
         uses: romeovs/lcov-reporter-action@v0.3.1
         with:
           lcov-file: ./coverage/lcov.info
@@ -52,6 +52,7 @@ jobs:
           delete-old-comments: true
 
       - name: Check coverage threshold
+        if: always()
         run: |
           COVERAGE=$(node -p "require('./coverage/coverage-summary.json').total.lines.pct")
           echo "Total coverage: $COVERAGE%"
@@ -61,7 +62,6 @@ jobs:
           else
             echo "✅ Coverage meets 70% threshold"
           fi
-        continue-on-error: true
 
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
