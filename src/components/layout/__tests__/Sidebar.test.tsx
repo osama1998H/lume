@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Sidebar from '../Sidebar';
 
@@ -167,7 +167,7 @@ describe('Sidebar', () => {
     });
 
     it('highlights current view', () => {
-      const { container } = render(<Sidebar currentView="dashboard" onViewChange={mockOnViewChange} />);
+      render(<Sidebar currentView="dashboard" onViewChange={mockOnViewChange} />);
 
       const dashboardButton = screen.getByText('Dashboard').closest('button');
       expect(dashboardButton).toHaveClass('bg-gradient-to-r', 'from-primary-500', 'to-primary-600', 'text-white');
@@ -362,7 +362,7 @@ describe('Sidebar', () => {
       toggleShortcut.action();
 
       // Re-render to see the effect
-      const { container: newContainer } = render(<Sidebar currentView="dashboard" onViewChange={mockOnViewChange} />);
+      render(<Sidebar currentView="dashboard" onViewChange={mockOnViewChange} />);
 
       // Trigger toggle again through the stored action
       const newShortcuts = mockUseKeyboardShortcuts.mock.calls[mockUseKeyboardShortcuts.mock.calls.length - 1][0];

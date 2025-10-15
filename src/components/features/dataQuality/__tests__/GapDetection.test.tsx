@@ -70,8 +70,30 @@ describe('GapDetection', () => {
       startTime: '2025-01-15T10:00:00Z',
       endTime: '2025-01-15T10:30:00Z',
       duration: 1800, // 30 minutes
-      beforeActivity: { id: 1, title: 'Meeting', sourceType: 'manual' },
-      afterActivity: { id: 2, title: 'Work Session', sourceType: 'manual' },
+      beforeActivity: {
+        id: 1,
+        title: 'Meeting',
+        sourceType: 'manual',
+        type: 'time_entry',
+        startTime: '2025-01-15T09:00:00Z',
+        endTime: '2025-01-15T10:00:00Z',
+        duration: 3600,
+        categoryId: undefined,
+        isEditable: true,
+        editableFields: ['title', 'startTime', 'endTime', 'categoryId']
+      },
+      afterActivity: {
+        id: 2,
+        title: 'Work Session',
+        sourceType: 'manual',
+        type: 'time_entry',
+        startTime: '2025-01-15T10:30:00Z',
+        endTime: '2025-01-15T11:30:00Z',
+        duration: 3600,
+        categoryId: undefined,
+        isEditable: true,
+        editableFields: ['title', 'startTime', 'endTime', 'categoryId']
+      },
     },
     {
       startTime: '2025-01-15T14:00:00Z',
@@ -618,7 +640,7 @@ describe('GapDetection', () => {
 
   describe('Visual Styling', () => {
     it('renders gap list when data is available', async () => {
-      const { container } = render(
+      render(
         <GapDetection
           startDate={mockStartDate}
           endDate={mockEndDate}

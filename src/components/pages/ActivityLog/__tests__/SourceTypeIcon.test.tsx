@@ -188,7 +188,7 @@ describe('SourceTypeIcon', () => {
 
   describe('Icon-Only Mode', () => {
     it('renders only icon container without badge', () => {
-      const { container } = render(<SourceTypeIcon sourceType="manual" showBadge={false} />);
+      render(<SourceTypeIcon sourceType="manual" showBadge={false} />);
       expect(screen.queryByText('Manual')).not.toBeInTheDocument();
       expect(screen.getByTestId('timer-icon')).toBeInTheDocument();
     });

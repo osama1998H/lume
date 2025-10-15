@@ -1,7 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import DataQualityPanel from '../DataQualityPanel';
-import type { TimeGap } from '../../../../types';
 
 // Mock i18n
 jest.mock('react-i18next', () => ({
@@ -187,7 +186,7 @@ describe('DataQualityPanel', () => {
     });
 
     it('shows gaps tab as active by default', () => {
-      const { container } = render(
+      render(
         <DataQualityPanel
           startDate={mockStartDate}
           endDate={mockEndDate}
