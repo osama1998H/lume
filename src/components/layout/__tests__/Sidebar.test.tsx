@@ -289,7 +289,7 @@ describe('Sidebar', () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
       // Mock localStorage to throw error
-      jest.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => {
+      jest.spyOn(window.localStorage, 'setItem').mockImplementationOnce(() => {
         throw new Error('Storage error');
       });
 
@@ -414,13 +414,13 @@ describe('Sidebar', () => {
   });
 
   describe('RTL Support', () => {
-    it('uses ChevronRight for LTR when expanded', () => {
+    it('uses ChevronLeft for LTR when expanded', () => {
       render(<Sidebar currentView="dashboard" onViewChange={mockOnViewChange} />);
 
       expect(screen.getByTestId('chevron-left-icon')).toBeInTheDocument();
     });
 
-    it('uses ChevronLeft for LTR when collapsed', () => {
+    it('uses ChevronRight for LTR when collapsed', () => {
       render(<Sidebar currentView="dashboard" onViewChange={mockOnViewChange} />);
 
       const toggleButton = screen.getByText('Collapse Sidebar').closest('button');

@@ -55,10 +55,8 @@ const mockElectronAPI = {
   },
 };
 
-(global as any).window = {
-  ...global.window,
-  electronAPI: mockElectronAPI,
-};
+(global as any).window ??= global;
+(global as any).window.electronAPI = mockElectronAPI;
 
 describe('GapDetection', () => {
   const mockStartDate = '2025-01-01T00:00:00Z';
