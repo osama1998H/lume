@@ -236,7 +236,7 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
       const timeRemaining = Math.max(0, row.targetMinutes - progressMinutes);
 
       // Calculate status
-      let status: GoalStatus = 'not_started';
+      let status: GoalStatus;
       if (progressMinutes === 0) {
         status = 'not_started';
       } else if (row.achieved) {
