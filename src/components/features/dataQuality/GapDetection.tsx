@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, AlertCircle, TrendingUp, Calendar, Plus } from 'lucide-react';
 import { TimeGap } from '../../../types';
@@ -23,13 +23,7 @@ const GapDetection: React.FC<GapDetectionProps> = ({ startDate, endDate, onCreat
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // loadGapData depends on the same props that are in the dependency array
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    loadGapData();
-  }, [startDate, endDate, minGapMinutes]);
-
-  const loadGapData = async () => {
+  const loadGapData = useCallback(async () => {
     if (!window.electronAPI) return;
 
     try {
@@ -37,8 +31,8 @@ const GapDetection: React.FC<GapDetectionProps> = ({ startDate, endDate, onCreat
       setError(null);
 
       const [gapsData, statsData] = await Promise.all([
-        window.electronAPI.detectActivityGaps(startDate, endDate, minGapMinutes),
-        window.electronAPI.getGapStatistics(startDate, endDate, minGapMinutes),
+        window.electronAPI.dataQuality.gaps.detect(startDate, endDate, minGapMinutes),
+        window.electronAPI.dataQuality.gaps.getStatistics(startDate, endDate, minGapMinutes),
       ]);
 
       setGaps(gapsData);
@@ -49,7 +43,11 @@ const GapDetection: React.FC<GapDetectionProps> = ({ startDate, endDate, onCreat
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate, minGapMinutes, t]);
+
+  useEffect(() => {
+    loadGapData();
+  }, [loadGapData]);
 
   const handleFillGap = (gap: TimeGap) => {
     if (onCreateActivity) {

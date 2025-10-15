@@ -74,8 +74,8 @@ const ActivityLogContent: React.FC = () => {
       // Load categories and tags together (essential for UI)
       try {
         const [categoriesData, tagsData] = await Promise.all([
-          window.electronAPI.getCategories(),
-          window.electronAPI.getTags(),
+          window.electronAPI.categories.getAll(),
+          window.electronAPI.tags.getAll(),
         ]);
         setCategories(categoriesData);
         setTags(tagsData);
@@ -85,7 +85,7 @@ const ActivityLogContent: React.FC = () => {
 
       // Load settings separately so failure doesn't block categories/tags
       try {
-        const settings = await window.electronAPI.getSettings();
+        const settings = await window.electronAPI.settings.get();
         setDefaultCategory(settings?.defaultCategory || null);
       } catch (error) {
         console.error('Failed to load settings:', error);
@@ -103,7 +103,7 @@ const ActivityLogContent: React.FC = () => {
         const startDate = dateRange.start.toISOString();
         const endDate = dateRange.end.toISOString();
 
-        const activitiesData = await window.electronAPI.getUnifiedActivities(
+        const activitiesData = await window.electronAPI.activities.getAll(
           startDate,
           endDate,
           filters
@@ -223,7 +223,7 @@ const ActivityLogContent: React.FC = () => {
   // Create activity handler
   const handleCreateActivity = async (data: NewActivityData) => {
     try {
-      await window.electronAPI.addTimeEntry({
+      await window.electronAPI.timeEntries.add({
         task: data.title,
         startTime: data.startTime,
         endTime: data.endTime,
@@ -255,7 +255,7 @@ const ActivityLogContent: React.FC = () => {
   // Bulk update handler
   const handleBulkUpdate = async (updates: BulkUpdateData) => {
     try {
-      await window.electronAPI.bulkUpdateActivities({
+      await window.electronAPI.activities.bulk.update({
         activityIds: updates.activityIds,
         operation: 'update',
         updates: {
@@ -278,7 +278,7 @@ const ActivityLogContent: React.FC = () => {
     try {
       const activityIds = Array.from(selectedActivities).map(parseSelectionKey);
       // Use bulk operations for merging
-      await window.electronAPI.bulkUpdateActivities({
+      await window.electronAPI.activities.bulk.update({
         activityIds,
         operation: 'merge',
         mergeStrategy: 'longest',
@@ -297,7 +297,7 @@ const ActivityLogContent: React.FC = () => {
     if (!selectedActivityForEdit) return;
 
     try {
-      await window.electronAPI.updateUnifiedActivity({
+      await window.electronAPI.activities.update({
         id: selectedActivityForEdit.id,
         sourceType: selectedActivityForEdit.sourceType,
         updates,

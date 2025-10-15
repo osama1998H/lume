@@ -37,14 +37,14 @@ const Dashboard: React.FC = () => {
 
         // Fetch both completed activities and active entry in parallel
         const [unifiedActivities, activeTimeEntry] = await Promise.all([
-          window.electronAPI.getUnifiedActivities(
+          window.electronAPI.activities.getAll(
             today.toISOString(),
             tomorrow.toISOString(),
             {
               sourceTypes: ['manual', 'automatic', 'pomodoro'],
             }
           ),
-          window.electronAPI.getActiveTimeEntry(),
+          window.electronAPI.timeEntries.getActive(),
         ]);
 
         setActivities(unifiedActivities);

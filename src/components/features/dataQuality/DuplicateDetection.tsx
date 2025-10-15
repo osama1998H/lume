@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Copy, AlertCircle, Percent, GitMerge, ChevronDown, ChevronUp } from 'lucide-react';
 import { UnifiedActivity } from '../../../types';
@@ -28,13 +28,7 @@ const DuplicateDetection: React.FC<DuplicateDetectionProps> = ({
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
   const [mergingGroups, setMergingGroups] = useState<Set<number>>(new Set());
 
-  // loadDuplicateData depends on the same props that are in the dependency array
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    loadDuplicateData();
-  }, [startDate, endDate, similarityThreshold]);
-
-  const loadDuplicateData = async () => {
+  const loadDuplicateData = useCallback(async () => {
     // Guard against non-Electron environments
     if (!window.electronAPI) {
       setLoading(false);
@@ -46,7 +40,7 @@ const DuplicateDetection: React.FC<DuplicateDetectionProps> = ({
       setLoading(true);
       setError(null);
 
-      const duplicates = await window.electronAPI.detectDuplicateActivities(
+      const duplicates = await window.electronAPI.dataQuality.duplicates.detect(
         startDate,
         endDate,
         similarityThreshold
@@ -59,7 +53,11 @@ const DuplicateDetection: React.FC<DuplicateDetectionProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate, similarityThreshold, t]);
+
+  useEffect(() => {
+    loadDuplicateData();
+  }, [loadDuplicateData]);
 
   const toggleGroupExpansion = (index: number) => {
     const newExpanded = new Set(expandedGroups);

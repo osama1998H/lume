@@ -45,7 +45,7 @@ const TagSelector: React.FC<TagSelectorProps> = ({
   const loadTags = async (): Promise<Tag[]> => {
     try {
       if (window.electronAPI) {
-        const tags = await window.electronAPI.getTags();
+        const tags = await window.electronAPI.tags.getAll();
         setAllTags(tags);
         return tags;
       }
@@ -90,7 +90,7 @@ const TagSelector: React.FC<TagSelectorProps> = ({
       const colors = ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#06B6D4', '#EC4899'];
       const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
-      const newTagId = await window.electronAPI.addTag({
+      const newTagId = await window.electronAPI.tags.add({
         name: searchQuery.trim(),
         color: randomColor,
       });

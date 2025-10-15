@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   AlertCircle,
@@ -58,8 +58,70 @@ const DataCleanup: React.FC<DataCleanupProps> = ({ startDate, endDate, onRefresh
     errors: string[];
   } | null>(null);
 
-  // Load functions depend on the same props (startDate, endDate) that are in the dependency array
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const loadQualityReport = useCallback(async () => {
+    if (!window.electronAPI) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      const report = await window.electronAPI.dataQuality.report.get(startDate, endDate);
+      setQualityReport(report);
+    } catch (err) {
+      console.error('Failed to load quality report:', err);
+      setError(t('dataQuality.cleanup.loadError', 'Failed to load quality report'));
+    } finally {
+      setLoading(false);
+    }
+  }, [startDate, endDate, t]);
+
+  const loadOrphanedActivities = useCallback(async () => {
+    if (!window.electronAPI) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      const activities = await window.electronAPI.dataQuality.orphaned.find(startDate, endDate);
+      setOrphanedActivities(activities);
+    } catch (err) {
+      console.error('Failed to load orphaned activities:', err);
+      setError(t('dataQuality.cleanup.loadError', 'Failed to load orphaned activities'));
+    } finally {
+      setLoading(false);
+    }
+  }, [startDate, endDate, t]);
+
+  const loadZeroDurationActivities = useCallback(async () => {
+    if (!window.electronAPI) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await window.electronAPI.dataQuality.zeroDuration.find(startDate, endDate, false);
+      setZeroDurationActivities(result.activities);
+    } catch (err) {
+      console.error('Failed to load zero-duration activities:', err);
+      setError(t('dataQuality.cleanup.loadError', 'Failed to load zero-duration activities'));
+    } finally {
+      setLoading(false);
+    }
+  }, [startDate, endDate, t]);
+
+  const loadValidationResults = useCallback(async () => {
+    if (!window.electronAPI) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      const results = await window.electronAPI.dataQuality.validation.validateBatch(startDate, endDate);
+      setValidationResults(results);
+    } catch (err) {
+      console.error('Failed to validate activities:', err);
+      setError(t('dataQuality.cleanup.loadError', 'Failed to validate activities'));
+    } finally {
+      setLoading(false);
+    }
+  }, [startDate, endDate, t]);
+
   useEffect(() => {
     if (activeTab === 'quality') {
       loadQualityReport();
@@ -70,71 +132,7 @@ const DataCleanup: React.FC<DataCleanupProps> = ({ startDate, endDate, onRefresh
     } else if (activeTab === 'validate') {
       loadValidationResults();
     }
-  }, [activeTab, startDate, endDate]);
-
-  const loadQualityReport = async () => {
-    if (!window.electronAPI) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-      const report = await window.electronAPI.getDataQualityReport(startDate, endDate);
-      setQualityReport(report);
-    } catch (err) {
-      console.error('Failed to load quality report:', err);
-      setError(t('dataQuality.cleanup.loadError', 'Failed to load quality report'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadOrphanedActivities = async () => {
-    if (!window.electronAPI) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-      const activities = await window.electronAPI.findOrphanedActivities(startDate, endDate);
-      setOrphanedActivities(activities);
-    } catch (err) {
-      console.error('Failed to load orphaned activities:', err);
-      setError(t('dataQuality.cleanup.loadError', 'Failed to load orphaned activities'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadZeroDurationActivities = async () => {
-    if (!window.electronAPI) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await window.electronAPI.findZeroDurationActivities(startDate, endDate, false);
-      setZeroDurationActivities(result.activities);
-    } catch (err) {
-      console.error('Failed to load zero-duration activities:', err);
-      setError(t('dataQuality.cleanup.loadError', 'Failed to load zero-duration activities'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadValidationResults = async () => {
-    if (!window.electronAPI) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-      const results = await window.electronAPI.validateActivitiesBatch(startDate, endDate);
-      setValidationResults(results);
-    } catch (err) {
-      console.error('Failed to validate activities:', err);
-      setError(t('dataQuality.cleanup.loadError', 'Failed to validate activities'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [activeTab, loadQualityReport, loadOrphanedActivities, loadZeroDurationActivities, loadValidationResults]);
 
   const handleRecalculateDurations = async () => {
     if (!window.electronAPI) return;
@@ -142,7 +140,7 @@ const DataCleanup: React.FC<DataCleanupProps> = ({ startDate, endDate, onRefresh
     try {
       setLoading(true);
       setError(null);
-      const result = await window.electronAPI.recalculateActivityDurations(startDate, endDate);
+      const result = await window.electronAPI.dataQuality.durations.recalculate(startDate, endDate);
       setRecalculationResult(result);
       if (onRefresh) onRefresh();
     } catch (err) {
@@ -163,7 +161,7 @@ const DataCleanup: React.FC<DataCleanupProps> = ({ startDate, endDate, onRefresh
     try {
       setLoading(true);
       setError(null);
-      const result = await window.electronAPI.findZeroDurationActivities(startDate, endDate, true);
+      const result = await window.electronAPI.dataQuality.zeroDuration.find(startDate, endDate, true);
       alert(
         t('dataQuality.cleanup.removedCount', {
           count: result.removed,
@@ -187,11 +185,11 @@ const DataCleanup: React.FC<DataCleanupProps> = ({ startDate, endDate, onRefresh
   };
 
   const tabs = [
-    { id: 'quality', label: t('dataQuality.cleanup.qualityReport', 'Quality Report'), icon: TrendingUp },
-    { id: 'orphaned', label: t('dataQuality.cleanup.orphaned', 'Orphaned Activities'), icon: Database },
-    { id: 'zero', label: t('dataQuality.cleanup.zeroDuration', 'Zero Duration'), icon: AlertCircle },
-    { id: 'recalculate', label: t('dataQuality.cleanup.recalculate', 'Recalculate Durations'), icon: RefreshCw },
-    { id: 'validate', label: t('dataQuality.cleanup.validate', 'Validate All'), icon: Shield },
+    { id: 'quality' as const, label: t('dataQuality.cleanup.qualityReport', 'Quality Report'), icon: TrendingUp },
+    { id: 'orphaned' as const, label: t('dataQuality.cleanup.orphaned', 'Orphaned Activities'), icon: Database },
+    { id: 'zero' as const, label: t('dataQuality.cleanup.zeroDuration', 'Zero Duration'), icon: AlertCircle },
+    { id: 'recalculate' as const, label: t('dataQuality.cleanup.recalculate', 'Recalculate Durations'), icon: RefreshCw },
+    { id: 'validate' as const, label: t('dataQuality.cleanup.validate', 'Validate All'), icon: Shield },
   ];
 
   return (
@@ -205,7 +203,7 @@ const DataCleanup: React.FC<DataCleanupProps> = ({ startDate, endDate, onRefresh
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
                     activeTab === tab.id
                       ? 'border-primary-600 text-primary-600 dark:text-primary-400'

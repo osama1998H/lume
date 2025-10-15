@@ -43,10 +43,10 @@ const Categories: React.FC = () => {
     try {
       if (window.electronAPI) {
         const [categoriesData, tagsData, appMappingsData, domainMappingsData] = await Promise.all([
-          window.electronAPI.getCategories(),
-          window.electronAPI.getTags(),
-          window.electronAPI.getAppCategoryMappings(),
-          window.electronAPI.getDomainCategoryMappings(),
+          window.electronAPI.categories.getAll(),
+          window.electronAPI.tags.getAll(),
+          window.electronAPI.categoryMappings.apps.getAll(),
+          window.electronAPI.categoryMappings.domains.getAll(),
         ]);
         setCategories(categoriesData);
         setTags(tagsData);
@@ -78,7 +78,7 @@ const Categories: React.FC = () => {
     setIsSaving(true);
     try {
       if (window.electronAPI) {
-        await window.electronAPI.addCategory(validation.data);
+        await window.electronAPI.categories.add(validation.data);
         await loadData();
         setShowCategoryModal(false);
         setCategoryForm({ name: '', color: '#3B82F6', description: '' });
@@ -113,7 +113,7 @@ const Categories: React.FC = () => {
 
     try {
       if (window.electronAPI) {
-        await window.electronAPI.updateCategory(categoryId, validation.data);
+        await window.electronAPI.categories.update(categoryId, validation.data);
         await loadData();
         setEditingCategoryId(null);
         setEditForm({ name: '', color: '' });
@@ -138,7 +138,7 @@ const Categories: React.FC = () => {
     setIsSaving(true);
     try {
       if (window.electronAPI) {
-        await window.electronAPI.addTag(validation.data);
+        await window.electronAPI.tags.add(validation.data);
         await loadData();
         setShowTagModal(false);
         setTagForm({ name: '', color: '#8B5CF6' });
@@ -173,7 +173,7 @@ const Categories: React.FC = () => {
 
     try {
       if (window.electronAPI) {
-        await window.electronAPI.updateTag(tagId, validation.data);
+        await window.electronAPI.tags.update(tagId, validation.data);
         await loadData();
         setEditingTagId(null);
         setEditForm({ name: '', color: '' });
@@ -199,9 +199,9 @@ const Categories: React.FC = () => {
     try {
       if (window.electronAPI) {
         if (mappingForm.type === 'app') {
-          await window.electronAPI.addAppCategoryMapping(mappingForm.value, mappingForm.categoryId);
+          await window.electronAPI.categoryMappings.apps.add(mappingForm.value, mappingForm.categoryId);
         } else {
-          await window.electronAPI.addDomainCategoryMapping(mappingForm.value, mappingForm.categoryId);
+          await window.electronAPI.categoryMappings.domains.add(mappingForm.value, mappingForm.categoryId);
         }
         await loadData();
         setShowMappingModal(false);
@@ -231,19 +231,19 @@ const Categories: React.FC = () => {
       if (window.electronAPI) {
         switch (deleteTarget.type) {
           case 'category':
-            await window.electronAPI.deleteCategory(deleteTarget.id);
+            await window.electronAPI.categories.delete(deleteTarget.id);
             showToast.success(t('categories.deleteSuccess') || 'Category deleted successfully');
             break;
           case 'tag':
-            await window.electronAPI.deleteTag(deleteTarget.id);
+            await window.electronAPI.tags.delete(deleteTarget.id);
             showToast.success(t('categories.tagDeleteSuccess') || 'Tag deleted successfully');
             break;
           case 'appMapping':
-            await window.electronAPI.deleteAppCategoryMapping(deleteTarget.id);
+            await window.electronAPI.categoryMappings.apps.delete(deleteTarget.id);
             showToast.success(t('categories.mappingDeleteSuccess') || 'Mapping deleted successfully');
             break;
           case 'domainMapping':
-            await window.electronAPI.deleteDomainCategoryMapping(deleteTarget.id);
+            await window.electronAPI.categoryMappings.domains.delete(deleteTarget.id);
             showToast.success(t('categories.mappingDeleteSuccess') || 'Mapping deleted successfully');
             break;
         }

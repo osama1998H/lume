@@ -113,12 +113,12 @@ export const Analytics: React.FC = () => {
         weeklyData,
         insightsData
       ] = await Promise.all([
-        window.electronAPI.getAnalyticsSummary(),
-        window.electronAPI.getProductivityTrends(startDate, endDate, groupBy),
-        window.electronAPI.getHourlyPatterns(30),
-        window.electronAPI.getHeatmapData(new Date().getFullYear()),
-        window.electronAPI.getWeeklySummary(0),
-        window.electronAPI.getBehavioralInsights()
+        window.electronAPI.analytics.getSummary(),
+        window.electronAPI.analytics.getTrends(startDate, endDate, groupBy),
+        window.electronAPI.analytics.getHourlyPatterns(30),
+        window.electronAPI.analytics.getHeatmap(new Date().getFullYear()),
+        window.electronAPI.analytics.getWeeklySummary(0),
+        window.electronAPI.analytics.getInsights()
       ]);
 
       setSummary(summaryData);

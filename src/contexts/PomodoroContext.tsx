@@ -59,7 +59,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const loadSettings = useCallback(async () => {
     try {
       if (window.electronAPI) {
-        const pomodoroSettings = await window.electronAPI.getPomodoroSettings();
+        const pomodoroSettings = await window.electronAPI.pomodoro.settings.get();
         setSettings(pomodoroSettings || defaultSettings);
       }
     } catch (error) {
@@ -70,8 +70,8 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const refreshStatus = useCallback(async () => {
     try {
-      if (window.electronAPI && window.electronAPI.getPomodoroStatus) {
-        const currentStatus = await window.electronAPI.getPomodoroStatus();
+      if (window.electronAPI && window.electronAPI.pomodoro.timer.getStatus) {
+        const currentStatus = await window.electronAPI.pomodoro.timer.getStatus();
         setStatus(currentStatus);
       }
     } catch (error) {
@@ -82,7 +82,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const saveSettings = useCallback(async (newSettings: PomodoroSettings) => {
     try {
       if (window.electronAPI) {
-        await window.electronAPI.savePomodoroSettings(newSettings);
+        await window.electronAPI.pomodoro.settings.save(newSettings);
         setSettings(newSettings);
       }
     } catch (error) {
@@ -119,8 +119,8 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const startSession = useCallback(async (task: string, type: SessionType = 'focus') => {
     try {
-      if (window.electronAPI && window.electronAPI.startPomodoroSession) {
-        await window.electronAPI.startPomodoroSession(task, type);
+      if (window.electronAPI && window.electronAPI.pomodoro.timer.start) {
+        await window.electronAPI.pomodoro.timer.start(task, type);
         await refreshStatus();
       }
     } catch (error) {
@@ -130,8 +130,8 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const pauseSession = useCallback(async () => {
     try {
-      if (window.electronAPI && window.electronAPI.pausePomodoroSession) {
-        await window.electronAPI.pausePomodoroSession();
+      if (window.electronAPI && window.electronAPI.pomodoro.timer.pause) {
+        await window.electronAPI.pomodoro.timer.pause();
         await refreshStatus();
       }
     } catch (error) {
@@ -141,8 +141,8 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const resumeSession = useCallback(async () => {
     try {
-      if (window.electronAPI && window.electronAPI.resumePomodoroSession) {
-        await window.electronAPI.resumePomodoroSession();
+      if (window.electronAPI && window.electronAPI.pomodoro.timer.resume) {
+        await window.electronAPI.pomodoro.timer.resume();
         await refreshStatus();
       }
     } catch (error) {
@@ -152,8 +152,8 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const stopSession = useCallback(async () => {
     try {
-      if (window.electronAPI && window.electronAPI.stopPomodoroSession) {
-        await window.electronAPI.stopPomodoroSession();
+      if (window.electronAPI && window.electronAPI.pomodoro.timer.stop) {
+        await window.electronAPI.pomodoro.timer.stop();
         await refreshStatus();
       }
     } catch (error) {
@@ -163,8 +163,8 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const skipSession = useCallback(async () => {
     try {
-      if (window.electronAPI && window.electronAPI.skipPomodoroSession) {
-        await window.electronAPI.skipPomodoroSession();
+      if (window.electronAPI && window.electronAPI.pomodoro.timer.skip) {
+        await window.electronAPI.pomodoro.timer.skip();
         await refreshStatus();
       }
     } catch (error) {

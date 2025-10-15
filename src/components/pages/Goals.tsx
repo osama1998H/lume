@@ -71,12 +71,12 @@ const Goals: React.FC = () => {
   const loadGoals = useCallback(async () => {
     try {
       if (window.electronAPI) {
-        const goalsData = await window.electronAPI.getTodayGoalsWithProgress();
+        const goalsData = await window.electronAPI.goals.getTodayWithProgress();
         // Load tags for each goal
         const goalsWithTags = await Promise.all(
           goalsData.map(async (goal) => {
             if (goal.id) {
-              const tags = await window.electronAPI.getProductivityGoalTags(goal.id);
+              const tags = await window.electronAPI.tagAssociations.productivityGoals.get(goal.id);
               return { ...goal, tags };
             }
             return goal;
@@ -95,7 +95,7 @@ const Goals: React.FC = () => {
   const loadStats = useCallback(async () => {
     try {
       if (window.electronAPI) {
-        const statsData = await window.electronAPI.getGoalStats();
+        const statsData = await window.electronAPI.goals.getStats();
         setStats(statsData);
       }
     } catch (error) {
@@ -106,7 +106,7 @@ const Goals: React.FC = () => {
   const loadCategories = useCallback(async () => {
     try {
       if (window.electronAPI) {
-        const categoriesData = await window.electronAPI.getCategories();
+        const categoriesData = await window.electronAPI.categories.getAll();
         setCategories(categoriesData);
       }
     } catch (error) {
@@ -117,7 +117,7 @@ const Goals: React.FC = () => {
   const loadApplications = useCallback(async () => {
     try {
       if (window.electronAPI) {
-        const appsData = await window.electronAPI.getTopApplications(100);
+        const appsData = await window.electronAPI.activityTracking.getTopApplications(100);
         setApplications(appsData);
       }
     } catch (error) {
@@ -197,11 +197,11 @@ const Goals: React.FC = () => {
 
         let goalId: number;
         if (editingGoal?.id) {
-          await window.electronAPI.updateGoal(editingGoal.id, goalData);
+          await window.electronAPI.goals.update(editingGoal.id, goalData);
           goalId = editingGoal.id;
           showToast.success(t('goals.updateSuccess') || 'Goal updated successfully');
         } else {
-          goalId = await window.electronAPI.addGoal(goalData as ProductivityGoal);
+          goalId = await window.electronAPI.goals.add(goalData as ProductivityGoal);
           showToast.success(t('goals.createSuccess') || 'Goal created successfully');
         }
 
@@ -209,7 +209,7 @@ const Goals: React.FC = () => {
         const tagIds = formData.tags
           .map((tag) => tag.id)
           .filter((id): id is number => id != null);
-        await window.electronAPI.setProductivityGoalTags(goalId, tagIds);
+        await window.electronAPI.tagAssociations.productivityGoals.set(goalId, tagIds);
 
         setShowCreateModal(false);
         setEditingGoal(null);
@@ -235,7 +235,7 @@ const Goals: React.FC = () => {
     setIsSaving(true);
     try {
       if (window.electronAPI) {
-        const success = await window.electronAPI.deleteGoal(deleteGoalId);
+        const success = await window.electronAPI.goals.delete(deleteGoalId);
         if (success) {
           await loadGoals();
           await loadStats();
@@ -255,7 +255,7 @@ const Goals: React.FC = () => {
   const handleToggleActive = async (goal: GoalWithProgress) => {
     try {
       if (window.electronAPI && goal.id) {
-        await window.electronAPI.updateGoal(goal.id, { active: !goal.active });
+        await window.electronAPI.goals.update(goal.id, { active: !goal.active });
         await loadGoals();
         await loadStats();
         showToast.success(goal.active ? 'Goal paused' : 'Goal activated');

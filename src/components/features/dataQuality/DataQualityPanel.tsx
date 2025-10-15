@@ -32,7 +32,7 @@ const DataQualityPanel: React.FC<DataQualityPanelProps> = ({
     if (!window.electronAPI) return;
 
     try {
-      const result = await window.electronAPI.bulkUpdateActivities({
+      const result = await window.electronAPI.activities.bulk.update({
         activityIds: activityIds as Array<{ id: number; sourceType: 'manual' | 'automatic' | 'pomodoro' }>,
         operation: 'merge',
         mergeStrategy: 'longest',

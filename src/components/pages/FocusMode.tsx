@@ -34,7 +34,7 @@ const FocusMode: React.FC = () => {
     try {
       if (window.electronAPI) {
         const today = new Date().toISOString().split('T')[0];
-        const pomodoroStats = await window.electronAPI.getPomodoroStats(today, today);
+        const pomodoroStats = await window.electronAPI.pomodoro.sessions.getStats(today, today);
         setStats(pomodoroStats);
       }
     } catch (error) {
@@ -53,7 +53,7 @@ const FocusMode: React.FC = () => {
         const tagIds = selectedTags
           .map((tag) => tag.id)
           .filter((id): id is number => id != null);
-        await window.electronAPI.addPomodoroSessionTags(status.currentSessionId, tagIds);
+        await window.electronAPI.tagAssociations.pomodoroSessions.add(status.currentSessionId, tagIds);
       } catch (error) {
         console.error('Failed to add tags to pomodoro session:', error);
       }
