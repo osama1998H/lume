@@ -84,7 +84,7 @@ export const Analytics: React.FC = () => {
       // Get date range based on selected period
       const endDate = new Date().toISOString().split('T')[0];
       let startDate: string;
-      let groupBy: 'day' | 'week' | 'month' = 'day';
+      let groupBy: 'day' | 'week' | 'month';
 
       if (selectedPeriod === 'week') {
         const date = new Date();
