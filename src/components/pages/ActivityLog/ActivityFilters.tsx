@@ -97,11 +97,9 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
   }, [dateRange, selectedSourceTypes, selectedCategories, selectedTags, debouncedSearchQuery, minDuration, maxDuration, setFilters]);
 
   // Apply filters when debounced search query changes
-  // Note: applyFilters is intentionally excluded from dependencies to prevent infinite loop
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     applyFilters();
-  }, [debouncedSearchQuery]);
+  }, [debouncedSearchQuery, applyFilters]);
 
   // Handle date range preset changes
   const handleDateRangeChange = (preset: string) => {

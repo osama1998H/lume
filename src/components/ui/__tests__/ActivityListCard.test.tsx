@@ -36,7 +36,9 @@ describe('ActivityListCard', () => {
 
     expect(screen.getByText('Recent Entries')).toBeInTheDocument();
     expect(screen.getByText('Coding Task')).toBeInTheDocument();
-    expect(screen.getByText('10:30 AM • Work')).toBeInTheDocument();
+    // subLabel and category are rendered in separate elements
+    expect(screen.getByText('10:30 AM')).toBeInTheDocument();
+    expect(screen.getByText('Work')).toBeInTheDocument();
     expect(screen.getByText('2h 30m')).toBeInTheDocument();
   });
 
@@ -73,7 +75,8 @@ describe('ActivityListCard', () => {
       />
     );
 
-    expect(screen.queryByText('10:30 AM • Work')).not.toBeInTheDocument();
+    // Category should not be rendered when showCategory is false
+    expect(screen.queryByText('Work')).not.toBeInTheDocument();
     expect(screen.getByText('10:30 AM')).toBeInTheDocument();
   });
 
@@ -129,7 +132,8 @@ describe('ActivityListCard', () => {
     );
 
     expect(screen.getByText('10:00 AM')).toBeInTheDocument();
-    expect(screen.queryByText('10:00 AM •')).not.toBeInTheDocument();
+    // Bullet separator should not appear when there's no category
+    expect(screen.queryByText('•')).not.toBeInTheDocument();
   });
 
   it('shows category as badge when no subLabel', () => {
