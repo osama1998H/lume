@@ -60,7 +60,8 @@ export async function waitForToast(page: Page, message?: string) {
     }
   } catch (error) {
     // Toast might have already appeared and disappeared, or might not show at all
-    // Just wait a bit for the operation to complete
+    // Log for debugging purposes
+    console.debug('Toast not detected, operation may have completed quickly');
     await page.waitForTimeout(500);
   }
 }
