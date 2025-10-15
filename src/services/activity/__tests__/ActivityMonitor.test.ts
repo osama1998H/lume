@@ -1,23 +1,25 @@
 import { ActivityMonitor } from '../ActivityMonitor';
 import { exec } from 'child_process';
-import { promisify } from 'util';
 
-// Mock child_process
-jest.mock('child_process');
-
-const execAsync = promisify(exec);
+// Mock child_process with proper callback-style exec
+jest.mock('child_process', () => ({
+  exec: jest.fn(),
+}));
 
 describe('ActivityMonitor', () => {
   let monitor: ActivityMonitor;
   let consoleLog: jest.SpyInstance;
   let consoleError: jest.SpyInstance;
+  let mockExec: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     consoleLog = jest.spyOn(console, 'log').mockImplementation();
     consoleError = jest.spyOn(console, 'error').mockImplementation();
-    
+
+    mockExec = exec as unknown as jest.Mock;
+
     monitor = new ActivityMonitor(5000);
   });
 
@@ -161,6 +163,21 @@ describe('ActivityMonitor', () => {
   describe('macOS Activity Detection', () => {
     const originalPlatform = process.platform;
 
+    // Helper function to mock exec with callback style
+    const mockExecSuccess = (stdout: string) => {
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        // Call callback synchronously for test simplicity
+        callback(null, { stdout, stderr: '' });
+      });
+    };
+
+    const mockExecError = (error: Error) => {
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        // Call callback synchronously for test simplicity
+        callback(error, { stdout: '', stderr: '' });
+      });
+    };
+
     beforeEach(() => {
       Object.defineProperty(process, 'platform', {
         value: 'darwin',
@@ -176,88 +193,102 @@ describe('ActivityMonitor', () => {
     });
 
     it('should detect non-browser application', async () => {
-      (execAsync as unknown as jest.Mock).mockResolvedValueOnce({
-        stdout: 'TextEdit|||Untitled',
-      });
-      
+      mockExecSuccess('TextEdit|||Untitled');
+
       monitor.start();
-      jest.advanceTimersByTime(100);
-      
+
+      // Wait for async operations with fake timers
+      // Need multiple promise resolutions to flush microtask queue
       await Promise.resolve();
-      
+      await Promise.resolve();
+      await Promise.resolve();
+
       expect(consoleLog).toHaveBeenCalledWith(
         expect.stringContaining('🔍 Captured activity: TextEdit')
       );
     });
 
     it('should detect browser and attempt URL extraction', async () => {
-      (execAsync as unknown as jest.Mock)
-        .mockResolvedValueOnce({
-          stdout: 'Google Chrome|||Example Page',
-        })
-        .mockResolvedValueOnce({
-          stdout: 'https://example.com/page',
-        });
-      
+      let callCount = 0;
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        callCount++;
+        if (callCount === 1) {
+          callback(null, { stdout: 'Google Chrome|||Example Page', stderr: '' });
+        } else {
+          callback(null, { stdout: 'https://example.com/page', stderr: '' });
+        }
+      });
+
       monitor.start();
-      jest.advanceTimersByTime(100);
-      
+
+      // Wait for async operations with fake timers
+      // Need multiple promise resolutions to flush microtask queue
       await Promise.resolve();
       await Promise.resolve();
-      
+      await Promise.resolve();
+
       expect(consoleLog).toHaveBeenCalledWith(
         expect.stringContaining('🌐 Browser detected')
       );
     });
 
     it('should log warning when no app detected', async () => {
-      (execAsync as unknown as jest.Mock).mockResolvedValueOnce({
-        stdout: '|||',
-      });
-      
+      mockExecSuccess('|||');
+
       monitor.start();
-      jest.advanceTimersByTime(100);
-      
+
+      // Wait for async operations with fake timers
+      // Need multiple promise resolutions to flush microtask queue
       await Promise.resolve();
-      
+      await Promise.resolve();
+      await Promise.resolve();
+
       expect(consoleLog).toHaveBeenCalledWith('⚠️  macOS: No active app detected');
     });
 
     it('should skip internal browser pages', async () => {
-      (execAsync as unknown as jest.Mock)
-        .mockResolvedValueOnce({
-          stdout: 'Google Chrome|||New Tab',
-        })
-        .mockResolvedValueOnce({
-          stdout: 'chrome://newtab',
-        });
-      
+      let callCount = 0;
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        callCount++;
+        if (callCount === 1) {
+          callback(null, { stdout: 'Google Chrome|||New Tab', stderr: '' });
+        } else {
+          callback(null, { stdout: 'chrome://newtab', stderr: '' });
+        }
+      });
+
       monitor.start();
-      jest.advanceTimersByTime(100);
-      
+
+      // Wait for async operations with fake timers
+      // Need multiple promise resolutions to flush microtask queue
       await Promise.resolve();
       await Promise.resolve();
-      
+      await Promise.resolve();
+
       expect(consoleLog).toHaveBeenCalledWith(
         expect.stringContaining('⏭️  Skipping internal browser page: chrome://newtab')
       );
     });
 
     it('should handle Chrome browser URL extraction', async () => {
-      (execAsync as unknown as jest.Mock)
-        .mockResolvedValueOnce({
-          stdout: 'Google Chrome|||Example',
-        })
-        .mockResolvedValueOnce({
-          stdout: 'https://www.example.com/test',
-        });
-      
+      let callCount = 0;
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        callCount++;
+        if (callCount === 1) {
+          callback(null, { stdout: 'Google Chrome|||Example', stderr: '' });
+        } else {
+          callback(null, { stdout: 'https://www.example.com/test', stderr: '' });
+        }
+      });
+
       monitor.start();
-      jest.advanceTimersByTime(100);
-      
+
+      // Wait for async operations with fake timers
+      // Need multiple promise resolutions to flush microtask queue
       await Promise.resolve();
       await Promise.resolve();
-      
+      await Promise.resolve();
+
       const activity = await monitor.getCurrentActivity();
       expect(activity).toMatchObject({
         is_browser: true,
@@ -267,68 +298,82 @@ describe('ActivityMonitor', () => {
     });
 
     it('should handle Safari browser', async () => {
-      (execAsync as unknown as jest.Mock)
-        .mockResolvedValueOnce({
-          stdout: 'Safari|||Test Page',
-        })
-        .mockResolvedValueOnce({
-          stdout: 'https://test.com',
-        });
-      
+      let callCount = 0;
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        callCount++;
+        if (callCount === 1) {
+          callback(null, { stdout: 'Safari|||Test Page', stderr: '' });
+        } else {
+          callback(null, { stdout: 'https://test.com', stderr: '' });
+        }
+      });
+
       monitor.start();
-      jest.advanceTimersByTime(100);
-      
+
+      // Wait for async operations with fake timers
+      // Need multiple promise resolutions to flush microtask queue
       await Promise.resolve();
       await Promise.resolve();
-      
+      await Promise.resolve();
+
       const activity = await monitor.getCurrentActivity();
       expect(activity?.is_browser).toBe(true);
     });
 
     it('should return null for Firefox (no AppleScript support)', async () => {
-      (execAsync as unknown as jest.Mock).mockResolvedValueOnce({
-        stdout: 'Firefox|||Test',
-      });
-      
+      mockExecSuccess('Firefox|||Test');
+
       const result = await (monitor as any).getBrowserUrlDirectly('Firefox');
       expect(result).toBeNull();
     });
 
     it('should handle empty URL response', async () => {
-      (execAsync as unknown as jest.Mock).mockResolvedValueOnce({
-        stdout: '',
-      });
-      
+      mockExecSuccess('');
+
       const result = await (monitor as any).getBrowserUrlDirectly('Google Chrome');
       expect(result).toBeNull();
     });
 
     it('should remove www prefix from domain', async () => {
-      (execAsync as unknown as jest.Mock).mockResolvedValueOnce({
-        stdout: 'https://www.example.com',
-      });
-      
+      mockExecSuccess('https://www.example.com');
+
       const result = await (monitor as any).getBrowserUrlDirectly('Google Chrome');
       expect(result?.domain).toBe('example.com');
     });
 
     it('should handle browser URL extraction errors gracefully', async () => {
-      (execAsync as unknown as jest.Mock).mockRejectedValueOnce(new Error('AppleScript error'));
-      
+      mockExecError(new Error('AppleScript error'));
+
       const result = await (monitor as any).getBrowserUrlDirectly('Google Chrome');
       expect(result).toBeNull();
     });
   });
 
   describe('Error Handling', () => {
+    // Helper function for this suite
+    const mockExecSuccess = (stdout: string) => {
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        callback(null, { stdout, stderr: '' });
+      });
+    };
+
+    const mockExecError = (error: Error) => {
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        callback(error, { stdout: '', stderr: '' });
+      });
+    };
+
     it('should log error when activity capture fails', async () => {
-      (execAsync as unknown as jest.Mock).mockRejectedValue(new Error('Test error'));
-      
+      mockExecError(new Error('Test error'));
+
       monitor.start();
-      jest.advanceTimersByTime(100);
-      
+
+      // Wait for async operations with fake timers
+      // Need multiple promise resolutions to flush microtask queue
       await Promise.resolve();
-      
+      await Promise.resolve();
+      await Promise.resolve();
+
       expect(consoleError).toHaveBeenCalledWith(
         '❌ Failed to capture activity:',
         expect.any(Error)
@@ -336,21 +381,25 @@ describe('ActivityMonitor', () => {
     });
 
     it('should continue running after capture error', async () => {
-      (execAsync as unknown as jest.Mock).mockRejectedValue(new Error('Test error'));
+      mockExecError(new Error('Test error'));
 
       monitor.start();
       expect(monitor.isTracking()).toBe(true);
 
-      jest.advanceTimersByTime(100);
+      // Wait for async operations with fake timers
+      // Need multiple promise resolutions to flush microtask queue
+      await Promise.resolve();
+      await Promise.resolve();
       await Promise.resolve();
 
       expect(monitor.isTracking()).toBe(true);
     });
 
     it('should cleanup and stop tracking when stop() is called during capture', async () => {
-      // Simulate a long-running capture by making execAsync return a promise that never resolves
-      const neverResolvingPromise = new Promise(() => {});
-      (execAsync as unknown as jest.Mock).mockReturnValue(neverResolvingPromise);
+      // Simulate a long-running capture by not calling the callback
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        // Never call callback
+      });
 
       monitor.start();
       expect(monitor.isTracking()).toBe(true);

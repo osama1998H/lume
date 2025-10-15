@@ -75,7 +75,8 @@ describe('ProgressListCard', () => {
       />
     );
 
-    const progressBar = container.querySelector('.bg-green-600');
+    // Component uses gradient classes, not solid color classes
+    const progressBar = container.querySelector('.bg-gradient-to-r.from-green-500');
     expect(progressBar).toBeInTheDocument();
   });
 
