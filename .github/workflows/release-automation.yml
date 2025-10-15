@@ -33,11 +33,28 @@ jobs:
 
       - name: Generate Changelog
         id: changelog
-        uses: metcalfc/changelog-generator@v4.6.2
-        with:
-          myToken: ${{ secrets.GITHUB_TOKEN }}
-          head-ref: ${{ github.event.release.tag_name || inputs.version }}
-          base-ref: ${{ github.event.release.target_commitish || 'main' }}
+        run: |
+          # Get the current tag
+          CURRENT_TAG="${{ github.event.release.tag_name || inputs.version }}"
+
+          # Get the previous tag
+          PREVIOUS_TAG=$(git tag --sort=-v:refname | grep -v "$CURRENT_TAG" | head -1)
+
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "No previous tag found, generating changelog from first commit"
+            CHANGELOG=$(git log --pretty=format:"* %s (%h)" "$CURRENT_TAG")
+          else
+            echo "Generating changelog from $PREVIOUS_TAG to $CURRENT_TAG"
+            CHANGELOG=$(git log --pretty=format:"* %s (%h)" "$PREVIOUS_TAG..$CURRENT_TAG")
+          fi
+
+          # Save to output
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "fromTag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+          echo "toTag=$CURRENT_TAG" >> $GITHUB_OUTPUT
 
       - name: Create Release Notes
         if: github.event_name == 'workflow_dispatch'
