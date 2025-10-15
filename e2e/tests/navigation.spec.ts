@@ -33,7 +33,6 @@ test.describe('Navigation Tests', () => {
       await page.waitForTimeout(500);
 
       // Verify that navigation worked by checking the active nav button
-      const activeButton = page.locator(`aside button:has-text("${view.charAt(0).toUpperCase() + view.slice(1)}")`);
 
       // Just verify content area is visible (not all views have h1/h2)
       const contentArea = page.locator('.h-full, main, [role="main"]').first();
