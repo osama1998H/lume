@@ -7,7 +7,7 @@ const execAsync = promisify(exec);
 export class ActivityMonitor implements ActivityTracker {
   private isActive = false;
   private intervalId: NodeJS.Timeout | null = null;
-  private intervalMs = 30000; // 30 seconds default
+  private intervalMs: number; // 30 seconds default in constructor
   private currentActivity: CurrentActivity | null = null;
 
   constructor(intervalMs = 30000) {
