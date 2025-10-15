@@ -69,10 +69,7 @@ const mockElectronAPI = {
   removeAllListeners: jest.fn(),
 };
 
-(global as typeof globalThis & { window: Window & { electron: typeof mockElectronAPI } }).window = {
-  ...global.window,
-  electron: mockElectronAPI,
-};
+(window as any).electron = mockElectronAPI;
 
 // Mock IntersectionObserver (required for some UI components)
 global.IntersectionObserver = class IntersectionObserver {

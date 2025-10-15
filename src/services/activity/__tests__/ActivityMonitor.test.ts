@@ -165,14 +165,14 @@ describe('ActivityMonitor', () => {
 
     // Helper function to mock exec with callback style
     const mockExecSuccess = (stdout: string) => {
-      mockExec.mockImplementation((cmd: string, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, callback: any) => {
         // Call callback synchronously for test simplicity
         callback(null, { stdout, stderr: '' });
       });
     };
 
     const mockExecError = (error: Error) => {
-      mockExec.mockImplementation((cmd: string, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, callback: any) => {
         // Call callback synchronously for test simplicity
         callback(error, { stdout: '', stderr: '' });
       });
@@ -210,7 +210,7 @@ describe('ActivityMonitor', () => {
 
     it('should detect browser and attempt URL extraction', async () => {
       let callCount = 0;
-      mockExec.mockImplementation((cmd: string, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, callback: any) => {
         callCount++;
         if (callCount === 1) {
           callback(null, { stdout: 'Google Chrome|||Example Page', stderr: '' });
@@ -248,7 +248,7 @@ describe('ActivityMonitor', () => {
 
     it('should skip internal browser pages', async () => {
       let callCount = 0;
-      mockExec.mockImplementation((cmd: string, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, callback: any) => {
         callCount++;
         if (callCount === 1) {
           callback(null, { stdout: 'Google Chrome|||New Tab', stderr: '' });
@@ -272,7 +272,7 @@ describe('ActivityMonitor', () => {
 
     it('should handle Chrome browser URL extraction', async () => {
       let callCount = 0;
-      mockExec.mockImplementation((cmd: string, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, callback: any) => {
         callCount++;
         if (callCount === 1) {
           callback(null, { stdout: 'Google Chrome|||Example', stderr: '' });
@@ -299,7 +299,7 @@ describe('ActivityMonitor', () => {
 
     it('should handle Safari browser', async () => {
       let callCount = 0;
-      mockExec.mockImplementation((cmd: string, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, callback: any) => {
         callCount++;
         if (callCount === 1) {
           callback(null, { stdout: 'Safari|||Test Page', stderr: '' });
@@ -350,15 +350,8 @@ describe('ActivityMonitor', () => {
   });
 
   describe('Error Handling', () => {
-    // Helper function for this suite
-    const mockExecSuccess = (stdout: string) => {
-      mockExec.mockImplementation((cmd: string, callback: any) => {
-        callback(null, { stdout, stderr: '' });
-      });
-    };
-
     const mockExecError = (error: Error) => {
-      mockExec.mockImplementation((cmd: string, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, callback: any) => {
         callback(error, { stdout: '', stderr: '' });
       });
     };
@@ -397,7 +390,7 @@ describe('ActivityMonitor', () => {
 
     it('should cleanup and stop tracking when stop() is called during capture', async () => {
       // Simulate a long-running capture by not calling the callback
-      mockExec.mockImplementation((cmd: string, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, _callback: any) => {
         // Never call callback
       });
 

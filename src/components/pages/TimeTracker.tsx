@@ -63,8 +63,7 @@ const TimeTracker: React.FC = () => {
     };
   }, [isTracking, startTime]);
 
-  // Load functions are called once on mount; they don't need to be in dependencies
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Load functions are called once on mount
   useEffect(() => {
     const init = async () => {
       const categoriesData = await loadCategories();
@@ -72,7 +71,8 @@ const TimeTracker: React.FC = () => {
       await restoreActiveTimer(categoriesData);
     };
     init();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps array is intentional - only run once on mount
 
   const loadCategories = async () => {
     try {
