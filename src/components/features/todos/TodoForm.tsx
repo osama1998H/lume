@@ -170,7 +170,9 @@ const TodoForm: React.FC<TodoFormProps> = ({
           }
           options={[
             { value: '', label: t('todos.selectCategory') },
-            ...categories.map((cat) => ({ value: cat.id!.toString(), label: cat.name })),
+            ...categories
+              .filter((cat) => cat.id != null)
+              .map((cat) => ({ value: cat.id!.toString(), label: cat.name })),
           ]}
         />
 
@@ -203,7 +205,7 @@ const TodoForm: React.FC<TodoFormProps> = ({
           }
           placeholder="60"
           min={1}
-          helpText={t('todos.estimatedMinutesHelp')}
+          helperText={t('todos.estimatedMinutesHelp')}
         />
 
         {/* Tags */}

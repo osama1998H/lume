@@ -93,7 +93,9 @@ const TodoFilters: React.FC<TodoFiltersProps> = ({ filters, onFiltersChange, cat
           }
           options={[
             { value: '', label: t('todos.allCategories') },
-            ...categories.map((cat) => ({ value: cat.id!.toString(), label: cat.name })),
+            ...categories
+              .filter((cat) => cat.id != null)
+              .map((cat) => ({ value: cat.id!.toString(), label: cat.name })),
           ]}
         />
       </div>

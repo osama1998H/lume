@@ -136,9 +136,19 @@ const TodoCard: React.FC<TodoCardProps> = ({
                   {todo.title}
                 </h3>
                 <div className="flex gap-2 flex-wrap">
-                  <Badge variant={getStatusVariant(todo.status)} size="sm">
-                    {t(`todos.status${todo.status.charAt(0).toUpperCase() + todo.status.slice(1).replace('_', '')}`)}
-                  </Badge>
+                  {(() => {
+                    const statusKeyMap: Record<TodoStatus, string> = {
+                      todo: 'Todo',
+                      in_progress: 'InProgress',
+                      completed: 'Completed',
+                      cancelled: 'Cancelled',
+                    };
+                    return (
+                      <Badge variant={getStatusVariant(todo.status)} size="sm">
+                        {t(`todos.status${statusKeyMap[todo.status]}`)}
+                      </Badge>
+                    );
+                  })()}
                   <Badge variant={getPriorityVariant(todo.priority)} size="sm">
                     {t(`todos.priority${todo.priority.charAt(0).toUpperCase() + todo.priority.slice(1)}`)}
                   </Badge>
