@@ -113,7 +113,7 @@ interface IGoalsAPI {
 
 // Todos namespace
 interface ITodosAPI {
-  add: (todo: Partial<Todo>) => Promise<number | null>;
+  add: (todo: Partial<Todo>) => Promise<number>;
   update: (id: number, updates: Partial<Todo>) => Promise<boolean>;
   delete: (id: number) => Promise<boolean>;
   getAll: (options?: { status?: TodoStatus; priority?: TodoPriority }) => Promise<Todo[]>;
