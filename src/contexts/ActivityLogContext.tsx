@@ -82,8 +82,13 @@ const parseSelectionKey = (key: string): SelectedActivity => {
     throw new Error(`Invalid selection key format: ${key}`);
   }
 
+  const parsedId = parseInt(idValue, 10);
+  if (isNaN(parsedId)) {
+    throw new Error(`Invalid numeric ID in selection key: ${key}`);
+  }
+
   return {
-    id: parseInt(idValue, 10),
+    id: parsedId,
     sourceType: sourceTypeValue as ActivitySourceType,
   };
 };

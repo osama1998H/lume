@@ -21,6 +21,10 @@ export const InsightCard: React.FC<InsightCardProps> = ({ insight }) => {
         if (match) {
           const hour = match[1];
           const periodEn = match[2];
+          // Guard against undefined
+          if (!hour || !periodEn) {
+            return { title, description: insight.description };
+          }
           const period = t(`analytics.insightTypes.peakHour.${periodEn}`);
           const description = t('analytics.insightTypes.peakHour.description', { hour, period });
           return { title, description };
@@ -49,6 +53,10 @@ export const InsightCard: React.FC<InsightCardProps> = ({ insight }) => {
         const match = insight.description.match(/most time on (.+)$/);
         if (match) {
           const category = match[1];
+          // Guard against undefined
+          if (!category) {
+            return { title, description: insight.description };
+          }
           const description = t('analytics.insightTypes.categoryTrend.description', { category });
           return { title, description };
         }
@@ -77,6 +85,10 @@ export const InsightCard: React.FC<InsightCardProps> = ({ insight }) => {
         const match = insight.description.match(/(\d+)%/);
         if (match) {
           const rate = match[1];
+          // Guard against undefined
+          if (!rate) {
+            return { title, description: insight.description };
+          }
           const isGood = insight.description.includes('Great focus');
           const description = isGood
             ? t('analytics.insightTypes.focusQuality.descriptionGood', { rate })

@@ -93,7 +93,8 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
    * Update a goal
    */
   update(id: number, updates: Partial<ProductivityGoal>): boolean {
-    const allowedUpdates: Partial<ProductivityGoal> = {};
+    // Use DatabaseRow type to allow boolean-to-integer conversion for SQLite
+    const allowedUpdates: DatabaseRow = {};
 
     if (updates.name !== undefined) allowedUpdates.name = updates.name;
     if (updates.description !== undefined) allowedUpdates.description = updates.description;
@@ -103,8 +104,9 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
     if (updates.targetMinutes !== undefined) allowedUpdates.targetMinutes = updates.targetMinutes;
     if (updates.operator !== undefined) allowedUpdates.operator = updates.operator;
     if (updates.period !== undefined) allowedUpdates.period = updates.period;
-    if (updates.active !== undefined) allowedUpdates.active = updates.active;
-    if (updates.notificationsEnabled !== undefined) allowedUpdates.notificationsEnabled = updates.notificationsEnabled;
+    // Convert booleans to integers for SQLite
+    if (updates.active !== undefined) allowedUpdates.active = updates.active ? 1 : 0;
+    if (updates.notificationsEnabled !== undefined) allowedUpdates.notificationsEnabled = updates.notificationsEnabled ? 1 : 0;
     if (updates.notifyAtPercentage !== undefined) allowedUpdates.notifyAtPercentage = updates.notifyAtPercentage;
 
     if (Object.keys(allowedUpdates).length === 0) {
@@ -112,7 +114,7 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
     }
 
     // Add updated_at timestamp
-    const snakeUpdates = this.toSnakeCase(allowedUpdates as unknown as DatabaseRow);
+    const snakeUpdates = this.toSnakeCase(allowedUpdates);
     const setClause = Object.keys(snakeUpdates)
       .map(column => `${column} = ?`)
       .join(', ');
