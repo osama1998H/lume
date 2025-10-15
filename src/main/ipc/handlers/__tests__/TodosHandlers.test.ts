@@ -36,7 +36,7 @@ describe('TodosHandlers', () => {
         linkTodoToTimeEntry: jest.fn(),
         incrementTodoPomodoro: jest.fn(),
       } as any,
-    };
+    } as unknown as IIPCHandlerContext;
 
     handlers = new TodosHandlers();
 
@@ -91,7 +91,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should return null when dbManager is not available', async () => {
-      const contextWithoutDb: IIPCHandlerContext = { dbManager: null };
+      const contextWithoutDb = { dbManager: null } as unknown as IIPCHandlerContext;
       handlers.register(mockIpcMain, contextWithoutDb);
 
       const handler = handlerCallbacks.get('add-todo');
@@ -144,7 +144,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should return false when dbManager is not available', async () => {
-      const contextWithoutDb: IIPCHandlerContext = { dbManager: null };
+      const contextWithoutDb = { dbManager: null } as unknown as IIPCHandlerContext;
       handlers.register(mockIpcMain, contextWithoutDb);
 
       const handler = handlerCallbacks.get('update-todo');
@@ -192,7 +192,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should return false when dbManager is not available', async () => {
-      const contextWithoutDb: IIPCHandlerContext = { dbManager: null };
+      const contextWithoutDb = { dbManager: null } as unknown as IIPCHandlerContext;
       handlers.register(mockIpcMain, contextWithoutDb);
 
       const handler = handlerCallbacks.get('delete-todo');
@@ -295,7 +295,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should return empty array when dbManager is not available', async () => {
-      const contextWithoutDb: IIPCHandlerContext = { dbManager: null };
+      const contextWithoutDb = { dbManager: null } as unknown as IIPCHandlerContext;
       handlers.register(mockIpcMain, contextWithoutDb);
 
       const handler = handlerCallbacks.get('get-todos');
@@ -352,7 +352,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should return null when dbManager is not available', async () => {
-      const contextWithoutDb: IIPCHandlerContext = { dbManager: null };
+      const contextWithoutDb = { dbManager: null } as unknown as IIPCHandlerContext;
       handlers.register(mockIpcMain, contextWithoutDb);
 
       const handler = handlerCallbacks.get('get-todo-by-id');
@@ -399,7 +399,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should return default stats when dbManager is not available', async () => {
-      const contextWithoutDb: IIPCHandlerContext = { dbManager: null };
+      const contextWithoutDb = { dbManager: null } as unknown as IIPCHandlerContext;
       handlers.register(mockIpcMain, contextWithoutDb);
 
       const handler = handlerCallbacks.get('get-todo-stats');
@@ -465,7 +465,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should return empty array when dbManager is not available', async () => {
-      const contextWithoutDb: IIPCHandlerContext = { dbManager: null };
+      const contextWithoutDb = { dbManager: null } as unknown as IIPCHandlerContext;
       handlers.register(mockIpcMain, contextWithoutDb);
 
       const handler = handlerCallbacks.get('get-todos-with-category');
@@ -513,7 +513,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should return false when dbManager is not available', async () => {
-      const contextWithoutDb: IIPCHandlerContext = { dbManager: null };
+      const contextWithoutDb = { dbManager: null } as unknown as IIPCHandlerContext;
       handlers.register(mockIpcMain, contextWithoutDb);
 
       const handler = handlerCallbacks.get('link-todo-time-entry');
@@ -561,7 +561,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should return false when dbManager is not available', async () => {
-      const contextWithoutDb: IIPCHandlerContext = { dbManager: null };
+      const contextWithoutDb = { dbManager: null } as unknown as IIPCHandlerContext;
       handlers.register(mockIpcMain, contextWithoutDb);
 
       const handler = handlerCallbacks.get('increment-todo-pomodoro');

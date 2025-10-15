@@ -461,7 +461,6 @@
     "noFilteredTodos": "لا توجد مهام تطابق التصفيات",
     "noFilteredTodosPrompt": "حاول تعديل التصفيات لرؤية المزيد من النتائج",
     "todoName": "اسم المهمة",
-    "title": "العنوان",
     "titlePlaceholder": "مثال: إكمال توثيق المشروع",
     "description": "الوصف",
     "descriptionPlaceholder": "أضف المزيد من التفاصيل حول هذه المهمة...",

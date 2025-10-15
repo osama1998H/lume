@@ -461,7 +461,6 @@
     "noFilteredTodos": "No todos match your filters",
     "noFilteredTodosPrompt": "Try adjusting your filters to see more results",
     "todoName": "Todo Name",
-    "title": "Title",
     "titlePlaceholder": "e.g., Complete project documentation",
     "description": "Description",
     "descriptionPlaceholder": "Add more details about this task...",

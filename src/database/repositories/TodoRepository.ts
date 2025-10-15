@@ -292,17 +292,26 @@ export class TodoRepository extends BaseRepository<Todo> {
 
   /**
    * Link a todo to a time entry
+   * Updates both todos.time_entry_id and time_entries.todo_id for bidirectional consistency
    */
   linkTimeEntry(todoId: number, timeEntryId: number): boolean {
-    const stmt = this.db.prepare(`
+    const updateTodoStmt = this.db.prepare(`
       UPDATE ${this.tableName}
       SET time_entry_id = ?,
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `);
+    const updateTimeEntryStmt = this.db.prepare(`
+      UPDATE time_entries
+      SET todo_id = ?
+      WHERE id = ?
+    `);
 
-    const result = stmt.run(timeEntryId, todoId);
-    return result.changes > 0;
+    return this.transaction(() => {
+      const todoRes = updateTodoStmt.run(timeEntryId, todoId);
+      const timeRes = updateTimeEntryStmt.run(todoId, timeEntryId);
+      return (todoRes?.changes || 0) > 0 && (timeRes?.changes || 0) > 0;
+    });
   }
 
   /**
