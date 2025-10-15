@@ -73,7 +73,7 @@ export class ActivityTrackingHandlers implements IIPCHandlerGroup {
     // Extracted from main.ts:278-285
     ipcMain.handle('get-recent-activity-sessions', async (_, limit = 50) => {
       try {
-        return context.activityTracker?.getRecentSessions(limit) || [];
+        return await context.activityTracker?.getRecentSessions(limit) || [];
       } catch (error) {
         console.error('Failed to get recent activity sessions:', error);
         return [];
