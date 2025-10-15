@@ -447,7 +447,7 @@ const DataCleanup: React.FC<DataCleanupProps> = ({ startDate, endDate, onRefresh
                       disabled={loading}
                       className="flex items-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-lg transition-colors"
                     >
-                      <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+                      <RefreshCw className="h-5 w-5" />
                       {t('dataQuality.cleanup.startRecalculation', 'Start Recalculation')}
                     </button>
                   </div>
