@@ -140,7 +140,6 @@ test.describe('Dashboard Tests', () => {
   test('should refresh data with keyboard shortcut', async ({ page }) => {
     // Check if Ctrl+R or F5 refreshes the data
     // First capture initial state
-    const initialContent = await page.locator('[role="main"]').textContent();
 
     // Try refresh with Ctrl+R
     await page.keyboard.press('Control+KeyR');
