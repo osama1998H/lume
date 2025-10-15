@@ -1,0 +1,212 @@
+name: Bundle Size Tracking
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.ts'
+      - 'electron/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  bundle-size:
+    name: Track Bundle Size
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies (PR)
+        run: npm ci
+
+      - name: Build application (PR)
+        run: npm run build
+
+      - name: Get PR bundle size
+        id: pr-size
+        run: |
+          # Get React build size
+          REACT_SIZE=$(du -sh dist/renderer | cut -f1)
+          REACT_SIZE_KB=$(du -sk dist/renderer | cut -f1)
+
+          # Get Electron build size
+          ELECTRON_SIZE=$(du -sh dist/main | cut -f1)
+          ELECTRON_SIZE_KB=$(du -sk dist/main | cut -f1)
+
+          # Total size
+          TOTAL_SIZE_KB=$((REACT_SIZE_KB + ELECTRON_SIZE_KB))
+
+          echo "react_size=$REACT_SIZE" >> $GITHUB_OUTPUT
+          echo "react_size_kb=$REACT_SIZE_KB" >> $GITHUB_OUTPUT
+          echo "electron_size=$ELECTRON_SIZE" >> $GITHUB_OUTPUT
+          echo "electron_size_kb=$ELECTRON_SIZE_KB" >> $GITHUB_OUTPUT
+          echo "total_size_kb=$TOTAL_SIZE_KB" >> $GITHUB_OUTPUT
+
+      - name: Save PR build
+        run: |
+          mkdir -p /tmp/pr-build
+          cp -r dist /tmp/pr-build/
+
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          clean: false
+
+      - name: Install dependencies (Base)
+        run: |
+          rm -rf node_modules
+          npm ci
+
+      - name: Build application (Base)
+        run: npm run build
+
+      - name: Get base bundle size
+        id: base-size
+        run: |
+          # Get React build size
+          REACT_SIZE=$(du -sh dist/renderer | cut -f1)
+          REACT_SIZE_KB=$(du -sk dist/renderer | cut -f1)
+
+          # Get Electron build size
+          ELECTRON_SIZE=$(du -sh dist/main | cut -f1)
+          ELECTRON_SIZE_KB=$(du -sk dist/main | cut -f1)
+
+          # Total size
+          TOTAL_SIZE_KB=$((REACT_SIZE_KB + ELECTRON_SIZE_KB))
+
+          echo "react_size=$REACT_SIZE" >> $GITHUB_OUTPUT
+          echo "react_size_kb=$REACT_SIZE_KB" >> $GITHUB_OUTPUT
+          echo "electron_size=$ELECTRON_SIZE" >> $GITHUB_OUTPUT
+          echo "electron_size_kb=$ELECTRON_SIZE_KB" >> $GITHUB_OUTPUT
+          echo "total_size_kb=$TOTAL_SIZE_KB" >> $GITHUB_OUTPUT
+
+      - name: Calculate differences
+        id: diff
+        run: |
+          # Calculate differences
+          REACT_DIFF=$((${{ steps.pr-size.outputs.react_size_kb }} - ${{ steps.base-size.outputs.react_size_kb }}))
+          ELECTRON_DIFF=$((${{ steps.pr-size.outputs.electron_size_kb }} - ${{ steps.base-size.outputs.electron_size_kb }}))
+          TOTAL_DIFF=$((${{ steps.pr-size.outputs.total_size_kb }} - ${{ steps.base-size.outputs.total_size_kb }}))
+
+          # Calculate percentage changes
+          REACT_PCT=$(awk "BEGIN {printf \"%.2f\", ($REACT_DIFF / ${{ steps.base-size.outputs.react_size_kb }}) * 100}")
+          ELECTRON_PCT=$(awk "BEGIN {printf \"%.2f\", ($ELECTRON_DIFF / ${{ steps.base-size.outputs.electron_size_kb }}) * 100}")
+          TOTAL_PCT=$(awk "BEGIN {printf \"%.2f\", ($TOTAL_DIFF / ${{ steps.base-size.outputs.total_size_kb }}) * 100}")
+
+          echo "react_diff=$REACT_DIFF" >> $GITHUB_OUTPUT
+          echo "react_pct=$REACT_PCT" >> $GITHUB_OUTPUT
+          echo "electron_diff=$ELECTRON_DIFF" >> $GITHUB_OUTPUT
+          echo "electron_pct=$ELECTRON_PCT" >> $GITHUB_OUTPUT
+          echo "total_diff=$TOTAL_DIFF" >> $GITHUB_OUTPUT
+          echo "total_pct=$TOTAL_PCT" >> $GITHUB_OUTPUT
+
+      - name: Format size changes
+        id: format
+        run: |
+          # Function to format size difference with emoji
+          format_diff() {
+            local diff=$1
+            local pct=$2
+
+            if [ $diff -gt 0 ]; then
+              echo "📈 +$(numfmt --to=iec-i --suffix=B $((diff * 1024))) (+${pct}%)"
+            elif [ $diff -lt 0 ]; then
+              echo "📉 $(numfmt --to=iec-i --suffix=B $((diff * 1024))) (${pct}%)"
+            else
+              echo "➡️ No change"
+            fi
+          }
+
+          REACT_FORMATTED=$(format_diff ${{ steps.diff.outputs.react_diff }} ${{ steps.diff.outputs.react_pct }})
+          ELECTRON_FORMATTED=$(format_diff ${{ steps.diff.outputs.electron_diff }} ${{ steps.diff.outputs.electron_pct }})
+          TOTAL_FORMATTED=$(format_diff ${{ steps.diff.outputs.total_diff }} ${{ steps.diff.outputs.total_pct }})
+
+          echo "react=$REACT_FORMATTED" >> $GITHUB_OUTPUT
+          echo "electron=$ELECTRON_FORMATTED" >> $GITHUB_OUTPUT
+          echo "total=$TOTAL_FORMATTED" >> $GITHUB_OUTPUT
+
+      - name: Compute human-readable totals
+        id: totals
+        run: |
+          BASE_TOTAL_HUMAN=$(numfmt --to=iec-i --suffix=B $((${{ steps.base-size.outputs.total_size_kb }} * 1024)))
+          PR_TOTAL_HUMAN=$(numfmt --to=iec-i --suffix=B $((${{ steps.pr-size.outputs.total_size_kb }} * 1024)))
+
+          echo "base=$BASE_TOTAL_HUMAN" >> $GITHUB_OUTPUT
+          echo "pr=$PR_TOTAL_HUMAN" >> $GITHUB_OUTPUT
+
+      - name: Comment PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const totalDiff = ${{ steps.diff.outputs.total_diff }};
+            const totalPct = Math.abs(${{ steps.diff.outputs.total_pct }});
+
+            const warnings = [];
+            if (totalDiff > 51200) {
+              warnings.push('⚠️ **Warning**: Total bundle size increased by more than 50MB!');
+            }
+            if (totalPct > 5) {
+              warnings.push('⚠️ **Warning**: Bundle size changed by more than 5%!');
+            }
+
+            const warningText = warnings.length > 0 ? '\n' + warnings.join('\n') : '';
+
+            const comment = `## 📦 Bundle Size Report
+
+            | Component | Base | PR | Change |
+            |-----------|------|-----|--------|
+            | **React** | ${{ steps.base-size.outputs.react_size }} | ${{ steps.pr-size.outputs.react_size }} | ${{ steps.format.outputs.react }} |
+            | **Electron** | ${{ steps.base-size.outputs.electron_size }} | ${{ steps.pr-size.outputs.electron_size }} | ${{ steps.format.outputs.electron }} |
+            | **Total** | ${{ steps.totals.outputs.base }} | ${{ steps.totals.outputs.pr }} | ${{ steps.format.outputs.total }} |
+            ${warningText}
+
+            <sub>🤖 This comment will be automatically updated on new commits</sub>`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' && comment.body.includes('Bundle Size Report')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
+      - name: Check size threshold
+        if: fromJSON(steps.diff.outputs.total_diff) > 51200 || fromJSON(steps.diff.outputs.total_pct) > 5
+        run: |
+          echo "::warning::Bundle size increased significantly! Please review."
+          exit 1

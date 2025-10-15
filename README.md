@@ -8,8 +8,12 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue.svg)](https://www.typescriptlang.org/)
 
 [![CI](https://github.com/osama1998H/lume/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/osama1998H/lume/actions/workflows/ci.yml)
-[![Dependency Review](https://github.com/osama1998H/lume/actions/workflows/dependency-review.yml/badge.svg?branch=main)](https://github.com/osama1998H/lume/actions/workflows/dependency-review.yml)
 [![Build & Release](https://github.com/osama1998H/lume/actions/workflows/build.yml/badge.svg)](https://github.com/osama1998H/lume/actions/workflows/build.yml)
+[![Code Coverage](https://github.com/osama1998H/lume/actions/workflows/coverage.yml/badge.svg)](https://github.com/osama1998H/lume/actions/workflows/coverage.yml)
+[![CodeQL](https://github.com/osama1998H/lume/actions/workflows/codeql.yml/badge.svg)](https://github.com/osama1998H/lume/actions/workflows/codeql.yml)
+[![Dependency Review](https://github.com/osama1998H/lume/actions/workflows/dependency-review.yml/badge.svg?branch=main)](https://github.com/osama1998H/lume/actions/workflows/dependency-review.yml)
+[![Bundle Size](https://github.com/osama1998H/lume/actions/workflows/bundle-size.yml/badge.svg)](https://github.com/osama1998H/lume/actions/workflows/bundle-size.yml)
+[![Nightly Builds](https://github.com/osama1998H/lume/actions/workflows/nightly.yml/badge.svg)](https://github.com/osama1998H/lume/actions/workflows/nightly.yml)
 
 Lume helps you understand your productivity patterns by automatically tracking time spent on different applications and websites. Get clear insights to improve focus, productivity, and time management.
 

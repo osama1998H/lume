@@ -1,0 +1,193 @@
+name: Nightly Builds
+
+on:
+  schedule:
+    # Run daily at 02:00 UTC (3 AM in Baghdad)
+    - cron: '0 2 * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  check-changes:
+    name: Check for New Commits
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.has_changes }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check for changes since last nightly
+        id: check
+        run: |
+          # Check if there are any commits in the last 24 hours
+          COMMITS=$(git log --since="24 hours ago" --oneline | wc -l)
+
+          if [ $COMMITS -gt 0 ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "✅ Found $COMMITS new commits, proceeding with nightly build"
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No new commits in the last 24 hours, skipping build"
+          fi
+
+  build:
+    name: Nightly Build - ${{ matrix.platform }}
+    needs: check-changes
+    if: needs.check-changes.outputs.should_build == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+          - os: ubuntu-latest
+            platform: linux
+          - os: windows-latest
+            platform: windows
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Get short SHA
+        id: sha
+        run: echo "short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test
+        continue-on-error: true
+
+      - name: Build application
+        run: npm run build
+
+      - name: Package nightly build
+        run: npm run dist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rename artifacts with nightly prefix
+        run: |
+          cd release
+          for file in *; do
+            if [ -f "$file" ]; then
+              ext="${file##*.}"
+              name="${file%.*}"
+              mv "$file" "nightly-${{ steps.sha.outputs.short }}-$file"
+            fi
+          done
+        shell: bash
+
+      - name: Upload nightly artifacts (macOS)
+        if: matrix.platform == 'mac'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-macos-${{ steps.sha.outputs.short }}
+          path: |
+            release/nightly-*.dmg
+            release/nightly-*.zip
+          retention-days: 7
+
+      - name: Upload nightly artifacts (Linux)
+        if: matrix.platform == 'linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-linux-${{ steps.sha.outputs.short }}
+          path: |
+            release/nightly-*.AppImage
+            release/nightly-*.deb
+          retention-days: 7
+
+      - name: Upload nightly artifacts (Windows)
+        if: matrix.platform == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-windows-${{ steps.sha.outputs.short }}
+          path: release/nightly-*.exe
+          retention-days: 7
+
+  notify:
+    name: Notify Build Status
+    needs: [check-changes, build]
+    if: always() && (needs.check-changes.outputs.should_build == 'true' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check build status
+        id: status
+        run: |
+          if [ "${{ needs.build.result }}" == "success" ]; then
+            echo "status=✅ Success" >> $GITHUB_OUTPUT
+            echo "color=success" >> $GITHUB_OUTPUT
+          elif [ "${{ needs.build.result }}" == "failure" ]; then
+            echo "status=❌ Failed" >> $GITHUB_OUTPUT
+            echo "color=danger" >> $GITHUB_OUTPUT
+          else
+            echo "status=⚠️ Partial" >> $GITHUB_OUTPUT
+            echo "color=warning" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create issue on failure
+        if: needs.build.result == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🌙 Nightly Build Failed - ${new Date().toISOString().split('T')[0]}`,
+              body: `The nightly build failed. Please check the [workflow run](${context.payload.repository.html_url}/actions/runs/${context.runId}) for details.`,
+              labels: ['ci', 'nightly-build', 'automated']
+            });
+
+  cleanup:
+    name: Cleanup Old Nightly Artifacts
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Delete old nightly artifacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+
+            const nightlyArtifacts = artifacts.data.artifacts.filter(artifact =>
+              artifact.name.startsWith('nightly-')
+            );
+
+            // Keep only the last 7 nightly builds (7 days * 3 platforms = 21 artifacts)
+            const toDelete = nightlyArtifacts.slice(21);
+
+            for (const artifact of toDelete) {
+              console.log(`Deleting old artifact: ${artifact.name}`);
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: artifact.id
+              });
+            }
+
+            console.log(`Deleted ${toDelete.length} old nightly artifacts`);
