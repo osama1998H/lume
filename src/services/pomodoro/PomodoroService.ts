@@ -79,7 +79,7 @@ export class PomodoroService extends EventEmitter {
   /**
    * Start a new session
    */
-  start(task: string, sessionType: SessionType = 'focus'): void {
+  start(task: string, sessionType: SessionType = 'focus', todoId?: number): void {
     if (this.state === 'running') {
       console.warn('⚠️  Timer already running');
       return;
@@ -113,6 +113,7 @@ export class PomodoroService extends EventEmitter {
       startTime: this.startTime.toISOString(),
       completed: false,
       interrupted: false,
+      todoId,
     };
 
     this.currentSessionId = this.dbManager.addPomodoroSession(session);

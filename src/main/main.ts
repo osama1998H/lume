@@ -26,6 +26,7 @@ import { ActivityTrackingHandlers } from './ipc/handlers/ActivityTrackingHandler
 import { PomodoroSettingsHandlers } from './ipc/handlers/PomodoroSettingsHandlers';
 import { PomodoroSessionHandlers } from './ipc/handlers/PomodoroSessionHandlers';
 import { GoalsHandlers } from './ipc/handlers/GoalsHandlers';
+import { TodosHandlers } from './ipc/handlers/TodosHandlers';
 import { AutoStartHandlers } from './ipc/handlers/AutoStartHandlers';
 import { CategoryMappingsHandlers } from './ipc/handlers/CategoryMappingsHandlers';
 import { TagAssociationsHandlers } from './ipc/handlers/TagAssociationsHandlers';
@@ -195,6 +196,7 @@ class LumeApp {
       new PomodoroSettingsHandlers(),
       new PomodoroSessionHandlers(),
       new GoalsHandlers(),
+      new TodosHandlers(),
       new AutoStartHandlers(),
       // Batch 3: Complex query operations
       new CategoryMappingsHandlers(),

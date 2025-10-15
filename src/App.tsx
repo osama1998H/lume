@@ -12,12 +12,13 @@ const TimeTracker = lazy(() => import('./components/pages/TimeTracker'));
 const Reports = lazy(() => import('./components/pages/Reports'));
 const Analytics = lazy(() => import('./components/pages/Analytics'));
 const Goals = lazy(() => import('./components/pages/Goals'));
+const Todos = lazy(() => import('./components/pages/Todos'));
 const FocusMode = lazy(() => import('./components/pages/FocusMode'));
 const Settings = lazy(() => import('./components/pages/Settings'));
 const Categories = lazy(() => import('./components/pages/Categories'));
 const ActivityLog = lazy(() => import('./components/pages/ActivityLog'));
 
-type View = 'dashboard' | 'tracker' | 'reports' | 'analytics' | 'activitylog' | 'goals' | 'focus' | 'categories' | 'settings';
+type View = 'dashboard' | 'tracker' | 'reports' | 'analytics' | 'activitylog' | 'goals' | 'todos' | 'focus' | 'categories' | 'settings';
 
 /**
  * Top-level application component that initializes theming, manages the active view, and composes the main layout with a title bar, sidebar, and view content.
@@ -41,6 +42,8 @@ function App() {
         return <ActivityLog />;
       case 'goals':
         return <Goals />;
+      case 'todos':
+        return <Todos />;
       case 'focus':
         return <FocusMode />;
       case 'categories':

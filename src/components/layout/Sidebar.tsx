@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, Timer, BarChart3, Target, Coffee, FolderOpen, Settings, TrendingUp, ChevronLeft, ChevronRight, List, LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Timer, BarChart3, Target, Coffee, FolderOpen, Settings, TrendingUp, ChevronLeft, ChevronRight, List, CheckSquare, LucideIcon } from 'lucide-react';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 
 interface SidebarProps {
   currentView: string;
-  onViewChange: (view: 'dashboard' | 'tracker' | 'reports' | 'analytics' | 'activitylog' | 'goals' | 'focus' | 'categories' | 'settings') => void;
+  onViewChange: (view: 'dashboard' | 'tracker' | 'reports' | 'analytics' | 'activitylog' | 'goals' | 'todos' | 'focus' | 'categories' | 'settings') => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
@@ -31,9 +31,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
     { key: '4', ctrl: true, description: t('navigation.shortcuts.analytics'), action: () => onViewChange('analytics') },
     { key: '5', ctrl: true, description: t('navigation.shortcuts.activityLog'), action: () => onViewChange('activitylog') },
     { key: '6', ctrl: true, description: t('navigation.shortcuts.goals'), action: () => onViewChange('goals') },
-    { key: '7', ctrl: true, description: t('navigation.shortcuts.focus'), action: () => onViewChange('focus') },
-    { key: '8', ctrl: true, description: t('navigation.shortcuts.categories'), action: () => onViewChange('categories') },
-    { key: '9', ctrl: true, description: t('navigation.shortcuts.settings'), action: () => onViewChange('settings') },
+    { key: '7', ctrl: true, description: t('navigation.shortcuts.todos'), action: () => onViewChange('todos') },
+    { key: '8', ctrl: true, description: t('navigation.shortcuts.focus'), action: () => onViewChange('focus') },
+    { key: '9', ctrl: true, description: t('navigation.shortcuts.categories'), action: () => onViewChange('categories') },
+    { key: '0', ctrl: true, description: t('navigation.shortcuts.settings'), action: () => onViewChange('settings') },
     { key: '[', ctrl: true, description: t('navigation.shortcuts.toggleSidebar'), action: () => setIsCollapsed(!isCollapsed) },
   ]);
 
@@ -46,13 +47,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
     }
   }, [isCollapsed]);
 
-  const menuItems: Array<{ id: 'dashboard' | 'tracker' | 'reports' | 'analytics' | 'activitylog' | 'goals' | 'focus' | 'categories' | 'settings'; label: string; icon: LucideIcon }> = [
+  const menuItems: Array<{ id: 'dashboard' | 'tracker' | 'reports' | 'analytics' | 'activitylog' | 'goals' | 'todos' | 'focus' | 'categories' | 'settings'; label: string; icon: LucideIcon }> = [
     { id: 'dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard },
     { id: 'tracker', label: t('navigation.tracker'), icon: Timer },
     { id: 'reports', label: t('navigation.reports'), icon: BarChart3 },
     { id: 'analytics', label: t('navigation.analytics'), icon: TrendingUp },
     { id: 'activitylog', label: t('navigation.activityLog'), icon: List },
     { id: 'goals', label: t('navigation.goals'), icon: Target },
+    { id: 'todos', label: t('navigation.todos'), icon: CheckSquare },
     { id: 'focus', label: t('navigation.focus'), icon: Coffee },
     { id: 'categories', label: t('navigation.categories'), icon: FolderOpen },
     { id: 'settings', label: t('navigation.settings'), icon: Settings },

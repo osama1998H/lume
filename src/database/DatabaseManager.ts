@@ -12,6 +12,7 @@ import { TagRepository } from './repositories/TagRepository';
 import { PomodoroRepository } from './repositories/PomodoroRepository';
 import { GoalRepository } from './repositories/GoalRepository';
 import { MappingRepository } from './repositories/MappingRepository';
+import { TodoRepository } from './repositories/TodoRepository';
 
 // Services
 import { AnalyticsService } from './analytics/AnalyticsService';
@@ -28,6 +29,11 @@ import type {
   GoalProgress,
   GoalWithProgress,
   GoalStats,
+  Todo,
+  TodoWithCategory,
+  TodoStats,
+  TodoStatus,
+  TodoPriority,
   AppCategoryMapping,
   DomainCategoryMapping,
   DailyStats,
@@ -68,6 +74,7 @@ export class DatabaseManager {
   private pomodoroRepo!: PomodoroRepository;
   private goalRepo!: GoalRepository;
   private mappingRepo!: MappingRepository;
+  private todoRepo!: TodoRepository;
 
   // Services
   private analyticsService!: AnalyticsService;
@@ -105,6 +112,7 @@ export class DatabaseManager {
       this.pomodoroRepo = new PomodoroRepository(this.db);
       this.goalRepo = new GoalRepository(this.db);
       this.mappingRepo = new MappingRepository(this.db);
+      this.todoRepo = new TodoRepository(this.db);
 
       // Initialize services
       this.analyticsService = new AnalyticsService(this.db);
@@ -888,6 +896,64 @@ export class DatabaseManager {
 
   getProductivityGoalTags(goalId: number): Tag[] {
     return this.goalRepo.getTags(goalId);
+  }
+
+  // ==================== TODOS ====================
+
+  addTodo(todo: Partial<Todo>): number {
+    return this.todoRepo.insert(todo);
+  }
+
+  updateTodo(id: number, updates: Partial<Todo>): boolean {
+    return this.todoRepo.update(id, updates);
+  }
+
+  deleteTodo(id: number): boolean {
+    return this.todoRepo.delete(id);
+  }
+
+  getTodos(options?: { status?: TodoStatus; priority?: TodoPriority }): Todo[] {
+    return this.todoRepo.getAll(options);
+  }
+
+  getTodo(id: number): Todo | null {
+    return this.todoRepo.getById(id);
+  }
+
+  getTodoStats(): TodoStats {
+    return this.todoRepo.getStats();
+  }
+
+  getTodosWithCategory(): TodoWithCategory[] {
+    return this.todoRepo.getAllWithCategory();
+  }
+
+  getOverdueTodos(): Todo[] {
+    return this.todoRepo.getOverdue();
+  }
+
+  linkTodoToTimeEntry(todoId: number, timeEntryId: number): boolean {
+    return this.todoRepo.linkTimeEntry(todoId, timeEntryId);
+  }
+
+  incrementTodoPomodoro(todoId: number): boolean {
+    return this.todoRepo.incrementPomodoroCount(todoId);
+  }
+
+  addTodoTags(todoId: number, tagIds: number[]): void {
+    this.todoRepo.addTags(todoId, tagIds);
+  }
+
+  setTodoTags(todoId: number, tagIds: number[]): void {
+    this.todoRepo.setTags(todoId, tagIds);
+  }
+
+  getTodoTags(todoId: number): Tag[] {
+    return this.todoRepo.getTags(todoId);
+  }
+
+  getTodosWithTags(options?: { status?: TodoStatus; priority?: TodoPriority }): (Todo & { tags: Tag[] })[] {
+    return this.todoRepo.getAllWithTags(options);
   }
 
   // ==================== CATEGORY MAPPINGS ====================

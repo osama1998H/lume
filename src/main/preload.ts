@@ -20,7 +20,12 @@ import type {
   ActivityConflict,
   UnifiedActivityStats,
   ActivitySourceType,
-  TimeGap
+  TimeGap,
+  Todo,
+  TodoWithCategory,
+  TodoStats,
+  TodoStatus,
+  TodoPriority
 } from '../types';
 
 // Note: Sentry is initialized in the main process only, not in preload
@@ -85,7 +90,7 @@ interface IPomodoroAPI {
     getStats: (startDate?: string, endDate?: string) => Promise<any>;
   };
   timer: {
-    start: (task: string, sessionType: string) => Promise<void>;
+    start: (task: string, sessionType: string, todoId?: number) => Promise<void>;
     pause: () => Promise<void>;
     resume: () => Promise<void>;
     stop: () => Promise<void>;
@@ -104,6 +109,19 @@ interface IGoalsAPI {
   getProgress: (goalId: number, date: string) => Promise<GoalProgress | null>;
   getAchievementHistory: (goalId: number, days: number) => Promise<GoalProgress[]>;
   getStats: () => Promise<GoalStats>;
+}
+
+// Todos namespace
+interface ITodosAPI {
+  add: (todo: Partial<Todo>) => Promise<number | null>;
+  update: (id: number, updates: Partial<Todo>) => Promise<boolean>;
+  delete: (id: number) => Promise<boolean>;
+  getAll: (options?: { status?: TodoStatus; priority?: TodoPriority }) => Promise<Todo[]>;
+  getById: (id: number) => Promise<Todo | null>;
+  getStats: () => Promise<TodoStats>;
+  getTodosWithCategory: () => Promise<TodoWithCategory[]>;
+  linkTimeEntry: (todoId: number, timeEntryId: number) => Promise<boolean>;
+  incrementPomodoro: (todoId: number) => Promise<boolean>;
 }
 
 // Categories namespace
@@ -156,6 +174,11 @@ interface ITagAssociationsAPI {
     get: (productivityGoalId: number) => Promise<Tag[]>;
     add: (productivityGoalId: number, tagIds: number[]) => Promise<void>;
     set: (productivityGoalId: number, tagIds: number[]) => Promise<void>;
+  };
+  todos: {
+    get: (todoId: number) => Promise<Tag[]>;
+    add: (todoId: number, tagIds: number[]) => Promise<void>;
+    set: (todoId: number, tagIds: number[]) => Promise<void>;
   };
 }
 
@@ -280,6 +303,7 @@ export interface IElectronAPINamespaced {
   crashReporting: ICrashReportingAPI;
   pomodoro: IPomodoroAPI;
   goals: IGoalsAPI;
+  todos: ITodosAPI;
   categories: ICategoriesAPI;
   tags: ITagsAPI;
   categoryMappings: ICategoryMappingsAPI;
@@ -357,7 +381,7 @@ function createPomodoroAPI(): IPomodoroAPI {
       getStats: (startDate, endDate) => ipcRenderer.invoke('get-pomodoro-stats', startDate, endDate),
     },
     timer: {
-      start: (task, sessionType) => ipcRenderer.invoke('start-pomodoro-session', task, sessionType),
+      start: (task, sessionType, todoId) => ipcRenderer.invoke('start-pomodoro-session', task, sessionType, todoId),
       pause: () => ipcRenderer.invoke('pause-pomodoro-session'),
       resume: () => ipcRenderer.invoke('resume-pomodoro-session'),
       stop: () => ipcRenderer.invoke('stop-pomodoro-session'),
@@ -377,6 +401,20 @@ function createGoalsAPI(): IGoalsAPI {
     getProgress: (goalId, date) => ipcRenderer.invoke('get-goal-progress', goalId, date),
     getAchievementHistory: (goalId, days) => ipcRenderer.invoke('get-goal-achievement-history', goalId, days),
     getStats: () => ipcRenderer.invoke('get-goal-stats'),
+  };
+}
+
+function createTodosAPI(): ITodosAPI {
+  return {
+    add: (todo) => ipcRenderer.invoke('add-todo', todo),
+    update: (id, updates) => ipcRenderer.invoke('update-todo', id, updates),
+    delete: (id) => ipcRenderer.invoke('delete-todo', id),
+    getAll: (options) => ipcRenderer.invoke('get-todos', options),
+    getById: (id) => ipcRenderer.invoke('get-todo-by-id', id),
+    getStats: () => ipcRenderer.invoke('get-todo-stats'),
+    getTodosWithCategory: () => ipcRenderer.invoke('get-todos-with-category'),
+    linkTimeEntry: (todoId, timeEntryId) => ipcRenderer.invoke('link-todo-time-entry', todoId, timeEntryId),
+    incrementPomodoro: (todoId) => ipcRenderer.invoke('increment-todo-pomodoro', todoId),
   };
 }
 
@@ -433,6 +471,11 @@ function createTagAssociationsAPI(): ITagAssociationsAPI {
       get: (productivityGoalId) => ipcRenderer.invoke('get-productivity-goal-tags', productivityGoalId),
       add: (productivityGoalId, tagIds) => ipcRenderer.invoke('add-productivity-goal-tags', productivityGoalId, tagIds),
       set: (productivityGoalId, tagIds) => ipcRenderer.invoke('set-productivity-goal-tags', productivityGoalId, tagIds),
+    },
+    todos: {
+      get: (todoId) => ipcRenderer.invoke('get-todo-tags', todoId),
+      add: (todoId, tagIds) => ipcRenderer.invoke('add-todo-tags', todoId, tagIds),
+      set: (todoId, tagIds) => ipcRenderer.invoke('set-todo-tags', todoId, tagIds),
     },
   };
 }
@@ -536,6 +579,7 @@ const electronAPINamespaced: IElectronAPINamespaced = {
   crashReporting: createCrashReportingAPI(),
   pomodoro: createPomodoroAPI(),
   goals: createGoalsAPI(),
+  todos: createTodosAPI(),
   categories: createCategoriesAPI(),
   tags: createTagsAPI(),
   categoryMappings: createCategoryMappingsAPI(),

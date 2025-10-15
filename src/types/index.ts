@@ -8,6 +8,7 @@ export interface TimeEntry {
   duration?: number;
   category?: string; // Kept for backward compatibility
   categoryId?: number; // New category ID reference
+  todoId?: number; // Link to todo item
   tags?: Tag[]; // Tags associated with this entry
   createdAt?: string;
 }
@@ -38,6 +39,7 @@ export interface PomodoroSession {
   endTime?: string;
   completed: boolean;
   interrupted: boolean;
+  todoId?: number; // Associated todo item
   tags?: Tag[]; // Tags associated with this session
   createdAt?: string;
 }
@@ -112,6 +114,42 @@ export interface GoalStats {
   currentStreak: number;
   longestStreak: number;
   achievementRate: number; // percentage
+}
+
+// Todo/Task Management Types
+export type TodoStatus = 'todo' | 'in_progress' | 'completed' | 'cancelled';
+export type TodoPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface Todo {
+  id?: number;
+  title: string;
+  description?: string;
+  status: TodoStatus;
+  priority: TodoPriority;
+  categoryId?: number;
+  dueDate?: string; // ISO date string
+  dueTime?: string; // HH:mm format
+  completedAt?: string; // ISO timestamp
+  estimatedMinutes?: number;
+  actualMinutes?: number;
+  timeEntryId?: number; // Link to time entry when completed
+  pomodoroCount?: number; // Number of pomodoro sessions
+  tags?: Tag[]; // Tags associated with this todo
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface TodoWithCategory extends Todo {
+  category?: Category;
+}
+
+export interface TodoStats {
+  totalTodos: number;
+  completedTodos: number;
+  inProgressTodos: number;
+  overdueTodos: number;
+  completionRate: number; // percentage
+  avgCompletionTime: number; // in minutes
 }
 
 // Categorization & Tagging Types
@@ -632,6 +670,19 @@ interface IGoalsAPI {
   getStats: () => Promise<GoalStats>;
 }
 
+// Todos namespace
+interface ITodosAPI {
+  add: (todo: Partial<Todo>) => Promise<number>;
+  update: (id: number, updates: Partial<Todo>) => Promise<boolean>;
+  delete: (id: number) => Promise<boolean>;
+  getAll: (options?: { status?: TodoStatus; priority?: TodoPriority }) => Promise<Todo[]>;
+  getById: (id: number) => Promise<Todo | null>;
+  getStats: () => Promise<TodoStats>;
+  getTodosWithCategory: () => Promise<TodoWithCategory[]>;
+  linkTimeEntry: (todoId: number, timeEntryId: number) => Promise<boolean>;
+  incrementPomodoro: (todoId: number) => Promise<boolean>;
+}
+
 // Categories namespace
 interface ICategoriesAPI {
   getAll: () => Promise<Category[]>;
@@ -682,6 +733,11 @@ interface ITagAssociationsAPI {
     get: (productivityGoalId: number) => Promise<Tag[]>;
     add: (productivityGoalId: number, tagIds: number[]) => Promise<void>;
     set: (productivityGoalId: number, tagIds: number[]) => Promise<void>;
+  };
+  todos: {
+    get: (todoId: number) => Promise<Tag[]>;
+    add: (todoId: number, tagIds: number[]) => Promise<void>;
+    set: (todoId: number, tagIds: number[]) => Promise<void>;
   };
 }
 
@@ -806,6 +862,7 @@ export interface IElectronAPINamespaced {
   crashReporting: ICrashReportingAPI;
   pomodoro: IPomodoroAPI;
   goals: IGoalsAPI;
+  todos: ITodosAPI;
   categories: ICategoriesAPI;
   tags: ITagsAPI;
   categoryMappings: ICategoryMappingsAPI;
