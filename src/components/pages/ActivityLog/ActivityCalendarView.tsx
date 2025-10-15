@@ -46,7 +46,13 @@ const ActivityCalendarView: React.FC<ActivityCalendarViewProps> = ({
 
   // Helper: Parse YYYY-MM-DD to Date
   const parseLocalDateString = (dateStr: string): Date => {
-    const [year, month, day] = dateStr.split('-').map(Number);
+    const parts = dateStr.split('-').map(Number);
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+    if (year === undefined || month === undefined || day === undefined) {
+      throw new Error('Invalid date format');
+    }
     return new Date(year, month - 1, day);
   };
 

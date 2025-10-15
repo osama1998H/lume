@@ -115,7 +115,10 @@ const Reports: React.FC = () => {
       if (!categoryTimes[categoryKey]) {
         categoryTimes[categoryKey] = { name: categoryName, color: categoryColor, time: 0 };
       }
-      categoryTimes[categoryKey].time += activity.duration || 0;
+      const categoryTime = categoryTimes[categoryKey];
+      if (categoryTime) {
+        categoryTime.time += activity.duration || 0;
+      }
     });
 
     return Object.values(categoryTimes)

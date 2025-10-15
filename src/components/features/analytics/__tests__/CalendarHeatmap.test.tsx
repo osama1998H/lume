@@ -329,7 +329,7 @@ describe('CalendarHeatmap', () => {
 
       expect(cellsWithData.length).toBeGreaterThan(0);
 
-      fireEvent.mouseEnter(cellsWithData[0]);
+      fireEvent.mouseEnter(cellsWithData[0]!);
 
       // Tooltip should now be visible
       expect(screen.getByText('Total:')).toBeInTheDocument();
@@ -353,11 +353,11 @@ describe('CalendarHeatmap', () => {
       expect(cellsWithData.length).toBeGreaterThan(0);
 
       // Hover to show tooltip
-      fireEvent.mouseEnter(cellsWithData[0]);
+      fireEvent.mouseEnter(cellsWithData[0]!);
       expect(screen.getByText('Total:')).toBeInTheDocument();
 
       // Leave to hide tooltip
-      fireEvent.mouseLeave(cellsWithData[0]);
+      fireEvent.mouseLeave(cellsWithData[0]!);
       expect(screen.queryByText('Total:')).not.toBeInTheDocument();
     });
   });
@@ -378,7 +378,7 @@ describe('CalendarHeatmap', () => {
         return style.backgroundColor !== 'transparent' && style.backgroundColor !== '';
       });
 
-      fireEvent.mouseEnter(cellsWithData[0]);
+      fireEvent.mouseEnter(cellsWithData[0]!);
 
       // Check for breakdown labels
       expect(screen.getByText('Total:')).toBeInTheDocument();
@@ -415,7 +415,7 @@ describe('CalendarHeatmap', () => {
         return style.backgroundColor !== 'transparent' && style.backgroundColor !== '';
       });
 
-      fireEvent.mouseEnter(cellsWithData[0]);
+      fireEvent.mouseEnter(cellsWithData[0]!);
 
       // 125 minutes = 2h 5m
       expect(screen.getByText(/2h 5m/)).toBeInTheDocument();
@@ -451,7 +451,7 @@ describe('CalendarHeatmap', () => {
         return style.backgroundColor !== 'transparent' && style.backgroundColor !== '';
       });
 
-      fireEvent.mouseEnter(cellsWithData[0]);
+      fireEvent.mouseEnter(cellsWithData[0]!);
 
       // Should show minutes only (no hours)
       expect(screen.getByText(/45m/)).toBeInTheDocument();

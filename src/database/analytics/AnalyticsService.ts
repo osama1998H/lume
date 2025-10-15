@@ -9,6 +9,25 @@ import {
   AnalyticsSummary,
   CategoryTime,
 } from '../../types';
+import {
+  DailyStatsQueryRow,
+  CategoryTimeQueryRow,
+  HourlyPatternQueryRow,
+  HeatmapQueryRow,
+  WeeklySummaryTotalQueryRow,
+  WeeklySummaryDailyQueryRow,
+  WeeklySummaryCategoryQueryRow,
+  WeeklySummaryGoalsQueryRow,
+  ProductivityTrendQueryRow,
+  PeakHourQueryRow,
+  ProductiveDayQueryRow,
+  CategoryTrendQueryRow,
+  DistractionQueryRow,
+  FocusQualityQueryRow,
+  StreakQueryRow,
+  AnalyticsSummaryProductiveQueryRow,
+  AnalyticsSummaryAvgFocusQueryRow,
+} from '../../types/dtos';
 
 /**
  * Service for analytics and statistics calculations
@@ -136,7 +155,7 @@ export class AnalyticsService {
       ORDER BY d.date ASC
     `);
 
-    const rows = stmt.all(startDate, endDate, startDate, endDate, startDate, endDate, startDate, endDate) as any[];
+    const rows = stmt.all(startDate, endDate, startDate, endDate, startDate, endDate, startDate, endDate) as DailyStatsQueryRow[];
 
     return rows.map(row => ({
       date: row.date,
@@ -170,7 +189,7 @@ export class AnalyticsService {
       LIMIT 10
     `);
 
-    const rows = stmt.all(date) as any[];
+    const rows = stmt.all(date) as CategoryTimeQueryRow[];
     const total = rows.reduce((sum, r) => sum + r.minutes, 0);
 
     return rows.map(row => ({
@@ -223,7 +242,7 @@ export class AnalyticsService {
       ORDER BY hour
     `);
 
-    const rows = stmt.all(startDate.toISOString(), startDate.toISOString()) as any[];
+    const rows = stmt.all(startDate.toISOString(), startDate.toISOString()) as HourlyPatternQueryRow[];
 
     return rows.map(row => ({
       hour: row.hour,
@@ -311,7 +330,7 @@ export class AnalyticsService {
       ORDER BY a.date
     `);
 
-    const rows = stmt.all(startDate, endDate, startDate, endDate, startDate, endDate, startDate, endDate) as any[];
+    const rows = stmt.all(startDate, endDate, startDate, endDate, startDate, endDate, startDate, endDate) as HeatmapQueryRow[];
 
     return rows.map(row => ({
       date: row.date,
@@ -338,8 +357,13 @@ export class AnalyticsService {
     currentWeekEnd.setDate(currentWeekStart.getDate() + 6);
     currentWeekEnd.setHours(23, 59, 59, 999);
 
-    const weekStart = currentWeekStart.toISOString().split('T')[0];
-    const weekEnd = currentWeekEnd.toISOString().split('T')[0];
+    const weekStartValue = currentWeekStart.toISOString().split('T')[0];
+    const weekEndValue = currentWeekEnd.toISOString().split('T')[0];
+    if (!weekStartValue || !weekEndValue) {
+      throw new Error('Failed to generate week dates');
+    }
+    const weekStart = weekStartValue;
+    const weekEnd = weekEndValue;
 
     // Get total minutes for the week
     const totalStmt = this.db.prepare(`
@@ -362,7 +386,7 @@ export class AnalyticsService {
       )
       SELECT SUM(total_minutes) as total_minutes FROM combined_data
     `);
-    const totalRow = totalStmt.get(weekStart, weekEnd, weekStart, weekEnd) as any;
+    const totalRow = totalStmt.get(weekStart, weekEnd, weekStart, weekEnd) as WeeklySummaryTotalQueryRow | undefined;
     const totalMinutes = Math.round(totalRow?.total_minutes || 0);
 
     // Get daily breakdown to find top day
@@ -396,7 +420,7 @@ export class AnalyticsService {
       ORDER BY minutes DESC
       LIMIT 1
     `);
-    const dailyRow = dailyStmt.get(weekStart, weekEnd, weekStart, weekEnd) as any;
+    const dailyRow = dailyStmt.get(weekStart, weekEnd, weekStart, weekEnd) as WeeklySummaryDailyQueryRow | undefined;
     const topDay = dailyRow ? { date: dailyRow.date, minutes: Math.round(dailyRow.minutes) } : null;
 
     // Get top categories
@@ -440,7 +464,7 @@ export class AnalyticsService {
       ORDER BY minutes DESC
       LIMIT 5
     `);
-    const catRows = catStmt.all(weekStart, weekEnd, weekStart, weekEnd) as any[];
+    const catRows = catStmt.all(weekStart, weekEnd, weekStart, weekEnd) as WeeklySummaryCategoryQueryRow[];
     const catTotal = catRows.reduce((sum, r) => sum + r.minutes, 0);
     const topCategories = catRows.map(row => ({
       categoryId: row.categoryId,
@@ -460,7 +484,7 @@ export class AnalyticsService {
         AND DATE(gp.date) BETWEEN ? AND ?
       WHERE pg.active = 1
     `);
-    const goalsRow = goalsStmt.get(weekStart, weekEnd) as any;
+    const goalsRow = goalsStmt.get(weekStart, weekEnd) as WeeklySummaryGoalsQueryRow | undefined;
     const goalsAchieved = goalsRow?.achieved || 0;
     const totalGoals = goalsRow?.total || 0;
 
@@ -492,7 +516,7 @@ export class AnalyticsService {
     `);
     const prevWeekStartStr = prevWeekStart.toISOString().split('T')[0];
     const prevWeekEndStr = prevWeekEnd.toISOString().split('T')[0];
-    const prevRow = prevStmt.get(prevWeekStartStr, prevWeekEndStr, prevWeekStartStr, prevWeekEndStr) as any;
+    const prevRow = prevStmt.get(prevWeekStartStr, prevWeekEndStr, prevWeekStartStr, prevWeekEndStr) as WeeklySummaryTotalQueryRow | undefined;
     const prevMinutes = prevRow?.total_minutes || 0;
     const comparisonToPrevious =
       prevMinutes > 0 ? Math.round(((totalMinutes - prevMinutes) / prevMinutes) * 100) : 0;
@@ -537,7 +561,10 @@ export class AnalyticsService {
     }
 
     if (topCategories.length > 0) {
-      insights.push(`You focused most on ${topCategories[0].categoryName} this week.`);
+      const topCategory = topCategories[0];
+      if (topCategory) {
+        insights.push(`You focused most on ${topCategory.categoryName} this week.`);
+      }
     }
 
     const avgDaily = totalMinutes / 7;
@@ -598,7 +625,7 @@ export class AnalyticsService {
       ORDER BY period ASC
     `);
 
-    const rows = stmt.all(startDate, endDate, startDate, endDate) as any[];
+    const rows = stmt.all(startDate, endDate, startDate, endDate) as ProductivityTrendQueryRow[];
 
     return rows.map(row => ({
       date: row.date,
@@ -644,7 +671,7 @@ export class AnalyticsService {
       ORDER BY total_minutes DESC
       LIMIT 1
     `);
-    const peakHourRow = peakHourStmt.get(last30DaysStr, last30DaysStr) as any;
+    const peakHourRow = peakHourStmt.get(last30DaysStr, last30DaysStr) as PeakHourQueryRow | undefined;
     if (peakHourRow) {
       const hour = peakHourRow.hour;
       const period = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
@@ -701,7 +728,7 @@ export class AnalyticsService {
       ORDER BY total_minutes DESC
       LIMIT 1
     `);
-    const productiveDayRow = productiveDayStmt.get(last30DaysStr, last30DaysStr) as any;
+    const productiveDayRow = productiveDayStmt.get(last30DaysStr, last30DaysStr) as ProductiveDayQueryRow | undefined;
     if (productiveDayRow) {
       insights.push({
         type: 'productive_day',
@@ -725,7 +752,7 @@ export class AnalyticsService {
       ORDER BY minutes DESC
       LIMIT 1
     `);
-    const categoryTrendRow = categoryTrendStmt.get(last30DaysStr) as any;
+    const categoryTrendRow = categoryTrendStmt.get(last30DaysStr) as CategoryTrendQueryRow | undefined;
     if (categoryTrendRow) {
       insights.push({
         type: 'category_trend',
@@ -752,7 +779,7 @@ export class AnalyticsService {
       ORDER BY COUNT(*) DESC
       LIMIT 1
     `);
-    const distractionRow = distractionStmt.get(last30DaysStr) as any;
+    const distractionRow = distractionStmt.get(last30DaysStr) as DistractionQueryRow | undefined;
     if (distractionRow) {
       insights.push({
         type: 'distraction',
@@ -770,7 +797,7 @@ export class AnalyticsService {
       FROM pomodoro_sessions
       WHERE session_type = 'focus' AND DATE(start_time) >= ?
     `);
-    const focusQualityRow = focusQualityStmt.get(last30DaysStr) as any;
+    const focusQualityRow = focusQualityStmt.get(last30DaysStr) as FocusQualityQueryRow | undefined;
     if (focusQualityRow && focusQualityRow.total_sessions > 0) {
       const completionRate = (focusQualityRow.completed_sessions / focusQualityRow.total_sessions) * 100;
       const isGood = completionRate >= 75;
@@ -817,7 +844,7 @@ export class AnalyticsService {
       WHERE is_break = 0
       ORDER BY activity_date DESC
     `);
-    const streakRow = streakStmt.get() as any;
+    const streakRow = streakStmt.get() as StreakQueryRow | undefined;
     if (streakRow && streakRow.streak_days > 0) {
       const days = streakRow.streak_days + 1;
       insights.push({
@@ -852,7 +879,7 @@ export class AnalyticsService {
       FROM app_usage
       WHERE DATE(start_time) >= ? AND (is_idle = 0 OR is_idle IS NULL)
     `);
-    const productiveRow = productiveStmt.get(last30DaysStr) as any;
+    const productiveRow = productiveStmt.get(last30DaysStr) as AnalyticsSummaryProductiveQueryRow | undefined;
     const totalProductiveMinutes = Math.round(productiveRow?.total_minutes || 0);
 
     // Average daily focus hours
@@ -865,7 +892,7 @@ export class AnalyticsService {
         GROUP BY DATE(start_time)
       )
     `);
-    const avgFocusRow = avgFocusStmt.get(last30DaysStr) as any;
+    const avgFocusRow = avgFocusStmt.get(last30DaysStr) as AnalyticsSummaryAvgFocusQueryRow | undefined;
     const avgDailyFocusHours = parseFloat((avgFocusRow?.avg_hours || 0).toFixed(1));
 
     // Peak hour
@@ -897,7 +924,7 @@ export class AnalyticsService {
       ORDER BY total_minutes DESC
       LIMIT 1
     `);
-    const peakHourRow = peakHourStmt.get(last30DaysStr, last30DaysStr) as any;
+    const peakHourRow = peakHourStmt.get(last30DaysStr, last30DaysStr) as PeakHourQueryRow | undefined;
     const peakHour = peakHourRow?.hour || 9;
 
     // Most productive day
@@ -945,7 +972,7 @@ export class AnalyticsService {
       ORDER BY total_minutes DESC
       LIMIT 1
     `);
-    const productiveDayRow = productiveDayStmt.get(last30DaysStr, last30DaysStr) as any;
+    const productiveDayRow = productiveDayStmt.get(last30DaysStr, last30DaysStr) as ProductiveDayQueryRow | undefined;
     const mostProductiveDay = productiveDayRow?.day_name || 'Monday';
 
     // Weekly streak
@@ -991,7 +1018,7 @@ export class AnalyticsService {
       )
       OR NOT EXISTS (SELECT 1 FROM streak_calc WHERE is_break = 1)
     `);
-    const streakRow = streakStmt.get() as any;
+    const streakRow = streakStmt.get() as StreakQueryRow | undefined;
     const weeklyStreak = streakRow?.streak_days || 0;
 
     // Calculate productivity score (0-100)
@@ -1003,9 +1030,9 @@ export class AnalyticsService {
       FROM pomodoro_sessions
       WHERE session_type = 'focus' AND DATE(start_time) >= ?
     `);
-    const focusQualityRow = focusQualityStmt.get(last30DaysStr) as any;
+    const focusQualityRow = focusQualityStmt.get(last30DaysStr) as FocusQualityQueryRow | undefined;
     const focusCompletionRate =
-      focusQualityRow?.total_sessions > 0 ? (focusQualityRow.completed_sessions / focusQualityRow.total_sessions) * 100 : 50;
+      focusQualityRow?.total_sessions && focusQualityRow.total_sessions > 0 ? (focusQualityRow.completed_sessions / focusQualityRow.total_sessions) * 100 : 50;
 
     // Productivity score calculation
     const timeScore = Math.min((dailyAvgMinutes / 240) * 40, 40); // Max 40 points for 4+ hours daily

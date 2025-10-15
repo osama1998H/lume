@@ -75,9 +75,21 @@ const createSelectionKey = (activity: SelectedActivity): string => {
 // Helper function to parse selection key
 const parseSelectionKey = (key: string): SelectedActivity => {
   const [id, sourceType] = key.split(':');
+  const idValue = id;
+  const sourceTypeValue = sourceType;
+
+  if (!idValue || !sourceTypeValue) {
+    throw new Error(`Invalid selection key format: ${key}`);
+  }
+
+  const parsedId = parseInt(idValue, 10);
+  if (isNaN(parsedId)) {
+    throw new Error(`Invalid numeric ID in selection key: ${key}`);
+  }
+
   return {
-    id: parseInt(id, 10),
-    sourceType: sourceType as ActivitySourceType,
+    id: parsedId,
+    sourceType: sourceTypeValue as ActivitySourceType,
   };
 };
 
@@ -179,6 +191,12 @@ export const ActivityLogProvider: React.FC<ActivityLogProviderProps> = ({ childr
       for (let j = i + 1; j < acts.length; j++) {
         const a1 = acts[i];
         const a2 = acts[j];
+
+        // Guard against undefined array access
+        if (!a1 || !a2) continue;
+
+        // Skip activities without endTime
+        if (!a1.endTime || !a2.endTime) continue;
 
         const start1 = new Date(a1.startTime).getTime();
         const end1 = new Date(a1.endTime).getTime();

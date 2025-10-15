@@ -1763,6 +1763,11 @@ export class DatabaseManager {
         const a1 = activities[i];
         const a2 = activities[j];
 
+        // Skip if either activity is undefined
+        if (!a1 || !a2) {
+          continue;
+        }
+
         // Only check overlaps within same source type
         if (a1.sourceType !== a2.sourceType) continue;
 
@@ -1916,12 +1921,22 @@ export class DatabaseManager {
         return { success: false, error: 'Cannot merge activities from different source types' };
       }
 
-      const sourceType = activitiesToMerge[0].sourceType;
+      const firstActivity = activitiesToMerge[0];
+      if (!firstActivity) {
+        return { success: false, error: 'No activities found to merge' };
+      }
+
+      const sourceType = firstActivity.sourceType;
 
       // Sort activities by start time
       const sorted = [...activitiesToMerge].sort(
         (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
       );
+
+      const firstSorted = sorted[0];
+      if (!firstSorted) {
+        return { success: false, error: 'Sorted activities array is empty' };
+      }
 
       // Determine base activity based on strategy
       let baseActivity: UnifiedActivity;
@@ -1929,23 +1944,28 @@ export class DatabaseManager {
         case 'longest':
           baseActivity = sorted.reduce((prev, current) =>
             current.duration > prev.duration ? current : prev
-          );
+          , firstSorted);
           break;
         case 'earliest':
-          baseActivity = sorted[0];
+          baseActivity = firstSorted;
           break;
-        case 'latest':
-          baseActivity = sorted[sorted.length - 1];
+        case 'latest': {
+          const lastActivity = sorted[sorted.length - 1];
+          if (!lastActivity) {
+            return { success: false, error: 'Cannot get last activity' };
+          }
+          baseActivity = lastActivity;
           break;
+        }
         default:
-          baseActivity = sorted[0];
+          baseActivity = firstSorted;
       }
 
       // Calculate merged time range
-      const earliestStart = sorted[0].startTime;
+      const earliestStart = firstSorted.startTime;
       const latestEnd = sorted.reduce((latest, activity) =>
         new Date(activity.endTime).getTime() > new Date(latest).getTime() ? activity.endTime : latest
-      , sorted[0].endTime);
+      , firstSorted.endTime);
 
       // Calculate merged duration
       const mergedDuration = Math.floor(

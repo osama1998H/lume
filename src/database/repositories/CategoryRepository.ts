@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { BaseRepository } from '../base/BaseRepository';
 import { QueryOptions } from '../base/RepositoryTypes';
 import { Category } from '../../types';
+import { QueryParameters } from '../../types/database';
 
 /**
  * Repository for categories table
@@ -44,7 +45,7 @@ export class CategoryRepository extends BaseRepository<Category> {
    * Update a category
    */
   update(id: number, updates: Partial<Category>): boolean {
-    const allowedUpdates: any = {};
+    const allowedUpdates: Partial<Category> = {};
 
     if (updates.name !== undefined) allowedUpdates.name = updates.name;
     if (updates.color !== undefined) allowedUpdates.color = updates.color;
@@ -109,7 +110,7 @@ export class CategoryRepository extends BaseRepository<Category> {
    */
   nameExists(name: string, excludeId?: number): boolean {
     let query = 'SELECT 1 FROM categories WHERE name = ?';
-    const params: any[] = [name];
+    const params: QueryParameters = [name];
 
     if (excludeId) {
       query += ' AND id != ?';

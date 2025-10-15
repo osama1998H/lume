@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import type { PomodoroSession } from '../../../types';
 
 /**
  * PomodoroSessionHandlers - IPC handlers for pomodoro session management
@@ -15,7 +16,7 @@ export class PomodoroSessionHandlers implements IIPCHandlerGroup {
   register(ipcMain: IpcMain, context: IIPCHandlerContext): void {
     // Add pomodoro session
     // Extracted from main.ts:381-409
-    ipcMain.handle('add-pomodoro-session', async (_, session) => {
+    ipcMain.handle('add-pomodoro-session', async (_, session: Partial<PomodoroSession>) => {
       try {
         // Validate session data
         const requiredFields = [
@@ -28,7 +29,7 @@ export class PomodoroSessionHandlers implements IIPCHandlerGroup {
         for (const field of requiredFields) {
           if (
             !(field.key in session) ||
-            typeof session[field.key] !== field.type
+            typeof (session as any)[field.key] !== field.type
           ) {
             console.error(
               `Invalid pomodoro session: missing or invalid field '${field.key}'`
@@ -38,7 +39,7 @@ export class PomodoroSessionHandlers implements IIPCHandlerGroup {
         }
 
         console.log('Add pomodoro session:', session);
-        return context.dbManager?.addPomodoroSession(session) || null;
+        return context.dbManager?.addPomodoroSession(session as PomodoroSession) || null;
       } catch (error) {
         console.error('Failed to add pomodoro session:', error);
         return null;
@@ -47,7 +48,7 @@ export class PomodoroSessionHandlers implements IIPCHandlerGroup {
 
     // Update pomodoro session
     // Extracted from main.ts:411-419
-    ipcMain.handle('update-pomodoro-session', async (_, id: number, updates: any) => {
+    ipcMain.handle('update-pomodoro-session', async (_, id: number, updates: Partial<PomodoroSession>) => {
       try {
         console.log('Update pomodoro session:', id, updates);
         return context.dbManager?.updatePomodoroSession(id, updates) || false;

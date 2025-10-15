@@ -159,6 +159,12 @@ const ActivityListView: React.FC<ActivityListViewProps> = ({
     getScrollElement: () => parentRef.current,
     estimateSize: (index) => {
       const item = flattenedItems[index];
+
+      // Guard against undefined
+      if (!item) {
+        return 72; // Default size
+      }
+
       if (item.type === 'group') {
         return 48; // Group headers are 48px
       }
@@ -342,6 +348,11 @@ const ActivityListView: React.FC<ActivityListViewProps> = ({
           >
             {virtualizer.getVirtualItems().map((virtualItem) => {
               const item = flattenedItems[virtualItem.index];
+
+              // Guard against undefined
+              if (!item) {
+                return null;
+              }
 
               if (item.type === 'group') {
                 return (

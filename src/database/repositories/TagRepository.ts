@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { BaseRepository } from '../base/BaseRepository';
 import { QueryOptions } from '../base/RepositoryTypes';
 import { Tag } from '../../types';
+import { QueryParameters } from '../../types/database';
 
 /**
  * Repository for tags table
@@ -41,7 +42,7 @@ export class TagRepository extends BaseRepository<Tag> {
    * Update a tag
    */
   update(id: number, updates: Partial<Tag>): boolean {
-    const allowedUpdates: any = {};
+    const allowedUpdates: Partial<Tag> = {};
 
     if (updates.name !== undefined) allowedUpdates.name = updates.name;
     if (updates.color !== undefined) allowedUpdates.color = updates.color;
@@ -69,7 +70,7 @@ export class TagRepository extends BaseRepository<Tag> {
    */
   nameExists(name: string, excludeId?: number): boolean {
     let query = 'SELECT 1 FROM tags WHERE name = ?';
-    const params: any[] = [name];
+    const params: QueryParameters = [name];
 
     if (excludeId) {
       query += ' AND id != ?';

@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import type { UnifiedActivityUpdateOptions, BulkActivityOperation, ActivitySourceType } from '../../../types';
 
 /**
  * UnifiedActivityHandlers - IPC handlers for unified activity log operations
@@ -39,13 +40,13 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
 
     // Get unified activity
     // Extracted from main.ts:467-480
-    ipcMain.handle('get-unified-activity', async (_, id: number, sourceType: string) => {
+    ipcMain.handle('get-unified-activity', async (_, id: number, sourceType: ActivitySourceType) => {
       try {
         if (!context.dbManager) {
           console.error('❌ Database manager not initialized');
           return null;
         }
-        const activity = context.dbManager.getUnifiedActivity(id, sourceType as any);
+        const activity = context.dbManager.getUnifiedActivity(id, sourceType);
         console.log(`📊 Retrieved unified activity: ${id} (${sourceType})`);
         return activity;
       } catch (error) {
@@ -56,7 +57,7 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
 
     // Update unified activity
     // Extracted from main.ts:482-500
-    ipcMain.handle('update-unified-activity', async (_, options) => {
+    ipcMain.handle('update-unified-activity', async (_, options: UnifiedActivityUpdateOptions) => {
       try {
         if (!context.dbManager) {
           console.error('❌ Database manager not initialized');
@@ -78,14 +79,14 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
 
     // Delete unified activity
     // Extracted from main.ts:502-520
-    ipcMain.handle('delete-unified-activity', async (_, id: number, sourceType: string) => {
+    ipcMain.handle('delete-unified-activity', async (_, id: number, sourceType: ActivitySourceType) => {
       try {
         if (!context.dbManager) {
           console.error('❌ Database manager not initialized');
           return false;
         }
         console.log('🗑️  Deleting unified activity:', id, sourceType);
-        const success = context.dbManager.deleteUnifiedActivity(id, sourceType as any);
+        const success = context.dbManager.deleteUnifiedActivity(id, sourceType);
         if (success) {
           console.log('✅ Unified activity deleted successfully');
         } else {
@@ -100,7 +101,7 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
 
     // Bulk update activities
     // Extracted from main.ts:522-536
-    ipcMain.handle('bulk-update-activities', async (_, operation) => {
+    ipcMain.handle('bulk-update-activities', async (_, operation: BulkActivityOperation) => {
       try {
         if (!context.dbManager) {
           console.error('❌ Database manager not initialized');
@@ -204,7 +205,7 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
 
     // Merge activities
     // Extracted from main.ts:616-637
-    ipcMain.handle('merge-activities', async (_, activityIds: Array<{ id: number; sourceType: string }>, strategy: 'longest' | 'earliest' | 'latest' = 'longest') => {
+    ipcMain.handle('merge-activities', async (_, activityIds: Array<{ id: number; sourceType: ActivitySourceType }>, strategy: 'longest' | 'earliest' | 'latest' = 'longest') => {
       try {
         if (!context.dbManager) {
           console.error('❌ Database manager not initialized');
@@ -212,7 +213,7 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
         }
         console.log(`🔄 Merging ${activityIds.length} activities with strategy: ${strategy}`);
         const result = await context.dbManager.mergeActivitiesById(
-          activityIds.map(item => ({ id: item.id, sourceType: item.sourceType as any })),
+          activityIds,
           strategy
         );
         if (result.success) {

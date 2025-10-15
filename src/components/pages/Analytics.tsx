@@ -50,6 +50,12 @@ export const Analytics: React.FC = () => {
     if (productiveDayMatch) {
       const dayName = productiveDayMatch[1];
       const minutes = productiveDayMatch[2];
+
+      // Guard against undefined
+      if (!dayName || !minutes) {
+        return insight;
+      }
+
       // Translate the day name
       const translatedDay = t(`common.daysOfWeek.${dayName}`, dayName);
       return t('analytics.weeklyInsights.mostProductiveDay', { dayName: translatedDay, minutes });
@@ -82,25 +88,42 @@ export const Analytics: React.FC = () => {
       setIsLoading(true);
 
       // Get date range based on selected period
-      const endDate = new Date().toISOString().split('T')[0];
+      const endDateValue = new Date().toISOString().split('T')[0];
+      if (!endDateValue) {
+        throw new Error('Failed to generate end date');
+      }
+      const endDate = endDateValue;
+
       let startDate: string;
       let groupBy: 'day' | 'week' | 'month';
 
       if (selectedPeriod === 'week') {
         const date = new Date();
         date.setDate(date.getDate() - 7);
-        startDate = date.toISOString().split('T')[0];
+        const startDateValue = date.toISOString().split('T')[0];
+        if (!startDateValue) {
+          throw new Error('Failed to generate start date');
+        }
+        startDate = startDateValue;
         groupBy = 'day';
       } else if (selectedPeriod === 'month') {
         const date = new Date();
         date.setMonth(date.getMonth() - 1);
-        startDate = date.toISOString().split('T')[0];
+        const startDateValue = date.toISOString().split('T')[0];
+        if (!startDateValue) {
+          throw new Error('Failed to generate start date');
+        }
+        startDate = startDateValue;
         groupBy = 'day';
       } else {
         // Year
         const date = new Date();
         date.setFullYear(date.getFullYear() - 1);
-        startDate = date.toISOString().split('T')[0];
+        const startDateValue = date.toISOString().split('T')[0];
+        if (!startDateValue) {
+          throw new Error('Failed to generate start date');
+        }
+        startDate = startDateValue;
         groupBy = 'week';
       }
 

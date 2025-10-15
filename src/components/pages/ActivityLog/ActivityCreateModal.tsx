@@ -71,8 +71,16 @@ const ActivityCreateModal: React.FC<ActivityCreateModalProps> = ({
   // Helper: Combine date and time strings to Date
   // Explicitly constructs Date in local timezone to avoid ambiguity
   function combineDateTime(dateStr: string, timeStr: string): Date {
-    const [year, month, day] = dateStr.split('-').map(Number);
-    const [hours, minutes] = timeStr.split(':').map(Number);
+    const dateParts = dateStr.split('-').map(Number);
+    const timeParts = timeStr.split(':').map(Number);
+    const year = dateParts[0];
+    const month = dateParts[1];
+    const day = dateParts[2];
+    const hours = timeParts[0];
+    const minutes = timeParts[1];
+    if (year === undefined || month === undefined || day === undefined || hours === undefined || minutes === undefined) {
+      throw new Error('Invalid date/time format');
+    }
     return new Date(year, month - 1, day, hours, minutes, 0, 0);
   }
 

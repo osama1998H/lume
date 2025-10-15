@@ -357,10 +357,10 @@ describe('ActivityTrackingService', () => {
         is_browser: false,
       };
       (service as any).sessionStartTime = startTime;
-      
+
       (service as any).finishCurrentSession();
-      
-      const savedSession = mockDbManager.addActivitySession.mock.calls[0][0];
+
+      const savedSession = mockDbManager.addActivitySession.mock.calls[0]![0];
       expect(savedSession.end_time).toBeDefined();
       expect(savedSession.duration).toBeGreaterThanOrEqual(29);
       expect(savedSession.duration).toBeLessThanOrEqual(31);

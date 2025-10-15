@@ -184,7 +184,11 @@ export class GoalsService {
    */
   async recalculateAllGoalProgress(): Promise<void> {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const todayValue = new Date().toISOString().split('T')[0];
+      if (!todayValue) {
+        throw new Error('Failed to get today\'s date');
+      }
+      const today = todayValue;
       const activeGoals = await this.getGoals(true);
 
       console.log(`🔄 Recalculating progress for ${activeGoals.length} active goals...`);
@@ -284,7 +288,11 @@ export class GoalsService {
     const day = date.getDay();
     const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
     const monday = new Date(date.setDate(diff));
-    return `${monday.toISOString().split('T')[0]} 00:00:00`;
+    const mondayDateValue = monday.toISOString().split('T')[0];
+    if (!mondayDateValue) {
+      throw new Error('Failed to get Monday date');
+    }
+    return `${mondayDateValue} 00:00:00`;
   }
 
   /**

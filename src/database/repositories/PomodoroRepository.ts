@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { BaseRepository } from '../base/BaseRepository';
 import { QueryOptions } from '../base/RepositoryTypes';
 import { PomodoroSession, PomodoroStats, Tag } from '../../types';
+import { DatabaseRow, QueryParameters } from '../../types/database';
 
 /**
  * Repository for pomodoro_sessions table
@@ -54,7 +55,7 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
       completed: session.completed ? 1 : 0,
       interrupted: session.interrupted ? 1 : 0,
       todoId: session.todoId ?? undefined,
-    } as any);
+    } as DatabaseRow);
 
     const columns = Object.keys(snakeEntity);
     const placeholders = columns.map(() => '?').join(', ');
@@ -77,12 +78,12 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
    * Update a Pomodoro session
    */
   update(id: number, updates: Partial<PomodoroSession>): boolean {
-    const allowedUpdates: any = {};
+    const allowedUpdates: Partial<PomodoroSession> = {};
 
     if (updates.task !== undefined) allowedUpdates.task = updates.task;
     if (updates.endTime !== undefined) allowedUpdates.endTime = updates.endTime;
-    if (updates.completed !== undefined) allowedUpdates.completed = updates.completed ? 1 : 0;
-    if (updates.interrupted !== undefined) allowedUpdates.interrupted = updates.interrupted ? 1 : 0;
+    if (updates.completed !== undefined) allowedUpdates.completed = updates.completed;
+    if (updates.interrupted !== undefined) allowedUpdates.interrupted = updates.interrupted;
     if (updates.todoId !== undefined) allowedUpdates.todoId = updates.todoId;
 
     if (Object.keys(allowedUpdates).length === 0) {
@@ -113,12 +114,12 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
       ORDER BY start_time DESC
     `;
 
-    const results = this.executeQuery<any>(query, [startDate, endDate]);
+    const results = this.executeQuery<DatabaseRow>(query, [startDate, endDate]);
     return results.map(row => ({
       ...row,
       completed: Boolean(row.completed),
       interrupted: Boolean(row.interrupted),
-    }));
+    } as PomodoroSession));
   }
 
   /**
@@ -148,7 +149,7 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
    */
   getStats(startDate?: string, endDate?: string): PomodoroStats {
     let whereClause = '';
-    const params: any[] = [];
+    const params: QueryParameters = [];
 
     if (startDate && endDate) {
       whereClause = 'WHERE DATE(start_time) BETWEEN ? AND ?';
@@ -166,7 +167,7 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
       ${whereClause}
     `;
 
-    const stats = this.executeQuerySingle<any>(statsQuery, params);
+    const stats = this.executeQuerySingle<DatabaseRow>(statsQuery, params);
 
     if (!stats) {
       return {
@@ -180,17 +181,18 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
     }
 
     // Calculate completion rate
-    const completionRate =
-      stats.totalSessions > 0 ? (stats.completedSessions / stats.totalSessions) * 100 : 0;
+    const totalSessions = (stats.totalSessions as number) || 0;
+    const completedSessions = (stats.completedSessions as number) || 0;
+    const completionRate = totalSessions > 0 ? (completedSessions / totalSessions) * 100 : 0;
 
     // Calculate current streak
     const currentStreak = this.calculateCurrentStreak();
 
     return {
-      totalSessions: stats.totalSessions || 0,
-      completedSessions: stats.completedSessions || 0,
-      totalFocusTime: stats.totalFocusTime || 0,
-      totalBreakTime: stats.totalBreakTime || 0,
+      totalSessions: (stats.totalSessions as number) || 0,
+      completedSessions: (stats.completedSessions as number) || 0,
+      totalFocusTime: (stats.totalFocusTime as number) || 0,
+      totalBreakTime: (stats.totalBreakTime as number) || 0,
       completionRate,
       currentStreak,
     };
@@ -217,7 +219,11 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
     today.setHours(0, 0, 0, 0);
 
     for (let i = 0; i < dates.length; i++) {
-      const sessionDate = new Date(dates[i].date);
+      const dateEntry = dates[i];
+      // Guard against undefined array access
+      if (!dateEntry) break;
+
+      const sessionDate = new Date(dateEntry.date);
       sessionDate.setHours(0, 0, 0, 0);
 
       const expectedDate = new Date(today);

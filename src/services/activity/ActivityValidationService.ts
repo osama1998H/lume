@@ -385,26 +385,59 @@ export class ActivityValidationService {
       matrix[i] = [i];
     }
 
+    const firstRow = matrix[0];
+    if (!firstRow) {
+      throw new Error('Matrix initialization failed');
+    }
+
     for (let j = 0; j <= s1.length; j++) {
-      matrix[0][j] = j;
+      firstRow[j] = j;
     }
 
     // Fill matrix
     for (let i = 1; i <= s2.length; i++) {
+      const currentRow = matrix[i];
+      if (!currentRow) {
+        continue;
+      }
+
       for (let j = 1; j <= s1.length; j++) {
+        const prevRow = matrix[i - 1];
+        if (!prevRow) {
+          continue;
+        }
+
         if (s2.charAt(i - 1) === s1.charAt(j - 1)) {
-          matrix[i][j] = matrix[i - 1][j - 1];
+          const prevDiag = prevRow[j - 1];
+          if (prevDiag !== undefined) {
+            currentRow[j] = prevDiag;
+          }
         } else {
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1, // substitution
-            matrix[i][j - 1] + 1, // insertion
-            matrix[i - 1][j] + 1 // deletion
-          );
+          const prevDiag = prevRow[j - 1];
+          const prevLeft = currentRow[j - 1];
+          const prevUp = prevRow[j];
+
+          if (prevDiag !== undefined && prevLeft !== undefined && prevUp !== undefined) {
+            currentRow[j] = Math.min(
+              prevDiag + 1, // substitution
+              prevLeft + 1, // insertion
+              prevUp + 1 // deletion
+            );
+          }
         }
       }
     }
 
-    const distance = matrix[s2.length][s1.length];
+    const lastRow = matrix[s2.length];
+    if (!lastRow) {
+      throw new Error('Matrix calculation failed');
+    }
+
+    const distance = lastRow[s1.length];
+    if (distance === undefined) {
+      throw new Error('Distance calculation failed');
+    }
+
     const maxLength = Math.max(s1.length, s2.length);
     const similarity = ((maxLength - distance) / maxLength) * 100;
 

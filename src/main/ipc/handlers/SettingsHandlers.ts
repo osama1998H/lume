@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import type { Settings } from '../../core/SettingsManager';
 
 /**
  * SettingsHandlers - IPC handlers for application settings management
@@ -30,9 +31,12 @@ export class SettingsHandlers implements IIPCHandlerGroup {
 
     // Save settings
     // Extracted from main.ts:282-313
-    ipcMain.handle('save-settings', async (_, settings) => {
+    ipcMain.handle('save-settings', async (_, settings: Settings) => {
       try {
-        console.log('💾 Saving settings:', JSON.stringify(settings, null, 2));
+        // Only log in development to reduce noise in production
+        if (process.env.NODE_ENV !== 'production') {
+          console.debug('💾 Saving settings:', JSON.stringify(settings, null, 2));
+        }
 
         // Get previous settings before saving
         const previousSettings = context.settingsManager.getSettings();

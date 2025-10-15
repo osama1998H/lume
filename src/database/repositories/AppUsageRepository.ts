@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { BaseRepository } from '../base/BaseRepository';
 import { QueryOptions } from '../base/RepositoryTypes';
 import { AppUsage, Tag } from '../../types';
+import { DatabaseRow } from '../../types/database';
 
 /**
  * Repository for app_usage table
@@ -51,7 +52,7 @@ export class AppUsageRepository extends BaseRepository<AppUsage> {
       url: usage.url ?? undefined,
       isBrowser: usage.isBrowser ? 1 : 0,
       isIdle: usage.isIdle ? 1 : 0,
-    } as any);
+    } as DatabaseRow);
 
     const columns = Object.keys(snakeEntity);
     const placeholders = columns.map(() => '?').join(', ');
@@ -71,13 +72,13 @@ export class AppUsageRepository extends BaseRepository<AppUsage> {
    * Update an app usage record
    */
   update(id: number, updates: Partial<AppUsage>): boolean {
-    const allowedUpdates: any = {};
+    const allowedUpdates: Partial<AppUsage> = {};
 
     if (updates.endTime !== undefined) allowedUpdates.endTime = updates.endTime;
     if (updates.duration !== undefined) allowedUpdates.duration = updates.duration;
     if (updates.category !== undefined) allowedUpdates.category = updates.category;
     if (updates.categoryId !== undefined) allowedUpdates.categoryId = updates.categoryId;
-    if (updates.isIdle !== undefined) allowedUpdates.isIdle = updates.isIdle ? 1 : 0;
+    if (updates.isIdle !== undefined) allowedUpdates.isIdle = updates.isIdle;
 
     if (Object.keys(allowedUpdates).length === 0) {
       return false;
