@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Edit2, Trash2, Calendar, Clock, CheckCircle2, Circle, PlayCircle, XCircle, Timer } from 'lucide-react';
+import { Edit2, Trash2, Calendar, CheckCircle2, Circle, PlayCircle, XCircle, Timer } from 'lucide-react';
 import { Todo, TodoStatus, Category } from '../../../types';
 import Badge from '../../ui/Badge';
 import TagDisplay from '../../ui/TagDisplay';
@@ -89,11 +89,6 @@ const TodoCard: React.FC<TodoCardProps> = ({
     return `${hours}h ${mins}m`;
   };
 
-  const calculatePomodoroTime = (pomodoroCount?: number): number => {
-    if (!pomodoroCount) return 0;
-    // Standard pomodoro is 25 minutes
-    return pomodoroCount * 25;
-  };
 
   const handleDeleteClick = () => {
     setShowDeleteConfirm(true);

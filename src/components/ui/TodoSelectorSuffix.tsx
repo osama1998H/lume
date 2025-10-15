@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link2, CheckCircle2, Circle, AlertCircle, Clock } from 'lucide-react';
+import { Link2, CheckCircle2, Circle, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DropdownSelector } from './DropdownSelector';
 import type { Todo, TodoPriority, TodoStatus } from '../../types';
@@ -44,9 +44,9 @@ const priorityConfig: Record<
 // Status configuration
 const statusConfig: Record<
   TodoStatus,
-  { variant: 'primary' | 'success' | 'warning' | 'default'; label: string }
+  { variant: 'primary' | 'success' | 'warning' | 'gray'; label: string }
 > = {
-  todo: { variant: 'default', label: 'To Do' },
+  todo: { variant: 'gray', label: 'To Do' },
   in_progress: { variant: 'primary', label: 'In Progress' },
   completed: { variant: 'success', label: 'Completed' },
   cancelled: { variant: 'warning', label: 'Cancelled' },
@@ -92,9 +92,8 @@ export function TodoSelectorSuffix({
   };
 
   // Custom trigger button for the dropdown
-  const renderTrigger = (selected: Todo | null, isOpen: boolean) => {
+  const renderTrigger = (selected: Todo | null) => {
     if (selected) {
-      const statusInfo = statusConfig[selected.status];
       return (
         <div className="flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4 text-primary-600 dark:text-primary-400" />

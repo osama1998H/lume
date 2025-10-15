@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Search, X } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 
 export interface DropdownSelectorProps<T> {
   items: T[];
@@ -121,7 +120,10 @@ export function DropdownSelector<T>({
       case 'Enter':
         e.preventDefault();
         if (focusedIndex >= 0 && focusedIndex < filteredItems.length) {
-          handleSelect(filteredItems[focusedIndex]);
+          const selectedItem = filteredItems[focusedIndex];
+          if (selectedItem !== undefined) {
+            handleSelect(selectedItem);
+          }
         }
         break;
 
@@ -251,9 +253,11 @@ export function DropdownSelector<T>({
                 return (
                   <div
                     key={key}
-                    ref={(el) => (itemRefs.current[index] = el)}
+                    ref={(el) => {
+                      itemRefs.current[index] = el;
+                    }}
                     role="option"
-                    aria-selected={isSelected}
+                    aria-selected={isSelected || undefined}
                     onClick={() => handleSelect(item)}
                     className={`
                       px-4 py-2.5 cursor-pointer
