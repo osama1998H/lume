@@ -73,7 +73,6 @@ jobs:
 
       - name: Run tests
         run: npm run test
-        continue-on-error: true
 
       - name: Build application
         run: npm run build
@@ -83,16 +82,52 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Validate release directory
+        id: validate
+        run: |
+          if [ ! -d "release" ]; then
+            echo "❌ Error: release directory not found"
+            exit 1
+          fi
+
+          file_count=$(find release -type f | wc -l)
+          if [ "$file_count" -eq 0 ]; then
+            echo "❌ Error: No artifacts found in release directory"
+            exit 1
+          fi
+
+          echo "✅ Found $file_count artifact(s) in release directory"
+          echo "file_count=$file_count" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Rename artifacts with nightly prefix
         run: |
           cd release
+          renamed_count=0
+
           for file in *; do
-            if [ -f "$file" ]; then
-              ext="${file##*.}"
-              name="${file%.*}"
-              mv "$file" "nightly-${{ steps.sha.outputs.short }}-$file"
+            # Skip if not a file or already has nightly prefix
+            if [ ! -f "$file" ] || [[ "$file" == nightly-* ]]; then
+              continue
             fi
+
+            new_name="nightly-${{ steps.sha.outputs.short }}-$file"
+            echo "Renaming: $file -> $new_name"
+            mv "$file" "$new_name"
+            renamed_count=$((renamed_count + 1))
           done
+
+          echo "✅ Renamed $renamed_count file(s)"
+
+          if [ $renamed_count -eq 0 ]; then
+            echo "⚠️ Warning: No files were renamed"
+          fi
+        shell: bash
+
+      - name: List artifacts to upload
+        run: |
+          echo "📦 Artifacts to upload:"
+          ls -lh release/nightly-* || echo "⚠️ No nightly artifacts found"
         shell: bash
 
       - name: Upload nightly artifacts (macOS)
@@ -104,6 +139,7 @@ jobs:
             release/nightly-*.dmg
             release/nightly-*.zip
           retention-days: 7
+          if-no-files-found: error
 
       - name: Upload nightly artifacts (Linux)
         if: matrix.platform == 'linux'
@@ -114,6 +150,7 @@ jobs:
             release/nightly-*.AppImage
             release/nightly-*.deb
           retention-days: 7
+          if-no-files-found: error
 
       - name: Upload nightly artifacts (Windows)
         if: matrix.platform == 'windows'
@@ -122,6 +159,26 @@ jobs:
           name: nightly-windows-${{ steps.sha.outputs.short }}
           path: release/nightly-*.exe
           retention-days: 7
+          if-no-files-found: error
+
+      - name: Generate build summary
+        if: always()
+        run: |
+          echo "## 🌙 Nightly Build Summary - ${{ matrix.platform }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Platform:** ${{ matrix.platform }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ steps.sha.outputs.short }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -d "release" ]; then
+            echo "### 📦 Built Artifacts:" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            ls -lh release/nightly-* 2>/dev/null || echo "No artifacts found"
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+        shell: bash
 
   notify:
     name: Notify Build Status
@@ -168,26 +225,55 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
+            console.log('🧹 Starting cleanup of old nightly artifacts...');
+
             const artifacts = await github.rest.actions.listArtifactsForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
               per_page: 100
             });
 
-            const nightlyArtifacts = artifacts.data.artifacts.filter(artifact =>
-              artifact.name.startsWith('nightly-')
-            );
+            // Filter and sort nightly artifacts by creation date (newest first)
+            const nightlyArtifacts = artifacts.data.artifacts
+              .filter(artifact => artifact.name.startsWith('nightly-'))
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-            // Keep only the last 7 nightly builds (7 days * 3 platforms = 21 artifacts)
-            const toDelete = nightlyArtifacts.slice(21);
+            console.log(`Found ${nightlyArtifacts.length} nightly artifacts`);
 
-            for (const artifact of toDelete) {
-              console.log(`Deleting old artifact: ${artifact.name}`);
-              await github.rest.actions.deleteArtifact({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                artifact_id: artifact.id
-              });
+            // Group artifacts by platform
+            const platforms = ['macos', 'linux', 'windows'];
+            const artifactsByPlatform = {};
+
+            platforms.forEach(platform => {
+              artifactsByPlatform[platform] = nightlyArtifacts.filter(artifact =>
+                artifact.name.includes(platform)
+              );
+            });
+
+            // Keep the 7 most recent artifacts per platform
+            const keepCount = 7;
+            const toDelete = [];
+
+            for (const [platform, artifacts] of Object.entries(artifactsByPlatform)) {
+              const keep = artifacts.slice(0, keepCount);
+              const deleteList = artifacts.slice(keepCount);
+
+              console.log(`${platform}: keeping ${keep.length}, deleting ${deleteList.length}`);
+              toDelete.push(...deleteList);
             }
 
-            console.log(`Deleted ${toDelete.length} old nightly artifacts`);
+            // Delete old artifacts
+            for (const artifact of toDelete) {
+              console.log(`Deleting: ${artifact.name} (created: ${artifact.created_at})`);
+              try {
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id
+                });
+              } catch (error) {
+                console.error(`Failed to delete ${artifact.name}: ${error.message}`);
+              }
+            }
+
+            console.log(`✅ Cleanup complete. Deleted ${toDelete.length} old nightly artifacts`);
