@@ -293,8 +293,23 @@ export class TodoRepository extends BaseRepository<Todo> {
   /**
    * Link a todo to a time entry
    * Updates both todos.time_entry_id and time_entries.todo_id for bidirectional consistency
+   * Clears any existing stale links before establishing the new association
    */
   linkTimeEntry(todoId: number, timeEntryId: number): boolean {
+    // Prepare statements to clear existing links
+    const clearTodoStmt = this.db.prepare(`
+      UPDATE ${this.tableName}
+      SET time_entry_id = NULL,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE time_entry_id = ?
+    `);
+    const clearTimeEntryStmt = this.db.prepare(`
+      UPDATE time_entries
+      SET todo_id = NULL
+      WHERE todo_id = ?
+    `);
+
+    // Prepare statements to establish new links
     const updateTodoStmt = this.db.prepare(`
       UPDATE ${this.tableName}
       SET time_entry_id = ?,
@@ -308,6 +323,11 @@ export class TodoRepository extends BaseRepository<Todo> {
     `);
 
     return this.transaction(() => {
+      // Clear any existing links to prevent stale references
+      clearTodoStmt.run(timeEntryId);
+      clearTimeEntryStmt.run(todoId);
+
+      // Establish new bidirectional link
       const todoRes = updateTodoStmt.run(timeEntryId, todoId);
       const timeRes = updateTimeEntryStmt.run(todoId, timeEntryId);
       return (todoRes?.changes || 0) > 0 && (timeRes?.changes || 0) > 0;
