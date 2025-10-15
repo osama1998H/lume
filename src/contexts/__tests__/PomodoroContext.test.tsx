@@ -5,14 +5,20 @@ import { PomodoroSettings } from '../../types';
 
 // Mock window.electronAPI
 const mockElectronAPI = {
-  getPomodoroSettings: jest.fn(),
-  savePomodoroSettings: jest.fn(),
-  startPomodoroSession: jest.fn(),
-  pausePomodoroSession: jest.fn(),
-  resumePomodoroSession: jest.fn(),
-  stopPomodoroSession: jest.fn(),
-  skipPomodoroSession: jest.fn(),
-  getPomodoroStatus: jest.fn(),
+  pomodoro: {
+    settings: {
+      get: jest.fn(),
+      save: jest.fn(),
+    },
+    timer: {
+      start: jest.fn(),
+      pause: jest.fn(),
+      resume: jest.fn(),
+      stop: jest.fn(),
+      skip: jest.fn(),
+      getStatus: jest.fn(),
+    },
+  },
 };
 
 const defaultSettings: PomodoroSettings = {
@@ -41,14 +47,14 @@ describe('PomodoroContext', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
-    mockElectronAPI.getPomodoroSettings.mockResolvedValue(defaultSettings);
-    mockElectronAPI.getPomodoroStatus.mockResolvedValue(defaultStatus);
-    mockElectronAPI.savePomodoroSettings.mockResolvedValue(true);
-    mockElectronAPI.startPomodoroSession.mockResolvedValue(undefined);
-    mockElectronAPI.pausePomodoroSession.mockResolvedValue(undefined);
-    mockElectronAPI.resumePomodoroSession.mockResolvedValue(undefined);
-    mockElectronAPI.stopPomodoroSession.mockResolvedValue(undefined);
-    mockElectronAPI.skipPomodoroSession.mockResolvedValue(undefined);
+    mockElectronAPI.pomodoro.settings.get.mockResolvedValue(defaultSettings);
+    mockElectronAPI.pomodoro.timer.getStatus.mockResolvedValue(defaultStatus);
+    mockElectronAPI.pomodoro.settings.save.mockResolvedValue(true);
+    mockElectronAPI.pomodoro.timer.start.mockResolvedValue(undefined);
+    mockElectronAPI.pomodoro.timer.pause.mockResolvedValue(undefined);
+    mockElectronAPI.pomodoro.timer.resume.mockResolvedValue(undefined);
+    mockElectronAPI.pomodoro.timer.stop.mockResolvedValue(undefined);
+    mockElectronAPI.pomodoro.timer.skip.mockResolvedValue(undefined);
 
     (window as any).electronAPI = mockElectronAPI;
   });
@@ -63,7 +69,7 @@ describe('PomodoroContext', () => {
       renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
       await waitFor(() => {
-        expect(mockElectronAPI.getPomodoroSettings).toHaveBeenCalled();
+        expect(mockElectronAPI.pomodoro.settings.get).toHaveBeenCalled();
       });
     });
 
@@ -71,7 +77,7 @@ describe('PomodoroContext', () => {
       renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
       await waitFor(() => {
-        expect(mockElectronAPI.getPomodoroStatus).toHaveBeenCalled();
+        expect(mockElectronAPI.pomodoro.timer.getStatus).toHaveBeenCalled();
       });
     });
 
@@ -115,7 +121,7 @@ describe('PomodoroContext', () => {
         await result.current.saveSettings(newSettings);
       });
 
-      expect(mockElectronAPI.savePomodoroSettings).toHaveBeenCalledWith(newSettings);
+      expect(mockElectronAPI.pomodoro.settings.save).toHaveBeenCalledWith(newSettings);
     });
 
     it('should update local settings after save', async () => {
@@ -135,7 +141,7 @@ describe('PomodoroContext', () => {
 
     it('should handle save settings error', async () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      mockElectronAPI.savePomodoroSettings.mockRejectedValue(new Error('Save failed'));
+      mockElectronAPI.pomodoro.settings.save.mockRejectedValue(new Error('Save failed'));
 
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
@@ -154,7 +160,7 @@ describe('PomodoroContext', () => {
     it('should reload settings', async () => {
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
-      mockElectronAPI.getPomodoroSettings.mockResolvedValueOnce({
+      mockElectronAPI.pomodoro.settings.get.mockResolvedValueOnce({
         ...defaultSettings,
         focusDuration: 35,
       });
@@ -177,7 +183,7 @@ describe('PomodoroContext', () => {
         timeRemaining: 1500,
       };
 
-      mockElectronAPI.getPomodoroStatus.mockResolvedValueOnce(newStatus);
+      mockElectronAPI.pomodoro.timer.getStatus.mockResolvedValueOnce(newStatus);
 
       await act(async () => {
         await result.current.refreshStatus();
@@ -189,7 +195,7 @@ describe('PomodoroContext', () => {
 
     it('should handle refresh status error', async () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      mockElectronAPI.getPomodoroStatus.mockRejectedValue(new Error('Refresh failed'));
+      mockElectronAPI.pomodoro.timer.getStatus.mockRejectedValue(new Error('Refresh failed'));
 
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
@@ -214,7 +220,7 @@ describe('PomodoroContext', () => {
         await result.current.startSession('Test Task', 'focus');
       });
 
-      expect(mockElectronAPI.startPomodoroSession).toHaveBeenCalledWith('Test Task', 'focus');
+      expect(mockElectronAPI.pomodoro.timer.start).toHaveBeenCalledWith('Test Task', 'focus');
     });
 
     it('should start with default focus type', async () => {
@@ -224,7 +230,7 @@ describe('PomodoroContext', () => {
         await result.current.startSession('Test Task');
       });
 
-      expect(mockElectronAPI.startPomodoroSession).toHaveBeenCalledWith('Test Task', 'focus');
+      expect(mockElectronAPI.pomodoro.timer.start).toHaveBeenCalledWith('Test Task', 'focus');
     });
 
     it('should start a short break session', async () => {
@@ -234,7 +240,7 @@ describe('PomodoroContext', () => {
         await result.current.startSession('Break', 'shortBreak');
       });
 
-      expect(mockElectronAPI.startPomodoroSession).toHaveBeenCalledWith('Break', 'shortBreak');
+      expect(mockElectronAPI.pomodoro.timer.start).toHaveBeenCalledWith('Break', 'shortBreak');
     });
 
     it('should refresh status after starting', async () => {
@@ -244,12 +250,12 @@ describe('PomodoroContext', () => {
         await result.current.startSession('Test Task');
       });
 
-      expect(mockElectronAPI.getPomodoroStatus).toHaveBeenCalled();
+      expect(mockElectronAPI.pomodoro.timer.getStatus).toHaveBeenCalled();
     });
 
     it('should handle start session error', async () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      mockElectronAPI.startPomodoroSession.mockRejectedValue(new Error('Start failed'));
+      mockElectronAPI.pomodoro.timer.start.mockRejectedValue(new Error('Start failed'));
 
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
@@ -274,7 +280,7 @@ describe('PomodoroContext', () => {
         await result.current.pauseSession();
       });
 
-      expect(mockElectronAPI.pausePomodoroSession).toHaveBeenCalled();
+      expect(mockElectronAPI.pomodoro.timer.pause).toHaveBeenCalled();
     });
 
     it('should refresh status after pausing', async () => {
@@ -284,12 +290,12 @@ describe('PomodoroContext', () => {
         await result.current.pauseSession();
       });
 
-      expect(mockElectronAPI.getPomodoroStatus).toHaveBeenCalled();
+      expect(mockElectronAPI.pomodoro.timer.getStatus).toHaveBeenCalled();
     });
 
     it('should handle pause error', async () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      mockElectronAPI.pausePomodoroSession.mockRejectedValue(new Error('Pause failed'));
+      mockElectronAPI.pomodoro.timer.pause.mockRejectedValue(new Error('Pause failed'));
 
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
@@ -314,7 +320,7 @@ describe('PomodoroContext', () => {
         await result.current.resumeSession();
       });
 
-      expect(mockElectronAPI.resumePomodoroSession).toHaveBeenCalled();
+      expect(mockElectronAPI.pomodoro.timer.resume).toHaveBeenCalled();
     });
 
     it('should refresh status after resuming', async () => {
@@ -324,12 +330,12 @@ describe('PomodoroContext', () => {
         await result.current.resumeSession();
       });
 
-      expect(mockElectronAPI.getPomodoroStatus).toHaveBeenCalled();
+      expect(mockElectronAPI.pomodoro.timer.getStatus).toHaveBeenCalled();
     });
 
     it('should handle resume error', async () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      mockElectronAPI.resumePomodoroSession.mockRejectedValue(new Error('Resume failed'));
+      mockElectronAPI.pomodoro.timer.resume.mockRejectedValue(new Error('Resume failed'));
 
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
@@ -354,7 +360,7 @@ describe('PomodoroContext', () => {
         await result.current.stopSession();
       });
 
-      expect(mockElectronAPI.stopPomodoroSession).toHaveBeenCalled();
+      expect(mockElectronAPI.pomodoro.timer.stop).toHaveBeenCalled();
     });
 
     it('should refresh status after stopping', async () => {
@@ -364,12 +370,12 @@ describe('PomodoroContext', () => {
         await result.current.stopSession();
       });
 
-      expect(mockElectronAPI.getPomodoroStatus).toHaveBeenCalled();
+      expect(mockElectronAPI.pomodoro.timer.getStatus).toHaveBeenCalled();
     });
 
     it('should handle stop error', async () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      mockElectronAPI.stopPomodoroSession.mockRejectedValue(new Error('Stop failed'));
+      mockElectronAPI.pomodoro.timer.stop.mockRejectedValue(new Error('Stop failed'));
 
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
@@ -394,7 +400,7 @@ describe('PomodoroContext', () => {
         await result.current.skipSession();
       });
 
-      expect(mockElectronAPI.skipPomodoroSession).toHaveBeenCalled();
+      expect(mockElectronAPI.pomodoro.timer.skip).toHaveBeenCalled();
     });
 
     it('should refresh status after skipping', async () => {
@@ -404,12 +410,12 @@ describe('PomodoroContext', () => {
         await result.current.skipSession();
       });
 
-      expect(mockElectronAPI.getPomodoroStatus).toHaveBeenCalled();
+      expect(mockElectronAPI.pomodoro.timer.getStatus).toHaveBeenCalled();
     });
 
     it('should handle skip error', async () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      mockElectronAPI.skipPomodoroSession.mockRejectedValue(new Error('Skip failed'));
+      mockElectronAPI.pomodoro.timer.skip.mockRejectedValue(new Error('Skip failed'));
 
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
@@ -436,14 +442,14 @@ describe('PomodoroContext', () => {
         timeRemaining: 1500,
       };
 
-      mockElectronAPI.getPomodoroStatus.mockResolvedValue(runningStatus);
+      mockElectronAPI.pomodoro.timer.getStatus.mockResolvedValue(runningStatus);
 
       await act(async () => {
         await result.current.refreshStatus();
       });
 
       // Clear previous calls
-      mockElectronAPI.getPomodoroStatus.mockClear();
+      mockElectronAPI.pomodoro.timer.getStatus.mockClear();
 
       // Advance timers to trigger polling
       await act(async () => {
@@ -451,7 +457,7 @@ describe('PomodoroContext', () => {
       });
 
       await waitFor(() => {
-        expect(mockElectronAPI.getPomodoroStatus).toHaveBeenCalled();
+        expect(mockElectronAPI.pomodoro.timer.getStatus).toHaveBeenCalled();
       });
     });
 
@@ -464,20 +470,20 @@ describe('PomodoroContext', () => {
         timeRemaining: 1200,
       };
 
-      mockElectronAPI.getPomodoroStatus.mockResolvedValue(pausedStatus);
+      mockElectronAPI.pomodoro.timer.getStatus.mockResolvedValue(pausedStatus);
 
       await act(async () => {
         await result.current.refreshStatus();
       });
 
-      mockElectronAPI.getPomodoroStatus.mockClear();
+      mockElectronAPI.pomodoro.timer.getStatus.mockClear();
 
       await act(async () => {
         jest.advanceTimersByTime(1000);
       });
 
       await waitFor(() => {
-        expect(mockElectronAPI.getPomodoroStatus).toHaveBeenCalled();
+        expect(mockElectronAPI.pomodoro.timer.getStatus).toHaveBeenCalled();
       });
     });
 
@@ -488,14 +494,14 @@ describe('PomodoroContext', () => {
         await result.current.refreshStatus();
       });
 
-      mockElectronAPI.getPomodoroStatus.mockClear();
+      mockElectronAPI.pomodoro.timer.getStatus.mockClear();
 
       await act(async () => {
         jest.advanceTimersByTime(2000);
       });
 
       // Should not poll when idle
-      expect(mockElectronAPI.getPomodoroStatus).not.toHaveBeenCalled();
+      expect(mockElectronAPI.pomodoro.timer.getStatus).not.toHaveBeenCalled();
     });
   });
 

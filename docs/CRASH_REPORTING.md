@@ -149,10 +149,10 @@ The app provides IPC methods to access crash reports:
 
 ```typescript
 // Get the last crash report
-const lastCrash = await window.electronAPI.getLastCrashReport();
+const lastCrash = await window.electronAPI.crashReporting.getLastReport();
 
 // Get all uploaded crash reports
-const reports = await window.electronAPI.getUploadedCrashReports();
+const reports = await window.electronAPI.crashReporting.getUploadedReports();
 ```
 
 ### 5. User Privacy Controls

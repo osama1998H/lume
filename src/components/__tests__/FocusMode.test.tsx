@@ -68,7 +68,11 @@ const mockPomodoroContext = {
 };
 
 const mockElectronAPI = {
-  getPomodoroStats: jest.fn(),
+  pomodoro: {
+    sessions: {
+      getStats: jest.fn(),
+    },
+  },
 };
 
 // Helper function to render with ThemeProvider
@@ -82,7 +86,7 @@ describe('FocusMode Component', () => {
 
     jest.spyOn(PomodoroContext, 'usePomodoro').mockReturnValue(mockPomodoroContext);
 
-    mockElectronAPI.getPomodoroStats.mockResolvedValue({
+    mockElectronAPI.pomodoro.sessions.getStats.mockResolvedValue({
       totalSessions: 5,
       completedSessions: 4,
       totalFocusTime: 6000,
@@ -140,7 +144,7 @@ describe('FocusMode Component', () => {
       renderWithTheme(<FocusMode />);
 
       await waitFor(() => {
-        expect(mockElectronAPI.getPomodoroStats).toHaveBeenCalled();
+        expect(mockElectronAPI.pomodoro.sessions.getStats).toHaveBeenCalled();
       });
     });
   });
@@ -425,7 +429,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should display zero stats when no data', async () => {
-      mockElectronAPI.getPomodoroStats.mockResolvedValue({
+      mockElectronAPI.pomodoro.sessions.getStats.mockResolvedValue({
         totalSessions: 0,
         completedSessions: 0,
         totalFocusTime: 0,
@@ -438,7 +442,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should display extremely large stats correctly', async () => {
-      mockElectronAPI.getPomodoroStats.mockResolvedValue({
+      mockElectronAPI.pomodoro.sessions.getStats.mockResolvedValue({
         totalSessions: 999999999,
         completedSessions: 888888888,
         totalFocusTime: 999999999, // in minutes
@@ -467,7 +471,7 @@ describe('FocusMode Component', () => {
       const { rerender } = renderWithTheme(<FocusMode />);
 
       await waitFor(() => {
-        expect(mockElectronAPI.getPomodoroStats).toHaveBeenCalledTimes(1);
+        expect(mockElectronAPI.pomodoro.sessions.getStats).toHaveBeenCalledTimes(1);
       });
 
       mockPomodoroContext.status = {
@@ -478,7 +482,7 @@ describe('FocusMode Component', () => {
       rerender(<ThemeProvider><FocusMode /></ThemeProvider>);
 
       await waitFor(() => {
-        expect(mockElectronAPI.getPomodoroStats).toHaveBeenCalledTimes(2);
+        expect(mockElectronAPI.pomodoro.sessions.getStats).toHaveBeenCalledTimes(2);
       });
     });
   });
@@ -543,7 +547,7 @@ describe('FocusMode Component', () => {
     });
 
     it('should handle getPomodoroStats error', async () => {
-      mockElectronAPI.getPomodoroStats.mockRejectedValue(new Error('Stats failed'));
+      mockElectronAPI.pomodoro.sessions.getStats.mockRejectedValue(new Error('Stats failed'));
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
 
       renderWithTheme(<FocusMode />);

@@ -1,8 +1,8 @@
-import type { ElectronAPI } from './index';
+import type { IElectronAPINamespaced } from './index';
 
 declare global {
   interface Window {
-    electronAPI: ElectronAPI;
+    electronAPI: IElectronAPINamespaced;
   }
 }
 
