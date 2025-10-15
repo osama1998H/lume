@@ -84,7 +84,7 @@ export class ActivityTrackingHandlers implements IIPCHandlerGroup {
     // Extracted from main.ts:287-294
     ipcMain.handle('get-top-applications', async (_, limit = 10) => {
       try {
-        return context.activityTracker?.getTopApplications(limit) || [];
+        return await context.activityTracker?.getTopApplications(limit) || [];
       } catch (error) {
         console.error('Failed to get top applications:', error);
         return [];
