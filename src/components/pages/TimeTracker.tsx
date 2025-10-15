@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Play, Square, Tag as TagIcon, Tags, FileText } from 'lucide-react';
-import { TimeEntry, Category, Tag } from '../../types';
+import { TimeEntry, Category, Tag, Todo } from '../../types';
 import ActivityListCard from '../ui/ActivityListCard';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -16,6 +16,8 @@ const TimeTracker: React.FC = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [selectedTodo, setSelectedTodo] = useState<number | null>(null);
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [isTracking, setIsTracking] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -29,6 +31,7 @@ const TimeTracker: React.FC = () => {
       setCategory('');
       setSelectedCategoryId(null);
       setSelectedTags([]);
+      setSelectedTodo(null);
     }
   };
 
@@ -67,12 +70,28 @@ const TimeTracker: React.FC = () => {
   useEffect(() => {
     const init = async () => {
       const categoriesData = await loadCategories();
+      await loadActiveTodos();
       await loadRecentEntries();
       await restoreActiveTimer(categoriesData);
     };
     init();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty deps array is intentional - only run once on mount
+
+  const loadActiveTodos = async () => {
+    try {
+      if (window.electronAPI) {
+        const allTodos = await window.electronAPI.todos.getAll();
+        // Filter for active todos (todo or in_progress status)
+        const activeTodos = allTodos.filter(
+          (todo) => todo.status === 'todo' || todo.status === 'in_progress'
+        );
+        setTodos(activeTodos);
+      }
+    } catch (error) {
+      console.error('Failed to load todos:', error);
+    }
+  };
 
   const loadCategories = async () => {
     try {
@@ -187,6 +206,7 @@ const TimeTracker: React.FC = () => {
       startTime: now.toISOString(),
       category: category || undefined,
       categoryId: selectedCategoryId || undefined,
+      todoId: selectedTodo || undefined,
       // No endTime = active timer
     };
 
@@ -201,6 +221,11 @@ const TimeTracker: React.FC = () => {
             .map((tag) => tag.id)
             .filter((id): id is number => id != null);
           await window.electronAPI.tagAssociations.timeEntries.add(id, tagIds);
+        }
+
+        // Link time entry to todo if selected
+        if (selectedTodo) {
+          await window.electronAPI.todos.linkTimeEntry(selectedTodo, id);
         }
 
         setActiveEntryId(id);
@@ -244,6 +269,7 @@ const TimeTracker: React.FC = () => {
     setCategory('');
     setSelectedCategoryId(null);
     setSelectedTags([]);
+    setSelectedTodo(null);
     setActiveEntryId(null);
   };
 
@@ -304,6 +330,38 @@ const TimeTracker: React.FC = () => {
             </div>
 
           <div className="space-y-3 sm:space-y-4">
+            {/* Todo Selector */}
+            {todos.length > 0 && !isTracking && (
+              <div>
+                <label htmlFor="time-todo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('timeTracker.linkTodo')}
+                </label>
+                <select
+                  id="time-todo"
+                  value={selectedTodo ?? ''}
+                  onChange={(e) => {
+                    const todoId = e.target.value ? Number(e.target.value) : null;
+                    setSelectedTodo(todoId);
+                    // Auto-fill task name if todo is selected
+                    if (todoId) {
+                      const todo = todos.find((t) => t.id === todoId);
+                      if (todo) {
+                        setCurrentTask(todo.title);
+                      }
+                    }
+                  }}
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="">{t('timeTracker.noTodo')}</option>
+                  {todos.map((todo) => (
+                    <option key={todo.id} value={todo.id}>
+                      {todo.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <Input
               id="task"
               label={t('timeTracker.taskName')}

@@ -60,6 +60,26 @@ const mockElectronAPI = {
   updateGoal: jest.fn().mockResolvedValue(true),
   deleteGoal: jest.fn().mockResolvedValue(true),
 
+  // Todos
+  todos: {
+    getAll: jest.fn().mockResolvedValue([]),
+    getById: jest.fn().mockResolvedValue(null),
+    add: jest.fn().mockResolvedValue(1),
+    update: jest.fn().mockResolvedValue(true),
+    delete: jest.fn().mockResolvedValue(true),
+    getStats: jest.fn().mockResolvedValue({
+      totalTodos: 0,
+      completedTodos: 0,
+      inProgressTodos: 0,
+      overdueTodos: 0,
+      completionRate: 0,
+      avgCompletionTime: 0,
+    }),
+    getWithCategory: jest.fn().mockResolvedValue([]),
+    linkToTimeEntry: jest.fn().mockResolvedValue(true),
+    incrementPomodoro: jest.fn().mockResolvedValue(true),
+  },
+
   // App info
   getAppVersion: jest.fn().mockResolvedValue('2.5.4'),
 
@@ -70,6 +90,7 @@ const mockElectronAPI = {
 };
 
 (window as any).electron = mockElectronAPI;
+(window as any).electronAPI = mockElectronAPI;
 
 // Mock IntersectionObserver (required for some UI components)
 global.IntersectionObserver = class IntersectionObserver {

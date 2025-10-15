@@ -15,6 +15,9 @@ import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
  * - get-productivity-goal-tags: Get tags for a productivity goal
  * - add-productivity-goal-tags: Add tags to a productivity goal
  * - set-productivity-goal-tags: Replace all tags for a productivity goal
+ * - get-todo-tags: Get tags for a todo
+ * - add-todo-tags: Add tags to a todo
+ * - set-todo-tags: Replace all tags for a todo
  *
  * Dependencies: CategoriesService, DatabaseManager
  */
@@ -132,6 +135,38 @@ export class TagAssociationsHandlers implements IIPCHandlerGroup {
         return true;
       } catch (error) {
         console.error('Failed to set productivity goal tags:', error);
+        return false;
+      }
+    });
+
+    // Get todo tags
+    ipcMain.handle('get-todo-tags', async (_, todoId: number) => {
+      try {
+        return context.dbManager?.getTodoTags(todoId) || [];
+      } catch (error) {
+        console.error('Failed to get todo tags:', error);
+        return [];
+      }
+    });
+
+    // Add todo tags
+    ipcMain.handle('add-todo-tags', async (_, todoId: number, tagIds: number[]) => {
+      try {
+        context.dbManager?.addTodoTags(todoId, tagIds);
+        return true;
+      } catch (error) {
+        console.error('Failed to add todo tags:', error);
+        return false;
+      }
+    });
+
+    // Set todo tags
+    ipcMain.handle('set-todo-tags', async (_, todoId: number, tagIds: number[]) => {
+      try {
+        context.dbManager?.setTodoTags(todoId, tagIds);
+        return true;
+      } catch (error) {
+        console.error('Failed to set todo tags:', error);
         return false;
       }
     });

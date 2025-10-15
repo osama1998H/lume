@@ -13,6 +13,7 @@ export class TimeEntryRepository extends BaseRepository<TimeEntry> {
       startTime: 'start_time',
       endTime: 'end_time',
       categoryId: 'category_id',
+      todoId: 'todo_id',
       createdAt: 'created_at',
     });
   }
@@ -41,6 +42,7 @@ export class TimeEntryRepository extends BaseRepository<TimeEntry> {
       duration: entry.duration ?? undefined,
       category: entry.category ?? undefined,
       categoryId: entry.categoryId ?? undefined,
+      todoId: entry.todoId ?? undefined,
     };
     return super.insert(entryToInsert);
   }
@@ -56,6 +58,7 @@ export class TimeEntryRepository extends BaseRepository<TimeEntry> {
     if (updates.duration !== undefined) allowedUpdates.duration = updates.duration;
     if (updates.category !== undefined) allowedUpdates.category = updates.category;
     if (updates.categoryId !== undefined) allowedUpdates.categoryId = updates.categoryId;
+    if (updates.todoId !== undefined) allowedUpdates.todoId = updates.todoId;
 
     if (Object.keys(allowedUpdates).length === 0) {
       return false;
@@ -94,6 +97,7 @@ export class TimeEntryRepository extends BaseRepository<TimeEntry> {
         duration,
         category,
         category_id AS categoryId,
+        todo_id AS todoId,
         created_at AS createdAt
       FROM time_entries
       WHERE DATE(start_time) BETWEEN ? AND ?

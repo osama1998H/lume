@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Play, Pause, Square, SkipForward, Coffee, TrendingUp, Award } from 'lucide-react';
-import { PomodoroStats, Tag } from '../../types';
+import { PomodoroStats, Tag, Todo } from '../../types';
 import { usePomodoro, SessionType } from '../../contexts/PomodoroContext';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -23,12 +23,34 @@ const FocusMode: React.FC = () => {
 
   const [taskInput, setTaskInput] = useState('');
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [selectedTodo, setSelectedTodo] = useState<number | null>(null);
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [stats, setStats] = useState<PomodoroStats | null>(null);
+
+  // Load active todos
+  useEffect(() => {
+    loadActiveTodos();
+  }, []);
 
   // Load today's stats
   useEffect(() => {
     loadTodayStats();
   }, [status.sessionsCompleted]); // Reload when sessions completed changes
+
+  const loadActiveTodos = async () => {
+    try {
+      if (window.electronAPI) {
+        const allTodos = await window.electronAPI.todos.getAll();
+        // Filter for active todos (todo or in_progress status)
+        const activeTodos = allTodos.filter(
+          (todo) => todo.status === 'todo' || todo.status === 'in_progress'
+        );
+        setTodos(activeTodos);
+      }
+    } catch (error) {
+      console.error('Failed to load todos:', error);
+    }
+  };
 
   const loadTodayStats = async () => {
     try {
@@ -45,7 +67,7 @@ const FocusMode: React.FC = () => {
   // Handle start session
   const handleStartSession = async () => {
     const task = taskInput.trim() || status.currentTask || 'Focus Session';
-    await startSession(task, status.sessionType);
+    await startSession(task, status.sessionType, selectedTodo ?? undefined);
 
     // Save tags if any selected and session ID is available
     if (selectedTags.length > 0 && status.currentSessionId && window.electronAPI) {
@@ -59,8 +81,18 @@ const FocusMode: React.FC = () => {
       }
     }
 
+    // Increment pomodoro count for the todo if selected
+    if (selectedTodo && window.electronAPI) {
+      try {
+        await window.electronAPI.todos.incrementPomodoro(selectedTodo);
+      } catch (error) {
+        console.error('Failed to increment pomodoro count:', error);
+      }
+    }
+
     setTaskInput('');
     setSelectedTags([]);
+    setSelectedTodo(null);
   };
 
   // Format time as MM:SS
@@ -183,6 +215,38 @@ const FocusMode: React.FC = () => {
             {/* Task Display/Input */}
             {status.state === 'idle' && status.sessionType === 'focus' ? (
               <div className="w-full max-w-md mb-4 sm:mb-6 space-y-3 sm:space-y-4">
+                {/* Todo Selector */}
+                {todos.length > 0 && (
+                  <div>
+                    <label htmlFor="focus-todo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      {t('focusMode.linkTodo')}
+                    </label>
+                    <select
+                      id="focus-todo"
+                      value={selectedTodo ?? ''}
+                      onChange={(e) => {
+                        const todoId = e.target.value ? Number(e.target.value) : null;
+                        setSelectedTodo(todoId);
+                        // Auto-fill task name if todo is selected
+                        if (todoId) {
+                          const todo = todos.find((t) => t.id === todoId);
+                          if (todo) {
+                            setTaskInput(todo.title);
+                          }
+                        }
+                      }}
+                      className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    >
+                      <option value="">{t('focusMode.noTodo')}</option>
+                      {todos.map((todo) => (
+                        <option key={todo.id} value={todo.id}>
+                          {todo.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <Input
                   type="text"
                   value={taskInput}

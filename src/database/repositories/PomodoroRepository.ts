@@ -13,6 +13,7 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
       sessionType: 'session_type',
       startTime: 'start_time',
       endTime: 'end_time',
+      todoId: 'todo_id',
       createdAt: 'created_at',
     });
   }
@@ -52,6 +53,7 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
       endTime: session.endTime ?? undefined,
       completed: session.completed ? 1 : 0,
       interrupted: session.interrupted ? 1 : 0,
+      todoId: session.todoId ?? undefined,
     } as any);
 
     const columns = Object.keys(snakeEntity);
@@ -81,6 +83,7 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
     if (updates.endTime !== undefined) allowedUpdates.endTime = updates.endTime;
     if (updates.completed !== undefined) allowedUpdates.completed = updates.completed ? 1 : 0;
     if (updates.interrupted !== undefined) allowedUpdates.interrupted = updates.interrupted ? 1 : 0;
+    if (updates.todoId !== undefined) allowedUpdates.todoId = updates.todoId;
 
     if (Object.keys(allowedUpdates).length === 0) {
       return false;
@@ -103,6 +106,7 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
         end_time AS endTime,
         completed,
         interrupted,
+        todo_id AS todoId,
         created_at AS createdAt
       FROM pomodoro_sessions
       WHERE DATE(start_time) BETWEEN ? AND ?

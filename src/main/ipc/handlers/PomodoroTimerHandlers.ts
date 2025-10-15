@@ -20,11 +20,11 @@ export class PomodoroTimerHandlers implements IIPCHandlerGroup {
     // Extracted from main.ts:490-499
     ipcMain.handle(
       'start-pomodoro-session',
-      async (_, task: string, sessionType: 'focus' | 'shortBreak' | 'longBreak') => {
+      async (_, task: string, sessionType: 'focus' | 'shortBreak' | 'longBreak', todoId?: number) => {
         try {
           if (context.pomodoroService) {
-            context.pomodoroService.start(task, sessionType);
-            console.log(`🍅 Started pomodoro session: ${sessionType} - "${task}"`);
+            context.pomodoroService.start(task, sessionType, todoId);
+            console.log(`🍅 Started pomodoro session: ${sessionType} - "${task}"${todoId ? ` (Todo #${todoId})` : ''}`);
           }
         } catch (error) {
           console.error('Failed to start pomodoro session:', error);

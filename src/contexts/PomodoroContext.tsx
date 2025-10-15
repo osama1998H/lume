@@ -17,7 +17,7 @@ export interface PomodoroTimerStatus {
 interface PomodoroContextType {
   status: PomodoroTimerStatus;
   settings: PomodoroSettings | null;
-  startSession: (task: string, type?: SessionType) => Promise<void>;
+  startSession: (task: string, type?: SessionType, todoId?: number) => Promise<void>;
   pauseSession: () => Promise<void>;
   resumeSession: () => Promise<void>;
   stopSession: () => Promise<void>;
@@ -117,10 +117,10 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
   }, [status.state, refreshStatus]);
 
-  const startSession = useCallback(async (task: string, type: SessionType = 'focus') => {
+  const startSession = useCallback(async (task: string, type: SessionType = 'focus', todoId?: number) => {
     try {
       if (window.electronAPI && window.electronAPI.pomodoro.timer.start) {
-        await window.electronAPI.pomodoro.timer.start(task, type);
+        await window.electronAPI.pomodoro.timer.start(task, type, todoId);
         await refreshStatus();
       }
     } catch (error) {

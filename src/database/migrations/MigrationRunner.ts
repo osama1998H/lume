@@ -21,6 +21,7 @@ export class MigrationRunner {
     this.createPomodoroTables();
     this.createGoalTables();
     this.createCategorizationTables();
+    this.createTodoTables();
     this.createJunctionTables();
     this.addMissingColumns();
     this.createIndexes();
@@ -167,6 +168,33 @@ export class MigrationRunner {
   }
 
   /**
+   * Create todo tables
+   */
+  private createTodoTables(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS todos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        status TEXT NOT NULL CHECK(status IN ('todo', 'in_progress', 'completed', 'cancelled')) DEFAULT 'todo',
+        priority TEXT NOT NULL CHECK(priority IN ('low', 'medium', 'high', 'urgent')) DEFAULT 'medium',
+        category_id INTEGER,
+        due_date TEXT,
+        due_time TEXT,
+        completed_at TEXT,
+        estimated_minutes INTEGER,
+        actual_minutes INTEGER,
+        time_entry_id INTEGER,
+        pomodoro_count INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
+        FOREIGN KEY (time_entry_id) REFERENCES time_entries(id) ON DELETE SET NULL
+      )
+    `);
+  }
+
+  /**
    * Create junction tables for many-to-many relationships
    */
   private createJunctionTables(): void {
@@ -217,6 +245,18 @@ export class MigrationRunner {
         FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
       )
     `);
+
+    // Todo to Tags
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS todo_tags (
+        todo_id INTEGER NOT NULL,
+        tag_id INTEGER NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (todo_id, tag_id),
+        FOREIGN KEY (todo_id) REFERENCES todos(id) ON DELETE CASCADE,
+        FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+      )
+    `);
   }
 
   /**
@@ -248,6 +288,19 @@ export class MigrationRunner {
     } catch (_error) {
       // Column already exists, ignore
     }
+
+    try {
+      this.db.exec(`ALTER TABLE time_entries ADD COLUMN todo_id INTEGER REFERENCES todos(id) ON DELETE SET NULL`);
+    } catch (_error) {
+      // Column already exists, ignore
+    }
+
+    // Pomodoro sessions table migrations
+    try {
+      this.db.exec(`ALTER TABLE pomodoro_sessions ADD COLUMN todo_id INTEGER REFERENCES todos(id) ON DELETE SET NULL`);
+    } catch (_error) {
+      // Column already exists, ignore
+    }
   }
 
   /**
@@ -258,6 +311,7 @@ export class MigrationRunner {
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_time_entries_start_time ON time_entries(start_time);
       CREATE INDEX IF NOT EXISTS idx_time_entries_category_id ON time_entries(category_id);
+      CREATE INDEX IF NOT EXISTS idx_time_entries_todo_id ON time_entries(todo_id);
     `);
 
     // App usage indexes
@@ -275,6 +329,7 @@ export class MigrationRunner {
       CREATE INDEX IF NOT EXISTS idx_pomodoro_sessions_start_time ON pomodoro_sessions(start_time);
       CREATE INDEX IF NOT EXISTS idx_pomodoro_sessions_session_type ON pomodoro_sessions(session_type);
       CREATE INDEX IF NOT EXISTS idx_pomodoro_sessions_completed ON pomodoro_sessions(completed);
+      CREATE INDEX IF NOT EXISTS idx_pomodoro_sessions_todo_id ON pomodoro_sessions(todo_id);
     `);
 
     // Goal indexes
@@ -307,6 +362,18 @@ export class MigrationRunner {
       CREATE INDEX IF NOT EXISTS idx_time_entry_tags_tag_id ON time_entry_tags(tag_id);
       CREATE INDEX IF NOT EXISTS idx_app_usage_tags_app_usage_id ON app_usage_tags(app_usage_id);
       CREATE INDEX IF NOT EXISTS idx_app_usage_tags_tag_id ON app_usage_tags(tag_id);
+      CREATE INDEX IF NOT EXISTS idx_todo_tags_todo_id ON todo_tags(todo_id);
+      CREATE INDEX IF NOT EXISTS idx_todo_tags_tag_id ON todo_tags(tag_id);
+    `);
+
+    // Todo indexes
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_todos_status ON todos(status);
+      CREATE INDEX IF NOT EXISTS idx_todos_priority ON todos(priority);
+      CREATE INDEX IF NOT EXISTS idx_todos_due_date ON todos(due_date);
+      CREATE INDEX IF NOT EXISTS idx_todos_category_id ON todos(category_id);
+      CREATE INDEX IF NOT EXISTS idx_todos_created_at ON todos(created_at);
+      CREATE INDEX IF NOT EXISTS idx_todos_time_entry_id ON todos(time_entry_id);
     `);
   }
 }
