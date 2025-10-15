@@ -8,6 +8,7 @@ import Input from '../ui/Input';
 import StatCard from '../ui/StatCard';
 import Skeleton from '../ui/Skeleton';
 import TagSelector from '../ui/TagSelector';
+import { TodoSelectorSuffix } from '../ui/TodoSelectorSuffix';
 
 const FocusMode: React.FC = () => {
   const { t } = useTranslation();
@@ -215,38 +216,6 @@ const FocusMode: React.FC = () => {
             {/* Task Display/Input */}
             {status.state === 'idle' && status.sessionType === 'focus' ? (
               <div className="w-full max-w-md mb-4 sm:mb-6 space-y-3 sm:space-y-4">
-                {/* Todo Selector */}
-                {todos.length > 0 && (
-                  <div>
-                    <label htmlFor="focus-todo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {t('focusMode.linkTodo')}
-                    </label>
-                    <select
-                      id="focus-todo"
-                      value={selectedTodo ?? ''}
-                      onChange={(e) => {
-                        const todoId = e.target.value ? Number(e.target.value) : null;
-                        setSelectedTodo(todoId);
-                        // Auto-fill task name if todo is selected
-                        if (todoId) {
-                          const todo = todos.find((t) => t.id === todoId);
-                          if (todo) {
-                            setTaskInput(todo.title);
-                          }
-                        }
-                      }}
-                      className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    >
-                      <option value="">{t('focusMode.noTodo')}</option>
-                      {todos.map((todo) => (
-                        <option key={todo.id} value={todo.id}>
-                          {todo.title}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
                 <Input
                   type="text"
                   value={taskInput}
@@ -260,6 +229,16 @@ const FocusMode: React.FC = () => {
                       handleStartSession();
                     }
                   }}
+                  suffix={
+                    todos.length > 0 ? (
+                      <TodoSelectorSuffix
+                        selectedTodo={todos.find((t) => t.id === selectedTodo) || null}
+                        onChange={(todo) => setSelectedTodo(todo?.id || null)}
+                        availableTodos={todos}
+                        onTitleAutoFill={(title) => setTaskInput(title)}
+                      />
+                    ) : undefined
+                  }
                 />
                 <div>
                   <label htmlFor="focus-tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

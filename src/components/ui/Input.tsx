@@ -8,6 +8,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   icon?: LucideIcon;
   iconPosition?: 'left' | 'right';
   fullWidth?: boolean;
+  suffix?: React.ReactNode;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -19,6 +20,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       icon: Icon,
       iconPosition = 'left',
       fullWidth = false,
+      suffix,
       className = '',
       disabled,
       id,
@@ -32,7 +34,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const errorId = `${inputId}-error`;
     const hintId = `${inputId}-hint`;
     const inputClasses = `
-      w-full px-4 py-2.5 rounded-lg
+      w-full px-4 py-2.5
       border transition-all duration-200
       bg-white dark:bg-gray-800
       text-gray-900 dark:text-gray-100
@@ -46,6 +48,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       }
       ${Icon && iconPosition === 'left' ? 'pl-11' : ''}
       ${Icon && iconPosition === 'right' ? 'pr-11' : ''}
+      ${suffix ? 'rounded-l-lg rounded-r-none border-r-0' : 'rounded-lg'}
     `;
 
     return (
@@ -55,24 +58,31 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        <div className="relative">
-          {Icon && iconPosition === 'left' && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" aria-hidden="true">
-              <Icon className="h-5 w-5" />
-            </div>
-          )}
-          <input
-            ref={ref}
-            id={inputId}
-            disabled={disabled}
-            className={`${inputClasses} ${className}`}
-            aria-invalid={error ? 'true' : 'false'}
-            aria-describedby={error ? errorId : hint ? hintId : undefined}
-            {...props}
-          />
-          {Icon && iconPosition === 'right' && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" aria-hidden="true">
-              <Icon className="h-5 w-5" />
+        <div className="relative flex items-stretch">
+          <div className="relative flex-1">
+            {Icon && iconPosition === 'left' && (
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" aria-hidden="true">
+                <Icon className="h-5 w-5" />
+              </div>
+            )}
+            <input
+              ref={ref}
+              id={inputId}
+              disabled={disabled}
+              className={`${inputClasses} ${className}`}
+              aria-invalid={error ? 'true' : 'false'}
+              aria-describedby={error ? errorId : hint ? hintId : undefined}
+              {...props}
+            />
+            {Icon && iconPosition === 'right' && !suffix && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" aria-hidden="true">
+                <Icon className="h-5 w-5" />
+              </div>
+            )}
+          </div>
+          {suffix && (
+            <div className="flex-shrink-0">
+              {suffix}
             </div>
           )}
         </div>

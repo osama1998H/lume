@@ -6,6 +6,7 @@ import ActivityListCard from '../ui/ActivityListCard';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import TagSelector from '../ui/TagSelector';
+import { TodoSelectorSuffix } from '../ui/TodoSelectorSuffix';
 import { formatDuration } from '../../utils/format';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 
@@ -330,38 +331,6 @@ const TimeTracker: React.FC = () => {
             </div>
 
           <div className="space-y-3 sm:space-y-4">
-            {/* Todo Selector */}
-            {todos.length > 0 && !isTracking && (
-              <div>
-                <label htmlFor="time-todo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('timeTracker.linkTodo')}
-                </label>
-                <select
-                  id="time-todo"
-                  value={selectedTodo ?? ''}
-                  onChange={(e) => {
-                    const todoId = e.target.value ? Number(e.target.value) : null;
-                    setSelectedTodo(todoId);
-                    // Auto-fill task name if todo is selected
-                    if (todoId) {
-                      const todo = todos.find((t) => t.id === todoId);
-                      if (todo) {
-                        setCurrentTask(todo.title);
-                      }
-                    }
-                  }}
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                >
-                  <option value="">{t('timeTracker.noTodo')}</option>
-                  {todos.map((todo) => (
-                    <option key={todo.id} value={todo.id}>
-                      {todo.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
             <Input
               id="task"
               label={t('timeTracker.taskName')}
@@ -371,6 +340,17 @@ const TimeTracker: React.FC = () => {
               placeholder={t('timeTracker.taskPlaceholder')}
               icon={FileText}
               iconPosition="left"
+              suffix={
+                todos.length > 0 && !isTracking ? (
+                  <TodoSelectorSuffix
+                    selectedTodo={todos.find((t) => t.id === selectedTodo) || null}
+                    onChange={(todo) => setSelectedTodo(todo?.id || null)}
+                    availableTodos={todos}
+                    onTitleAutoFill={(title) => setCurrentTask(title)}
+                    disabled={isTracking}
+                  />
+                ) : undefined
+              }
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
