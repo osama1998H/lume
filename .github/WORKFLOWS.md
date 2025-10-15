@@ -185,7 +185,7 @@ npm run test -- --coverage
 **Triggers**:
 - Push to `main` branch
 - Pull requests to `main` branch (paths: `src/**`, config files)
-- Weekly schedule: Sundays at 3 AM (Baghdad time)
+- Weekly schedule: Mondays at 3 AM (Baghdad time)
 
 **Languages Analyzed**:
 - JavaScript/TypeScript

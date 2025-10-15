@@ -98,8 +98,7 @@ jobs:
         id: diff
         run: |
           # Calculate differences
-          REACT_DIFF=$((
-${{ steps.pr-size.outputs.react_size_kb }} - ${{ steps.base-size.outputs.react_size_kb }}))
+          REACT_DIFF=$((${{ steps.pr-size.outputs.react_size_kb }} - ${{ steps.base-size.outputs.react_size_kb }}))
           ELECTRON_DIFF=$((${{ steps.pr-size.outputs.electron_size_kb }} - ${{ steps.base-size.outputs.electron_size_kb }}))
           TOTAL_DIFF=$((${{ steps.pr-size.outputs.total_size_kb }} - ${{ steps.base-size.outputs.total_size_kb }}))
 
@@ -140,20 +139,40 @@ ${{ steps.pr-size.outputs.react_size_kb }} - ${{ steps.base-size.outputs.react_s
           echo "electron=$ELECTRON_FORMATTED" >> $GITHUB_OUTPUT
           echo "total=$TOTAL_FORMATTED" >> $GITHUB_OUTPUT
 
+      - name: Compute human-readable totals
+        id: totals
+        run: |
+          BASE_TOTAL_HUMAN=$(numfmt --to=iec-i --suffix=B $((${{ steps.base-size.outputs.total_size_kb }} * 1024)))
+          PR_TOTAL_HUMAN=$(numfmt --to=iec-i --suffix=B $((${{ steps.pr-size.outputs.total_size_kb }} * 1024)))
+
+          echo "base=$BASE_TOTAL_HUMAN" >> $GITHUB_OUTPUT
+          echo "pr=$PR_TOTAL_HUMAN" >> $GITHUB_OUTPUT
+
       - name: Comment PR
         uses: actions/github-script@v7
         with:
           script: |
+            const totalDiff = ${{ steps.diff.outputs.total_diff }};
+            const totalPct = Math.abs(${{ steps.diff.outputs.total_pct }});
+
+            const warnings = [];
+            if (totalDiff > 51200) {
+              warnings.push('⚠️ **Warning**: Total bundle size increased by more than 50MB!');
+            }
+            if (totalPct > 5) {
+              warnings.push('⚠️ **Warning**: Bundle size changed by more than 5%!');
+            }
+
+            const warningText = warnings.length > 0 ? '\n' + warnings.join('\n') : '';
+
             const comment = `## 📦 Bundle Size Report
 
             | Component | Base | PR | Change |
             |-----------|------|-----|--------|
             | **React** | ${{ steps.base-size.outputs.react_size }} | ${{ steps.pr-size.outputs.react_size }} | ${{ steps.format.outputs.react }} |
             | **Electron** | ${{ steps.base-size.outputs.electron_size }} | ${{ steps.pr-size.outputs.electron_size }} | ${{ steps.format.outputs.electron }} |
-            | **Total** | $(numfmt --to=iec-i --suffix=B $((${{ steps.base-size.outputs.total_size_kb }} * 1024))) | $(numfmt --to=iec-i --suffix=B $((${{ steps.pr-size.outputs.total_size_kb }} * 1024))) | ${{ steps.format.outputs.total }} |
-
-            ${${{ steps.diff.outputs.total_diff }} > 51200 ? '⚠️ **Warning**: Total bundle size increased by more than 50MB!' : ''}
-            ${Math.abs(${{ steps.diff.outputs.total_pct }}) > 5 ? '⚠️ **Warning**: Bundle size changed by more than 5%!' : ''}
+            | **Total** | ${{ steps.totals.outputs.base }} | ${{ steps.totals.outputs.pr }} | ${{ steps.format.outputs.total }} |
+            ${warningText}
 
             <sub>🤖 This comment will be automatically updated on new commits</sub>`;
 
@@ -187,7 +206,7 @@ ${{ steps.pr-size.outputs.react_size_kb }} - ${{ steps.base-size.outputs.react_s
             }
 
       - name: Check size threshold
-        if: steps.diff.outputs.total_diff > 51200 || steps.diff.outputs.total_pct > 5
+        if: fromJSON(steps.diff.outputs.total_diff) > 51200 || fromJSON(steps.diff.outputs.total_pct) > 5
         run: |
           echo "::warning::Bundle size increased significantly! Please review."
           exit 1
