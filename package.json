@@ -75,7 +75,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@sentry/electron": "^7.1.1",
     "@tanstack/react-virtual": "^3.13.12",
-    "better-sqlite3": "^11.10.0",
+    "better-sqlite3": "^12.4.1",
     "dotenv": "^17.2.3",
     "framer-motion": "^12.23.22",
     "i18next": "^25.5.3",
