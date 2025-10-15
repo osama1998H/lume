@@ -46,9 +46,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           ? 'border-red-300 dark:border-red-700 focus:border-red-500 focus:ring-red-500/20'
           : 'border-gray-200 dark:border-gray-700 focus:border-primary-500 focus:ring-primary-500/20'
       }
-      ${Icon && iconPosition === 'left' ? 'pl-11' : ''}
-      ${Icon && iconPosition === 'right' ? 'pr-11' : ''}
-      ${suffix ? 'rounded-l-lg rounded-r-none border-r-0' : 'rounded-lg'}
+      ${Icon && iconPosition === 'left' ? 'ps-11' : ''}
+      ${Icon && iconPosition === 'right' ? 'pe-11' : ''}
+      ${suffix ? 'rounded-s-lg rounded-e-none border-e-0' : 'rounded-lg'}
     `;
 
     return (
@@ -61,7 +61,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <div className="relative flex items-stretch">
           <div className="relative flex-1">
             {Icon && iconPosition === 'left' && (
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" aria-hidden="true">
+              <div className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" aria-hidden="true">
                 <Icon className="h-5 w-5" />
               </div>
             )}
@@ -75,16 +75,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               {...props}
             />
             {Icon && iconPosition === 'right' && !suffix && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" aria-hidden="true">
+              <div className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" aria-hidden="true">
                 <Icon className="h-5 w-5" />
               </div>
             )}
           </div>
-          {suffix && (
-            <div className="flex-shrink-0">
-              {suffix}
-            </div>
-          )}
+          {suffix}
         </div>
         {error && (
           <p id={errorId} className="mt-1.5 text-sm text-red-600 dark:text-red-400">{error}</p>
