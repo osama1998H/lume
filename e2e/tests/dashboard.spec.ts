@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppLoad, navigateToView } from '../utils/helpers';
+import { waitForAppLoad } from '../utils/helpers';
 
 test.describe('Dashboard Tests', () => {
   test.beforeEach(async ({ page }) => {
