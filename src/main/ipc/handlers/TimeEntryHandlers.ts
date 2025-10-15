@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import type { TimeEntry } from '../../../types';
 
 /**
  * TimeEntryHandlers - IPC handlers for manual time entry operations
@@ -15,10 +16,10 @@ export class TimeEntryHandlers implements IIPCHandlerGroup {
   register(ipcMain: IpcMain, context: IIPCHandlerContext): void {
     // Add time entry
     // Extracted from main.ts:217-228
-    ipcMain.handle('add-time-entry', async (_, entry) => {
+    ipcMain.handle('add-time-entry', async (_, entry: Partial<TimeEntry>) => {
       try {
         console.log('Add time entry:', entry);
-        return context.dbManager?.addTimeEntry(entry) || null;
+        return context.dbManager?.addTimeEntry(entry as TimeEntry) || null;
       } catch (error) {
         console.error('Failed to add time entry:', error);
         return null;
@@ -27,7 +28,7 @@ export class TimeEntryHandlers implements IIPCHandlerGroup {
 
     // Update time entry
     // Extracted from main.ts:230-241
-    ipcMain.handle('update-time-entry', async (_, id: number, updates: any) => {
+    ipcMain.handle('update-time-entry', async (_, id: number, updates: Partial<TimeEntry>) => {
       try {
         console.log('Update time entry:', id, updates);
         return context.dbManager?.updateTimeEntry(id, updates) || false;

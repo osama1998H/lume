@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import type { Tag } from '../../../types';
 
 /**
  * TagsHandlers - IPC handlers for tag management
@@ -27,9 +28,9 @@ export class TagsHandlers implements IIPCHandlerGroup {
 
     // Add tag
     // Extracted from main.ts:741-752
-    ipcMain.handle('add-tag', async (_, tag) => {
+    ipcMain.handle('add-tag', async (_, tag: Partial<Tag>) => {
       try {
-        return (await context.categoriesService?.addTag(tag)) || null;
+        return (await context.categoriesService?.addTag(tag as Tag)) || null;
       } catch (error) {
         console.error('Failed to add tag:', error);
         return null;
@@ -38,7 +39,7 @@ export class TagsHandlers implements IIPCHandlerGroup {
 
     // Update tag
     // Extracted from main.ts:754-765
-    ipcMain.handle('update-tag', async (_, id: number, updates: any) => {
+    ipcMain.handle('update-tag', async (_, id: number, updates: Partial<Tag>) => {
       try {
         return (await context.categoriesService?.updateTag(id, updates)) || false;
       } catch (error) {

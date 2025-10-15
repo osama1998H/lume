@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import type { ProductivityGoal } from '../../../types';
 
 /**
  * GoalsHandlers - IPC handlers for productivity goals management
@@ -20,10 +21,10 @@ export class GoalsHandlers implements IIPCHandlerGroup {
   register(ipcMain: IpcMain, context: IIPCHandlerContext): void {
     // Add goal
     // Extracted from main.ts:445-454
-    ipcMain.handle('add-goal', async (_, goal) => {
+    ipcMain.handle('add-goal', async (_, goal: Partial<ProductivityGoal>) => {
       try {
         console.log('➕ Adding goal:', goal);
-        const goalId = await context.goalsService?.addGoal(goal);
+        const goalId = await context.goalsService?.addGoal(goal as ProductivityGoal);
         return goalId || null;
       } catch (error) {
         console.error('Failed to add goal:', error);
@@ -33,7 +34,7 @@ export class GoalsHandlers implements IIPCHandlerGroup {
 
     // Update goal
     // Extracted from main.ts:456-464
-    ipcMain.handle('update-goal', async (_, id: number, updates: any) => {
+    ipcMain.handle('update-goal', async (_, id: number, updates: Partial<ProductivityGoal>) => {
       try {
         console.log('📝 Updating goal:', id, updates);
         return await context.goalsService?.updateGoal(id, updates) || false;

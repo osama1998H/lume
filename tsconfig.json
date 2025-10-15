@@ -12,10 +12,21 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+
+    /* Strict Type-Checking Options */
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    // Disabled: too strict for practical use, causes 300+ errors
+    // "noPropertyAccessFromIndexSignature": true,
+    // "exactOptionalPropertyTypes": true,
+
+    /* Additional Checks */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Module Resolution */
     "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {

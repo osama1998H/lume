@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import type { Category } from '../../../types';
 
 /**
  * CategoriesHandlers - IPC handlers for category management
@@ -39,9 +40,9 @@ export class CategoriesHandlers implements IIPCHandlerGroup {
 
     // Add category
     // Extracted from main.ts:689-700
-    ipcMain.handle('add-category', async (_, category) => {
+    ipcMain.handle('add-category', async (_, category: Partial<Category>) => {
       try {
-        return (await context.categoriesService?.addCategory(category)) || null;
+        return (await context.categoriesService?.addCategory(category as Category)) || null;
       } catch (error) {
         console.error('Failed to add category:', error);
         return null;
@@ -50,7 +51,7 @@ export class CategoriesHandlers implements IIPCHandlerGroup {
 
     // Update category
     // Extracted from main.ts:702-713
-    ipcMain.handle('update-category', async (_, id: number, updates: any) => {
+    ipcMain.handle('update-category', async (_, id: number, updates: Partial<Category>) => {
       try {
         return (await context.categoriesService?.updateCategory(id, updates)) || false;
       } catch (error) {

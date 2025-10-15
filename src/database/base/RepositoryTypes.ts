@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3';
+import { QueryParameter } from '../../types/database';
 
 /**
  * Base entity interface - all entities should have an optional id
@@ -24,7 +25,7 @@ export interface QueryOptions {
 export interface WhereClause {
   field: string;
   operator: '=' | '!=' | '>' | '<' | '>=' | '<=' | 'LIKE' | 'IN' | 'IS NULL' | 'IS NOT NULL';
-  value?: any;
+  value?: QueryParameter | QueryParameter[];
 }
 
 /**

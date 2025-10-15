@@ -1,7 +1,8 @@
 import Database from 'better-sqlite3';
 import { BaseRepository } from '../base/BaseRepository';
-import { QueryOptions } from '../base/RepositoryTypes';
+import { QueryOptions, WhereClause } from '../base/RepositoryTypes';
 import { Todo, TodoStatus, TodoPriority, TodoWithCategory, TodoStats, Tag } from '../../types';
+import { DatabaseRow } from '../../types/database';
 
 /**
  * Repository for todos table
@@ -27,7 +28,7 @@ export class TodoRepository extends BaseRepository<Todo> {
    * Get all todos with optional filters
    */
   getAll(options?: QueryOptions & { status?: TodoStatus; priority?: TodoPriority }): Todo[] {
-    const conditions: Array<{ field: string; operator: '=' | '!=' | '>' | '<' | '>=' | '<='; value: any }> = [];
+    const conditions: WhereClause[] = [];
 
     if (options?.status) {
       conditions.push({ field: 'status', operator: '=', value: options.status });
@@ -72,7 +73,7 @@ export class TodoRepository extends BaseRepository<Todo> {
       actualMinutes: todo.actualMinutes ?? undefined,
       timeEntryId: todo.timeEntryId ?? undefined,
       pomodoroCount: todo.pomodoroCount ?? 0,
-    } as any);
+    } as DatabaseRow);
 
     const columns = Object.keys(snakeEntity);
     const placeholders = columns.map(() => '?').join(', ');
@@ -92,7 +93,7 @@ export class TodoRepository extends BaseRepository<Todo> {
    * Update a todo
    */
   update(id: number, updates: Partial<Todo>): boolean {
-    const allowedUpdates: any = {};
+    const allowedUpdates: Partial<Todo> = {};
 
     if (updates.title !== undefined) allowedUpdates.title = updates.title;
     if (updates.description !== undefined) allowedUpdates.description = updates.description;
@@ -116,7 +117,7 @@ export class TodoRepository extends BaseRepository<Todo> {
       allowedUpdates.completedAt = new Date().toISOString();
     }
 
-    const snakeUpdates = this.toSnakeCase(allowedUpdates);
+    const snakeUpdates = this.toSnakeCase(allowedUpdates as unknown as DatabaseRow);
     const setClause = Object.keys(snakeUpdates)
       .map(column => `${column} = ?`)
       .join(', ');
@@ -165,34 +166,34 @@ export class TodoRepository extends BaseRepository<Todo> {
       ORDER BY t.created_at DESC
     `;
 
-    const results = this.executeQuery<any>(query);
+    const results = this.executeQuery<DatabaseRow>(query);
 
     return results.map(row => {
       const todo: TodoWithCategory = {
-        id: row.id,
-        title: row.title,
-        description: row.description,
-        status: row.status,
-        priority: row.priority,
-        categoryId: row.categoryId,
-        dueDate: row.dueDate,
-        dueTime: row.dueTime,
-        completedAt: row.completedAt,
-        estimatedMinutes: row.estimatedMinutes,
-        actualMinutes: row.actualMinutes,
-        timeEntryId: row.timeEntryId,
-        pomodoroCount: row.pomodoroCount,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
+        id: row.id as number,
+        title: row.title as string,
+        description: row.description as string | undefined,
+        status: row.status as TodoStatus,
+        priority: row.priority as TodoPriority,
+        categoryId: row.categoryId as number | undefined,
+        dueDate: row.dueDate as string | undefined,
+        dueTime: row.dueTime as string | undefined,
+        completedAt: row.completedAt as string | undefined,
+        estimatedMinutes: row.estimatedMinutes as number | undefined,
+        actualMinutes: row.actualMinutes as number | undefined,
+        timeEntryId: row.timeEntryId as number | undefined,
+        pomodoroCount: row.pomodoroCount as number | undefined,
+        createdAt: row.createdAt as string,
+        updatedAt: row.updatedAt as string,
       };
 
       if (row.categoryIdFull) {
         todo.category = {
-          id: row.categoryIdFull,
-          name: row.categoryName,
-          color: row.categoryColor,
-          icon: row.categoryIcon,
-          description: row.categoryDescription,
+          id: row.categoryIdFull as number,
+          name: row.categoryName as string,
+          color: row.categoryColor as string,
+          icon: row.categoryIcon as string | undefined,
+          description: row.categoryDescription as string | undefined,
         };
       }
 

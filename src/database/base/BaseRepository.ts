@@ -7,6 +7,7 @@ import {
   ColumnMapping,
   TransactionFn,
 } from './RepositoryTypes';
+import { DatabaseRow, QueryParameters, QueryParameter } from '../../types/database';
 
 /**
  * Base repository class providing generic CRUD operations
@@ -35,8 +36,8 @@ export abstract class BaseRepository<T extends BaseEntity> implements IRepositor
    * Convert camelCase keys to snake_case for database
    * Skips undefined values to prevent SQLite binding errors
    */
-  protected toSnakeCase(obj: Record<string, any>): Record<string, any> {
-    const result: Record<string, any> = {};
+  protected toSnakeCase(obj: DatabaseRow): DatabaseRow {
+    const result: DatabaseRow = {};
     for (const [key, value] of Object.entries(obj)) {
       if (value === undefined) continue;
       const snakeKey = this.columnMapping[key] || this.camelToSnake(key);
@@ -48,8 +49,8 @@ export abstract class BaseRepository<T extends BaseEntity> implements IRepositor
   /**
    * Convert snake_case keys to camelCase for application
    */
-  protected toCamelCase(obj: Record<string, any>): Record<string, any> {
-    const result: Record<string, any> = {};
+  protected toCamelCase(obj: DatabaseRow): DatabaseRow {
+    const result: DatabaseRow = {};
     const reverseMapping: Record<string, string> = {};
 
     // Build reverse mapping
@@ -81,24 +82,25 @@ export abstract class BaseRepository<T extends BaseEntity> implements IRepositor
   /**
    * Build WHERE clause from conditions
    */
-  protected buildWhereClause(conditions: WhereClause[]): { clause: string; values: any[] } {
+  protected buildWhereClause(conditions: WhereClause[]): { clause: string; values: QueryParameters } {
     if (conditions.length === 0) {
       return { clause: '', values: [] };
     }
 
     const parts: string[] = [];
-    const values: any[] = [];
+    const values: QueryParameters = [];
 
     for (const condition of conditions) {
       if (condition.operator === 'IS NULL' || condition.operator === 'IS NOT NULL') {
         parts.push(`${condition.field} ${condition.operator}`);
       } else if (condition.operator === 'IN') {
-        const placeholders = condition.value.map(() => '?').join(', ');
+        const valueArray = condition.value as QueryParameter[];
+        const placeholders = valueArray.map(() => '?').join(', ');
         parts.push(`${condition.field} IN (${placeholders})`);
-        values.push(...condition.value);
+        values.push(...valueArray);
       } else {
         parts.push(`${condition.field} ${condition.operator} ?`);
-        values.push(condition.value);
+        values.push(condition.value as QueryParameter);
       }
     }
 
@@ -126,8 +128,8 @@ export abstract class BaseRepository<T extends BaseEntity> implements IRepositor
     }
 
     const stmt = this.db.prepare(query);
-    const rows = stmt.all() as any[];
-    return rows.map(row => this.toCamelCase(row) as T);
+    const rows = stmt.all() as DatabaseRow[];
+    return rows.map(row => this.toCamelCase(row) as unknown as T);
   }
 
   /**
@@ -135,15 +137,15 @@ export abstract class BaseRepository<T extends BaseEntity> implements IRepositor
    */
   getById(id: number): T | null {
     const stmt = this.db.prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`);
-    const row = stmt.get(id) as any;
-    return row ? (this.toCamelCase(row) as T) : null;
+    const row = stmt.get(id) as DatabaseRow | undefined;
+    return row ? (this.toCamelCase(row) as unknown as T) : null;
   }
 
   /**
    * Insert a new entity
    */
   insert(entity: Partial<T>): number {
-    const snakeEntity = this.toSnakeCase(entity as Record<string, any>);
+    const snakeEntity = this.toSnakeCase(entity as unknown as DatabaseRow);
     const columns = Object.keys(snakeEntity);
     const placeholders = columns.map(() => '?').join(', ');
     const values = Object.values(snakeEntity);
@@ -162,7 +164,7 @@ export abstract class BaseRepository<T extends BaseEntity> implements IRepositor
    * Update an existing entity
    */
   update(id: number, updates: Partial<T>): boolean {
-    const snakeUpdates = this.toSnakeCase(updates as Record<string, any>);
+    const snakeUpdates = this.toSnakeCase(updates as unknown as DatabaseRow);
     const columns = Object.keys(snakeUpdates);
     const setClause = columns.map(col => `${col} = ?`).join(', ');
     const values = [...Object.values(snakeUpdates), id];
@@ -218,8 +220,8 @@ export abstract class BaseRepository<T extends BaseEntity> implements IRepositor
     }
 
     const stmt = this.db.prepare(query);
-    const rows = stmt.all(...values) as any[];
-    return rows.map(row => this.toCamelCase(row) as T);
+    const rows = stmt.all(...values) as DatabaseRow[];
+    return rows.map(row => this.toCamelCase(row) as unknown as T);
   }
 
   /**
@@ -229,25 +231,25 @@ export abstract class BaseRepository<T extends BaseEntity> implements IRepositor
     const { clause, values } = this.buildWhereClause(conditions);
     const query = `SELECT * FROM ${this.tableName} ${clause} LIMIT 1`;
     const stmt = this.db.prepare(query);
-    const row = stmt.get(...values) as any;
-    return row ? (this.toCamelCase(row) as T) : null;
+    const row = stmt.get(...values) as DatabaseRow | undefined;
+    return row ? (this.toCamelCase(row) as unknown as T) : null;
   }
 
   /**
    * Execute custom query and return results
    */
-  protected executeQuery<R>(query: string, params: any[] = []): R[] {
+  protected executeQuery<R>(query: string, params: QueryParameters = []): R[] {
     const stmt = this.db.prepare(query);
-    const rows = stmt.all(...params) as any[];
+    const rows = stmt.all(...params) as DatabaseRow[];
     return rows.map(row => this.toCamelCase(row)) as R[];
   }
 
   /**
    * Execute custom query and return a single result
    */
-  protected executeQuerySingle<R>(query: string, params: any[] = []): R | null {
+  protected executeQuerySingle<R>(query: string, params: QueryParameters = []): R | null {
     const stmt = this.db.prepare(query);
-    const row = stmt.get(...params) as any;
+    const row = stmt.get(...params) as DatabaseRow | undefined;
     return row ? (this.toCamelCase(row) as R) : null;
   }
 }

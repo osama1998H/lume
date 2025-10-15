@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { BaseRepository } from '../base/BaseRepository';
 import { QueryOptions } from '../base/RepositoryTypes';
 import { ProductivityGoal, GoalProgress, GoalWithProgress, GoalStats, Tag, GoalStatus } from '../../types';
+import { DatabaseRow } from '../../types/database';
 
 /**
  * Repository for productivity_goals and goal_progress tables
@@ -72,7 +73,7 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
       active: goal.active ? 1 : 0,
       notificationsEnabled: goal.notificationsEnabled ? 1 : 0,
       notifyAtPercentage: goal.notifyAtPercentage,
-    } as any);
+    } as DatabaseRow);
 
     const columns = Object.keys(snakeEntity);
     const placeholders = columns.map(() => '?').join(', ');
@@ -92,7 +93,7 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
    * Update a goal
    */
   update(id: number, updates: Partial<ProductivityGoal>): boolean {
-    const allowedUpdates: any = {};
+    const allowedUpdates: Partial<ProductivityGoal> = {};
 
     if (updates.name !== undefined) allowedUpdates.name = updates.name;
     if (updates.description !== undefined) allowedUpdates.description = updates.description;
@@ -102,8 +103,8 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
     if (updates.targetMinutes !== undefined) allowedUpdates.targetMinutes = updates.targetMinutes;
     if (updates.operator !== undefined) allowedUpdates.operator = updates.operator;
     if (updates.period !== undefined) allowedUpdates.period = updates.period;
-    if (updates.active !== undefined) allowedUpdates.active = updates.active ? 1 : 0;
-    if (updates.notificationsEnabled !== undefined) allowedUpdates.notificationsEnabled = updates.notificationsEnabled ? 1 : 0;
+    if (updates.active !== undefined) allowedUpdates.active = updates.active;
+    if (updates.notificationsEnabled !== undefined) allowedUpdates.notificationsEnabled = updates.notificationsEnabled;
     if (updates.notifyAtPercentage !== undefined) allowedUpdates.notifyAtPercentage = updates.notifyAtPercentage;
 
     if (Object.keys(allowedUpdates).length === 0) {
@@ -111,7 +112,7 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
     }
 
     // Add updated_at timestamp
-    const snakeUpdates = this.toSnakeCase(allowedUpdates);
+    const snakeUpdates = this.toSnakeCase(allowedUpdates as unknown as DatabaseRow);
     const setClause = Object.keys(snakeUpdates)
       .map(column => `${column} = ?`)
       .join(', ');
@@ -147,7 +148,7 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
       WHERE goal_id = ? AND date = ?
     `;
 
-    const result = this.executeQuerySingle<any>(query, [goalId, date]);
+    const result = this.executeQuerySingle<DatabaseRow>(query, [goalId, date]);
 
     if (!result) return null;
 
@@ -155,7 +156,7 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
       ...result,
       achieved: Boolean(result.achieved),
       notified: Boolean(result.notified),
-    };
+    } as GoalProgress;
   }
 
   /**
@@ -228,41 +229,42 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
       ORDER BY g.created_at DESC
     `;
 
-    const results = this.executeQuery<any>(query, [today]);
+    const results = this.executeQuery<DatabaseRow>(query, [today]);
 
     return results.map(row => {
-      const progressMinutes = row.progressMinutes || 0;
-      const progressPercentage = (progressMinutes / row.targetMinutes) * 100;
-      const timeRemaining = Math.max(0, row.targetMinutes - progressMinutes);
+      const progressMinutes = (row.progressMinutes as number) || 0;
+      const targetMinutes = (row.targetMinutes as number) || 0;
+      const progressPercentage = targetMinutes > 0 ? (progressMinutes / targetMinutes) * 100 : 0;
+      const timeRemaining = Math.max(0, targetMinutes - progressMinutes);
 
       // Calculate status
       let status: GoalStatus;
       if (progressMinutes === 0) {
         status = 'not_started';
       } else if (row.achieved) {
-        status = row.operator === 'lte' ? 'achieved' : (progressMinutes > row.targetMinutes ? 'exceeded' : 'achieved');
+        status = row.operator === 'lte' ? 'achieved' : (progressMinutes > targetMinutes ? 'exceeded' : 'achieved');
       } else {
         status = 'in_progress';
       }
 
       return {
-        id: row.id,
-        name: row.name,
-        description: row.description,
-        goalType: row.goalType,
-        category: row.category,
-        appName: row.appName,
-        targetMinutes: row.targetMinutes,
-        operator: row.operator,
-        period: row.period,
+        id: row.id as number,
+        name: row.name as string,
+        description: row.description as string | undefined,
+        goalType: row.goalType as string,
+        category: row.category as string | undefined,
+        appName: row.appName as string | undefined,
+        targetMinutes: targetMinutes,
+        operator: row.operator as string,
+        period: row.period as string,
         active: Boolean(row.active),
         notificationsEnabled: Boolean(row.notificationsEnabled),
-        notifyAtPercentage: row.notifyAtPercentage,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
+        notifyAtPercentage: row.notifyAtPercentage as number,
+        createdAt: row.createdAt as string,
+        updatedAt: row.updatedAt as string,
         todayProgress: row.progressId ? {
-          id: row.progressId,
-          goalId: row.id,
+          id: row.progressId as number,
+          goalId: row.id as number,
           date: today,
           progressMinutes,
           achieved: Boolean(row.achieved),
@@ -271,7 +273,7 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
         progressPercentage: Math.min(100, Math.round(progressPercentage)),
         timeRemaining,
         status
-      };
+      } as GoalWithProgress;
     });
   }
 
@@ -299,13 +301,13 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
       ORDER BY date DESC
     `;
 
-    const results = this.executeQuery<any>(query, [goalId, startDateStr, endDate]);
+    const results = this.executeQuery<DatabaseRow>(query, [goalId, startDateStr, endDate]);
 
     return results.map(row => ({
       ...row,
       achieved: Boolean(row.achieved),
       notified: Boolean(row.notified),
-    }));
+    } as GoalProgress));
   }
 
   /**
