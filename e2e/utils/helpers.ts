@@ -496,3 +496,41 @@ export async function clearFilters(page: Page) {
     searchQuery: '',
   });
 }
+
+/**
+ * Delete all todos to ensure empty state
+ */
+export async function deleteAllTodos(page: Page) {
+  // Clear any filters first to see all todos
+  await clearFilters(page);
+  await page.waitForTimeout(500);
+
+  // Keep deleting todos until none are left
+  let todoCount = await getTodoCount(page);
+  let attempts = 0;
+  const maxAttempts = 50; // Safety limit
+
+  while (todoCount > 0 && attempts < maxAttempts) {
+    // Get the first visible todo
+    const firstTodo = page.locator('[role="main"] > div > div').filter({ hasText: /complete|progress|cancel/i }).first();
+
+    if (await firstTodo.isVisible()) {
+      // Click the delete button (second button with svg)
+      await firstTodo.locator('button:has(svg)').nth(1).click();
+      await page.waitForTimeout(300);
+
+      // Confirm deletion in modal
+      const confirmButton = page.locator('[role="dialog"] button:has-text("Delete"), [role="dialog"] button:has-text("Confirm")');
+      if (await confirmButton.isVisible()) {
+        await confirmButton.click();
+        await page.waitForTimeout(500);
+      }
+    }
+
+    todoCount = await getTodoCount(page);
+    attempts++;
+  }
+
+  // Wait for empty state to appear
+  await page.waitForTimeout(500);
+}

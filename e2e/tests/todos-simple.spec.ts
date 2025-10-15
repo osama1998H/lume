@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppLoad, navigateToTodos, createTodo, verifyTodoExists } from '../utils/helpers';
+import { waitForAppLoad, navigateToTodos, createTodo } from '../utils/helpers';
 
 test.describe('Todos Simple Tests', () => {
   test.beforeEach(async ({ page }) => {

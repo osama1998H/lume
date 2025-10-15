@@ -16,6 +16,7 @@ import {
   submitTodoForm,
   getTodoCard,
   clearFilters,
+  deleteAllTodos,
   takeScreenshot,
   waitForToast,
 } from '../utils/helpers';
@@ -546,18 +547,15 @@ test.describe('Todos E2E Tests', () => {
 
   test.describe('Suite 9: Empty States', () => {
     test('should show empty state when no todos exist', async ({ page }) => {
-      // This test assumes starting with no todos
-      // If todos exist, they need to be deleted first
-      const todoCount = await getTodoCount(page);
+      // Ensure empty state by deleting all todos
+      await deleteAllTodos(page);
 
-      if (todoCount === 0) {
-        // Verify empty state
-        await verifyEmptyState(page);
+      // Verify empty state
+      await verifyEmptyState(page);
 
-        // Verify create button in empty state
-        const createButton = page.locator('button:has-text("Create")');
-        await expect(createButton).toBeVisible();
-      }
+      // Verify create button in empty state
+      const createButton = page.locator('button:has-text("Create")');
+      await expect(createButton).toBeVisible();
     });
 
     test('should show "no filtered results" when filters match nothing', async ({ page }) => {
@@ -574,16 +572,15 @@ test.describe('Todos E2E Tests', () => {
     });
 
     test('should allow creating todo from empty state', async ({ page }) => {
-      const todoCount = await getTodoCount(page);
+      // Ensure empty state by deleting all todos
+      await deleteAllTodos(page);
 
-      if (todoCount === 0) {
-        // Click create from empty state
-        await page.click('button:has-text("Create")');
+      // Click create from empty state
+      await page.click('button:has-text("Create")');
 
-        // Modal should open
-        const modal = page.locator('[role="dialog"]');
-        await expect(modal).toBeVisible();
-      }
+      // Modal should open
+      const modal = page.locator('[role="dialog"]');
+      await expect(modal).toBeVisible();
     });
   });
 
