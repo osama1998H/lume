@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Edit2, Trash2, Calendar, Clock, CheckCircle2, Circle, PlayCircle, XCircle, Timer } from 'lucide-react';
+import { Edit2, Trash2, Calendar, CheckCircle2, Circle, PlayCircle, XCircle, Timer } from 'lucide-react';
 import { Todo, TodoStatus, Category } from '../../../types';
 import Badge from '../../ui/Badge';
 import TagDisplay from '../../ui/TagDisplay';
@@ -89,11 +89,6 @@ const TodoCard: React.FC<TodoCardProps> = ({
     return `${hours}h ${mins}m`;
   };
 
-  const calculatePomodoroTime = (pomodoroCount?: number): number => {
-    if (!pomodoroCount) return 0;
-    // Standard pomodoro is 25 minutes
-    return pomodoroCount * 25;
-  };
 
   const handleDeleteClick = () => {
     setShowDeleteConfirm(true);
@@ -121,140 +116,105 @@ const TodoCard: React.FC<TodoCardProps> = ({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ delay: index * 0.05 }}
-        className={`bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-lg transition-all p-4 sm:p-6 border border-gray-200 dark:border-gray-700 group ${
+        className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all p-3 border border-gray-200 dark:border-gray-700 group ${
           todo.status === 'completed' ? 'opacity-75' : ''
         } ${isOverdue(todo.dueDate) ? 'border-l-4 border-l-red-500' : ''}`}
       >
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          {/* Left side - Content */}
-          <div className="flex-1 min-w-0 flex gap-3">
+        <div className="flex items-center justify-between gap-3">
+          {/* Left side - Checkbox and Main Content */}
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* Checkbox */}
             <button
               onClick={() => onToggleStatus(todo)}
-              className="flex-shrink-0 mt-1"
+              className="flex-shrink-0"
               aria-label="Toggle todo status"
             >
               {todo.status === 'completed' ? (
-                <CheckCircle2 className="h-6 w-6 text-green-500" />
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
               ) : (
-                <Circle className="h-6 w-6 text-gray-400 hover:text-primary-500 transition-colors" />
+                <Circle className="h-5 w-5 text-gray-400 hover:text-primary-500 transition-colors" />
               )}
             </button>
 
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start gap-3 mb-2 flex-wrap">
-                <h3
-                  className={`text-lg sm:text-xl font-semibold text-gray-900 dark:text-white ${
-                    todo.status === 'completed' ? 'line-through' : ''
-                  }`}
+            {/* Title and Main Info - All in One Line */}
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              {/* Title */}
+              <h3
+                className={`text-base font-medium text-gray-900 dark:text-white truncate ${
+                  todo.status === 'completed' ? 'line-through' : ''
+                }`}
+                title={todo.title}
+              >
+                {todo.title}
+              </h3>
+
+              {/* Status Badge */}
+              {(() => {
+                const statusKeyMap: Record<TodoStatus, string> = {
+                  todo: 'Todo',
+                  in_progress: 'InProgress',
+                  completed: 'Completed',
+                  cancelled: 'Cancelled',
+                };
+                return (
+                  <Badge variant={getStatusVariant(todo.status)} size="sm" className="!text-xs !px-2 !py-0.5">
+                    {t(`todos.status${statusKeyMap[todo.status]}`)}
+                  </Badge>
+                );
+              })()}
+
+              {/* Priority Badge */}
+              <Badge variant={getPriorityVariant(todo.priority)} size="sm" className="!text-xs !px-2 !py-0.5">
+                {t(`todos.priority${todo.priority.charAt(0).toUpperCase() + todo.priority.slice(1)}`)}
+              </Badge>
+
+              {/* Category */}
+              {getCategoryName(todo.categoryId) && (
+                <span
+                  className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap"
+                  style={{
+                    backgroundColor: `${getCategoryColor(todo.categoryId)}20`,
+                    color: getCategoryColor(todo.categoryId),
+                  }}
                 >
-                  {todo.title}
-                </h3>
-                <div className="flex gap-2 flex-wrap">
-                  {(() => {
-                    const statusKeyMap: Record<TodoStatus, string> = {
-                      todo: 'Todo',
-                      in_progress: 'InProgress',
-                      completed: 'Completed',
-                      cancelled: 'Cancelled',
-                    };
-                    return (
-                      <Badge variant={getStatusVariant(todo.status)} size="sm">
-                        {t(`todos.status${statusKeyMap[todo.status]}`)}
-                      </Badge>
-                    );
-                  })()}
-                  <Badge variant={getPriorityVariant(todo.priority)} size="sm">
-                    {t(`todos.priority${todo.priority.charAt(0).toUpperCase() + todo.priority.slice(1)}`)}
-                  </Badge>
-                  {isOverdue(todo.dueDate) && (
-                    <Badge variant="danger" size="sm">
-                      {t('todos.overdue')}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
-              {todo.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                  {todo.description}
-                </p>
+                  {getCategoryName(todo.categoryId)}
+                </span>
               )}
 
-              {/* Tags */}
-              {todo.tags && todo.tags.length > 0 && (
-                <div className="mb-3">
-                  <TagDisplay tags={todo.tags} size="sm" maxDisplay={5} />
-                </div>
+              {/* Compact Time Display */}
+              {(todo.pomodoroCount || todo.estimatedMinutes) && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                  <Timer className="h-3 w-3" />
+                  {todo.pomodoroCount ? `${todo.pomodoroCount}` : ''}
+                  {todo.pomodoroCount && todo.estimatedMinutes ? ' ' : ''}
+                  {todo.estimatedMinutes ? `(${formatDuration(todo.estimatedMinutes)})` : ''}
+                </span>
               )}
 
-              {/* Metadata */}
-              <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                {getCategoryName(todo.categoryId) && (
-                  <span
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md font-medium"
-                    style={{
-                      backgroundColor: `${getCategoryColor(todo.categoryId)}20`,
-                      color: getCategoryColor(todo.categoryId),
-                    }}
-                  >
-                    {getCategoryName(todo.categoryId)}
-                  </span>
-                )}
-                {todo.dueDate && (
-                  <span className="inline-flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    {formatDate(todo.dueDate)}
-                    {todo.dueTime && ` at ${todo.dueTime}`}
-                  </span>
-                )}
-              </div>
-
-              {/* Time Tracking Badges */}
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                {todo.estimatedMinutes && (
-                  <Badge variant="gray" size="sm" className="!text-xs">
-                    <Clock className="h-3 w-3" />
-                    Est: {formatDuration(todo.estimatedMinutes)}
-                  </Badge>
-                )}
-                {todo.pomodoroCount && todo.pomodoroCount > 0 && (
-                  <Badge variant="info" size="sm" className="!text-xs">
-                    <Timer className="h-3 w-3" />
-                    🍅 {todo.pomodoroCount} ({formatDuration(calculatePomodoroTime(todo.pomodoroCount))})
-                  </Badge>
-                )}
-                {todo.actualMinutes && todo.actualMinutes > 0 && (
-                  <Badge variant="success" size="sm" className="!text-xs">
-                    <Clock className="h-3 w-3" />
-                    Actual: {formatDuration(todo.actualMinutes)}
-                  </Badge>
-                )}
-                {todo.estimatedMinutes && todo.actualMinutes && (
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {todo.actualMinutes <= todo.estimatedMinutes ? '✓ On track' : '⚠ Over time'}
-                  </span>
-                )}
-              </div>
+              {/* Overdue Badge */}
+              {isOverdue(todo.dueDate) && (
+                <Badge variant="danger" size="sm" className="!text-xs !px-2 !py-0.5">
+                  {t('todos.overdue')}
+                </Badge>
+              )}
             </div>
           </div>
 
-          {/* Right side - Actions */}
-          <div className="flex flex-row gap-2 items-start">
+          {/* Right side - Actions (smaller and more subtle) */}
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             {/* Quick Status Menu */}
             <div className="relative group/status">
-              <button className="p-2 text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                <Circle className="h-4 w-4" />
+              <button className="p-1.5 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+                <Circle className="h-3.5 w-3.5" />
               </button>
-              <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10 opacity-0 invisible group-hover/status:opacity-100 group-hover/status:visible transition-all min-w-[160px]">
+              <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10 opacity-0 invisible group-hover/status:opacity-100 group-hover/status:visible transition-all min-w-[140px]">
                 {statusActions.map((action) => (
                   <button
                     key={action.status}
                     onClick={() => onQuickStatusChange(todo, action.status)}
-                    className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                    className="w-full px-3 py-1.5 text-xs text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                   >
-                    <action.icon className="h-4 w-4" />
+                    <action.icon className="h-3 w-3" />
                     {action.label}
                   </button>
                 ))}
@@ -264,22 +224,52 @@ const TodoCard: React.FC<TodoCardProps> = ({
             {/* Edit */}
             <button
               onClick={() => onEdit(todo)}
-              className="p-2 text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="p-1.5 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-700"
               title="Edit todo"
             >
-              <Edit2 className="h-4 w-4" />
+              <Edit2 className="h-3.5 w-3.5" />
             </button>
 
             {/* Delete */}
             <button
               onClick={handleDeleteClick}
-              className="p-2 text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-700"
               title="Delete todo"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
+
+        {/* Optional Second Line - Description and Tags (only if they exist) */}
+        {(todo.description || (todo.tags && todo.tags.length > 0) || todo.dueDate) && (
+          <div className="flex items-center gap-2 mt-2 ml-8 text-xs text-gray-500 dark:text-gray-400">
+            {/* Description - truncated to one line */}
+            {todo.description && (
+              <span className="truncate flex-1" title={todo.description}>
+                {todo.description}
+              </span>
+            )}
+
+            {/* Due Date */}
+            {todo.dueDate && (
+              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                <Calendar className="h-3 w-3" />
+                {formatDate(todo.dueDate)}
+              </span>
+            )}
+
+            {/* Tags - compact display */}
+            {todo.tags && todo.tags.length > 0 && (
+              <div className="inline-flex items-center gap-1">
+                <TagDisplay tags={todo.tags.slice(0, 3)} size="sm" maxDisplay={3} />
+                {todo.tags.length > 3 && (
+                  <span className="text-gray-400">+{todo.tags.length - 3}</span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </motion.div>
 
       {/* Delete Confirmation Modal */}

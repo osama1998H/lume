@@ -8,6 +8,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   icon?: LucideIcon;
   iconPosition?: 'left' | 'right';
   fullWidth?: boolean;
+  suffix?: React.ReactNode;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -19,6 +20,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       icon: Icon,
       iconPosition = 'left',
       fullWidth = false,
+      suffix,
       className = '',
       disabled,
       id,
@@ -32,7 +34,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const errorId = `${inputId}-error`;
     const hintId = `${inputId}-hint`;
     const inputClasses = `
-      w-full px-4 py-2.5 rounded-lg
+      w-full px-4 py-2.5
       border transition-all duration-200
       bg-white dark:bg-gray-800
       text-gray-900 dark:text-gray-100
@@ -44,8 +46,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           ? 'border-red-300 dark:border-red-700 focus:border-red-500 focus:ring-red-500/20'
           : 'border-gray-200 dark:border-gray-700 focus:border-primary-500 focus:ring-primary-500/20'
       }
-      ${Icon && iconPosition === 'left' ? 'pl-11' : ''}
-      ${Icon && iconPosition === 'right' ? 'pr-11' : ''}
+      ${Icon && iconPosition === 'left' ? 'ps-11' : ''}
+      ${Icon && iconPosition === 'right' ? 'pe-11' : ''}
+      ${suffix ? 'rounded-s-lg rounded-e-none border-e-0' : 'rounded-lg'}
     `;
 
     return (
@@ -55,26 +58,29 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        <div className="relative">
-          {Icon && iconPosition === 'left' && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" aria-hidden="true">
-              <Icon className="h-5 w-5" />
-            </div>
-          )}
-          <input
-            ref={ref}
-            id={inputId}
-            disabled={disabled}
-            className={`${inputClasses} ${className}`}
-            aria-invalid={error ? 'true' : 'false'}
-            aria-describedby={error ? errorId : hint ? hintId : undefined}
-            {...props}
-          />
-          {Icon && iconPosition === 'right' && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" aria-hidden="true">
-              <Icon className="h-5 w-5" />
-            </div>
-          )}
+        <div className="relative flex items-stretch">
+          <div className="relative flex-1">
+            {Icon && iconPosition === 'left' && (
+              <div className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" aria-hidden="true">
+                <Icon className="h-5 w-5" />
+              </div>
+            )}
+            <input
+              ref={ref}
+              id={inputId}
+              disabled={disabled}
+              className={`${inputClasses} ${className}`}
+              aria-invalid={error ? 'true' : 'false'}
+              aria-describedby={error ? errorId : hint ? hintId : undefined}
+              {...props}
+            />
+            {Icon && iconPosition === 'right' && !suffix && (
+              <div className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" aria-hidden="true">
+                <Icon className="h-5 w-5" />
+              </div>
+            )}
+          </div>
+          {suffix}
         </div>
         {error && (
           <p id={errorId} className="mt-1.5 text-sm text-red-600 dark:text-red-400">{error}</p>
