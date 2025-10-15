@@ -1,0 +1,85 @@
+# Configuration for PR auto-labeling
+# Automatically applies labels based on changed file paths
+
+frontend:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'src/components/**/*'
+      - 'src/renderer/**/*'
+      - 'src/hooks/**/*'
+      - 'src/contexts/**/*'
+      - '**/*.tsx'
+      - '**/*.css'
+
+backend:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'src/main/**/*'
+      - 'src/services/**/*'
+      - 'electron/**/*'
+
+database:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'src/database/**/*'
+      - '**/migrations/**/*'
+      - '**/repositories/**/*'
+
+testing:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/__tests__/**/*'
+      - '**/*.test.ts'
+      - '**/*.test.tsx'
+      - '**/*.spec.ts'
+      - '**/*.spec.tsx'
+      - 'src/setupTests.ts'
+      - 'jest.config.js'
+      - 'playwright.config.ts'
+      - 'e2e/**/*'
+
+docs:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.md'
+      - 'docs/**/*'
+      - '.github/**/*.md'
+
+ci:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/workflows/**/*'
+      - '.github/actions/**/*'
+      - '.github/dependabot.yml'
+      - '.github/labeler.yml'
+
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'package.json'
+      - 'package-lock.json'
+
+config:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '*.config.js'
+      - '*.config.ts'
+      - 'tsconfig*.json'
+      - '.eslintrc*'
+      - '.prettierrc*'
+      - 'tailwind.config.js'
+      - 'vite.config.ts'
+
+i18n:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'src/i18n/**/*'
+      - 'public/locales/**/*'
+      - '**/translations/**/*'
+
+security:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'SECURITY.md'
+      - '.github/workflows/codeql.yml'
+      - '.github/workflows/dependency-review.yml'

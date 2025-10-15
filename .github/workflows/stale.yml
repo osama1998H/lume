@@ -1,0 +1,68 @@
+name: Stale Issue & PR Management
+
+on:
+  schedule:
+    # Run daily at 01:00 UTC
+    - cron: '0 1 * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    name: Mark Stale Issues and PRs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Stale Issues and PRs
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Days before marking as stale
+          days-before-stale: 60
+          days-before-close: 7
+
+          # Stale issue configuration
+          stale-issue-message: >
+            This issue has been automatically marked as stale because it has not had
+            recent activity in the last 60 days. It will be closed in 7 days if no
+            further activity occurs. Thank you for your contributions!
+
+          close-issue-message: >
+            This issue has been automatically closed due to inactivity.
+            If you believe this was closed in error, please feel free to reopen it!
+
+          stale-issue-label: 'stale'
+          close-issue-label: 'closed-by-bot'
+
+          # Stale PR configuration
+          stale-pr-message: >
+            This pull request has been automatically marked as stale because it has
+            not had recent activity in the last 60 days. It will be closed in 7 days
+            if no further activity occurs. Please rebase and update if you plan to
+            continue working on this.
+
+          close-pr-message: >
+            This pull request has been automatically closed due to inactivity.
+            If you'd like to continue working on this, please feel free to reopen it!
+
+          stale-pr-label: 'stale'
+          close-pr-label: 'closed-by-bot'
+
+          # Exempt labels - issues/PRs with these labels won't be marked as stale
+          exempt-issue-labels: 'pinned,security,roadmap,good first issue,help wanted'
+          exempt-pr-labels: 'pinned,work-in-progress,security'
+
+          # Exempt milestones - issues/PRs in these milestones won't be marked as stale
+          exempt-all-milestones: false
+
+          # Additional options
+          operations-per-run: 100
+          remove-stale-when-updated: true
+          ascending: false
+
+          # Enable debug logging (set to true for troubleshooting)
+          debug-only: false

@@ -1,0 +1,135 @@
+name: Release Automation
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., v1.2.3)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate-changelog:
+    name: Generate Changelog
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for changelog generation
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Generate Changelog
+        id: changelog
+        uses: metcalfc/changelog-generator@v4.3.1
+        with:
+          myToken: ${{ secrets.GITHUB_TOKEN }}
+          head-ref: ${{ github.event.release.tag_name || inputs.version }}
+          base-ref: ${{ github.event.release.target_commitish || 'main' }}
+
+      - name: Create Release Notes
+        if: github.event_name == 'workflow_dispatch'
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ inputs.version }}
+          name: Release ${{ inputs.version }}
+          body: |
+            ## What's Changed
+
+            ${{ steps.changelog.outputs.changelog }}
+
+            ## Installation
+
+            ### macOS
+            - Download `Lume-${{ inputs.version }}.dmg` or `Lume-${{ inputs.version }}.zip`
+            - Open the DMG file and drag Lume to Applications
+            - Or extract the ZIP and move to Applications
+
+            ### Windows
+            - Download `Lume-Setup-${{ inputs.version }}.exe`
+            - Run the installer and follow the prompts
+
+            ### Linux
+            - **AppImage**: Download `Lume-${{ inputs.version }}.AppImage`, make it executable, and run
+            - **Debian**: Download `lume_${{ inputs.version }}_amd64.deb` and install with `sudo dpkg -i`
+
+            ## Upgrade Notes
+
+            Please backup your database before upgrading: `~/Library/Application Support/lume/lume.db` (macOS)
+
+            ## Full Changelog
+
+            **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.changelog.outputs.fromTag }}...${{ steps.changelog.outputs.toTag }}
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Release Description
+        if: github.event_name == 'release'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const release = await github.rest.repos.getRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: context.payload.release.id
+            });
+
+            const currentBody = release.data.body || '';
+            const changelogSection = `\n\n## Changelog\n\n${{ steps.changelog.outputs.changelog }}`;
+
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: context.payload.release.id,
+              body: currentBody + changelogSection
+            });
+
+  update-version:
+    name: Update Version File
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Update package.json version
+        run: |
+          VERSION="${{ inputs.version }}"
+          VERSION="${VERSION#v}"  # Remove 'v' prefix
+          npm version $VERSION --no-git-tag-version
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: bump version to ${{ inputs.version }}"
+          title: "chore: Release ${{ inputs.version }}"
+          body: |
+            Automated version bump for release ${{ inputs.version }}
+
+            - Updates package.json version
+            - Prepares for release
+          branch: release/${{ inputs.version }}
+          delete-branch: true
+          labels: |
+            automated
+            release
