@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Sidebar from '../Sidebar';
 
@@ -230,7 +230,7 @@ describe('Sidebar', () => {
       const toggleButton = screen.getByText('Collapse Sidebar').closest('button');
       fireEvent.click(toggleButton!);
 
-      expect(screen.queryByText('Dashboard')).not.toBeVisible();
+      expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
     });
 
     it('changes toggle button text when collapsed', () => {
@@ -346,7 +346,7 @@ describe('Sidebar', () => {
       expect(mockOnViewChange).toHaveBeenCalledWith('settings');
     });
 
-    it('registers Ctrl+[ for toggle sidebar', () => {
+    it('registers Ctrl+[ for toggle sidebar', async () => {
       const { container } = render(<Sidebar currentView="dashboard" onViewChange={mockOnViewChange} />);
 
       const shortcuts = mockUseKeyboardShortcuts.mock.calls[0][0];
@@ -361,13 +361,10 @@ describe('Sidebar', () => {
       // Trigger toggle
       toggleShortcut.action();
 
-      // Re-render to see the effect
-      render(<Sidebar currentView="dashboard" onViewChange={mockOnViewChange} />);
-
-      // Trigger toggle again through the stored action
-      const newShortcuts = mockUseKeyboardShortcuts.mock.calls[mockUseKeyboardShortcuts.mock.calls.length - 1][0];
-      const newToggleShortcut = newShortcuts.find((s: any) => s.key === '[');
-      newToggleShortcut.action();
+      // Verify the sidebar width changed
+      await waitFor(() => {
+        expect(sidebar).toHaveClass('w-20');
+      });
     });
   });
 
