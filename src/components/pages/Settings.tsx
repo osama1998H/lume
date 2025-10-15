@@ -60,7 +60,7 @@ const Settings: React.FC = () => {
     try {
       setIsLoading(true);
       if (window.electronAPI) {
-        const savedSettings = await window.electronAPI.getSettings();
+        const savedSettings = await window.electronAPI.settings.get();
         if (savedSettings) {
           setSettings(prev => ({
             ...prev,
@@ -79,7 +79,7 @@ const Settings: React.FC = () => {
   const loadTrackingStatus = async () => {
     try {
       if (window.electronAPI) {
-        const status = await window.electronAPI.getActivityTrackingStatus();
+        const status = await window.electronAPI.activityTracking.getStatus();
         setIsTracking(status);
       }
     } catch (error) {
@@ -90,7 +90,7 @@ const Settings: React.FC = () => {
   const loadCategories = async () => {
     try {
       if (window.electronAPI) {
-        const fetchedCategories = await window.electronAPI.getCategories();
+        const fetchedCategories = await window.electronAPI.categories.getAll();
         setCategories(fetchedCategories);
       }
     } catch (error) {
@@ -123,9 +123,9 @@ const Settings: React.FC = () => {
 
         // First, try to start/stop tracking via API
         if (newTrackingState) {
-          apiSuccess = await window.electronAPI.startActivityTracking();
+          apiSuccess = await window.electronAPI.activityTracking.start();
         } else {
-          apiSuccess = await window.electronAPI.stopActivityTracking();
+          apiSuccess = await window.electronAPI.activityTracking.stop();
         }
 
         // Only update state if API call succeeded
@@ -143,7 +143,7 @@ const Settings: React.FC = () => {
           }
         };
 
-        const saveSuccess = await window.electronAPI.saveSettings(updatedSettings);
+        const saveSuccess = await window.electronAPI.settings.save(updatedSettings);
 
         if (saveSuccess) {
           // Only update UI state after both API and save succeed
@@ -154,9 +154,9 @@ const Settings: React.FC = () => {
           console.error('❌ Failed to save tracking state to settings');
           // Rollback the tracking state since save failed
           if (newTrackingState) {
-            await window.electronAPI.stopActivityTracking();
+            await window.electronAPI.activityTracking.stop();
           } else {
-            await window.electronAPI.startActivityTracking();
+            await window.electronAPI.activityTracking.start();
           }
         }
       }
@@ -170,7 +170,7 @@ const Settings: React.FC = () => {
       setIsSaving(true);
 
       if (window.electronAPI) {
-        const success = await window.electronAPI.saveSettings(settings);
+        const success = await window.electronAPI.settings.save(settings);
         if (success) {
           showToast.success(t('settings.settingsSavedSuccess'));
         } else {
@@ -198,7 +198,7 @@ const Settings: React.FC = () => {
       // TODO: Add format selection modal
       const format = 'json';
 
-      const result = await window.electronAPI.exportData(format);
+      const result = await window.electronAPI.dataManagement.export(format);
 
       if (result.success && result.filePath) {
         showToast.success(t('settings.exportSuccess'));
@@ -224,7 +224,7 @@ const Settings: React.FC = () => {
       const format = 'json';
       const options = { strategy: 'merge' as const };
 
-      const result = await window.electronAPI.importData(format, options);
+      const result = await window.electronAPI.dataManagement.import(format, options);
 
       if (result.success) {
         showToast.success(
@@ -264,20 +264,20 @@ const Settings: React.FC = () => {
       }
 
       // Prevent clearing while activity tracking is active
-      const isTracking = await window.electronAPI.getActivityTrackingStatus();
+      const isTracking = await window.electronAPI.activityTracking.getStatus();
       if (isTracking) {
         showToast.error(t('settings.stopTrackingBeforeClear'));
         return;
       }
 
       // Prevent clearing while a Pomodoro session is running
-      const pomodoroStatus = await window.electronAPI.getPomodoroStatus();
+      const pomodoroStatus = await window.electronAPI.pomodoro.timer.getStatus();
       if (pomodoroStatus && pomodoroStatus.state !== 'idle') {
         showToast.error(t('settings.stopPomodoroBeforeClear'));
         return;
       }
 
-      const success = await window.electronAPI.clearAllData();
+      const success = await window.electronAPI.dataManagement.clearAll();
 
       if (success) {
         showToast.success(t('settings.clearDataSuccess'));

@@ -108,13 +108,13 @@ CRASH_REPORTER_ENABLE_DEV=true
 ### New IPC Handlers
 ```typescript
 // Get last crash report
-window.electronAPI.getLastCrashReport()
+window.electronAPI.crashReporting.getLastReport()
 
 // Get all uploaded crash reports
-window.electronAPI.getUploadedCrashReports()
+window.electronAPI.crashReporting.getUploadedReports()
 
 // Test crash reporting (dev only)
-window.electronAPI.testCrashReporting()
+window.electronAPI.crashReporting.test()
 ```
 
 ### New Utility Functions

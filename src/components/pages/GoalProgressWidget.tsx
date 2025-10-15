@@ -17,7 +17,7 @@ const GoalProgressWidget: React.FC = () => {
   const loadGoals = async () => {
     try {
       if (window.electronAPI) {
-        const goalsData = await window.electronAPI.getTodayGoalsWithProgress();
+        const goalsData = await window.electronAPI.goals.getTodayWithProgress();
         // Only show active goals
         const activeGoals = goalsData.filter((g: GoalWithProgress) => g.active);
         setGoals(activeGoals);

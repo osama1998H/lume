@@ -77,11 +77,11 @@ const TimeTracker: React.FC = () => {
   const loadCategories = async () => {
     try {
       if (window.electronAPI) {
-        const categoriesData = await window.electronAPI.getCategories();
+        const categoriesData = await window.electronAPI.categories.getAll();
         setCategories(categoriesData);
 
         // Load settings and apply default category if set
-        const settings = await window.electronAPI.getSettings();
+        const settings = await window.electronAPI.settings.get();
         if (settings?.defaultCategory && !selectedCategoryId && !isTracking) {
           setSelectedCategoryId(settings.defaultCategory);
           const defaultCat = categoriesData.find(c => c.id === settings.defaultCategory);
@@ -101,7 +101,7 @@ const TimeTracker: React.FC = () => {
   const restoreActiveTimer = async (categoriesData: Category[]) => {
     try {
       if (window.electronAPI) {
-        const activeEntry = await window.electronAPI.getActiveTimeEntry();
+        const activeEntry = await window.electronAPI.timeEntries.getActive();
         if (activeEntry && activeEntry.id) {
           console.log('📋 Restoring active timer:', activeEntry);
           setCurrentTask(activeEntry.task);
@@ -145,7 +145,7 @@ const TimeTracker: React.FC = () => {
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - 30); // Last 30 days
 
-        const activities = await window.electronAPI.getUnifiedActivities(
+        const activities = await window.electronAPI.activities.getAll(
           startDate.toISOString(),
           endDate.toISOString(),
           {
@@ -192,7 +192,7 @@ const TimeTracker: React.FC = () => {
 
     try {
       if (window.electronAPI) {
-        const id = await window.electronAPI.addTimeEntry(entry);
+        const id = await window.electronAPI.timeEntries.add(entry);
         console.log('⏱️  Started timer with ID:', id);
 
         // Save tags if any selected
@@ -200,7 +200,7 @@ const TimeTracker: React.FC = () => {
           const tagIds = selectedTags
             .map((tag) => tag.id)
             .filter((id): id is number => id != null);
-          await window.electronAPI.addTimeEntryTags(id, tagIds);
+          await window.electronAPI.tagAssociations.timeEntries.add(id, tagIds);
         }
 
         setActiveEntryId(id);
@@ -221,7 +221,7 @@ const TimeTracker: React.FC = () => {
 
     try {
       if (window.electronAPI) {
-        const updated = await window.electronAPI.updateTimeEntry(activeEntryId, {
+        const updated = await window.electronAPI.timeEntries.update(activeEntryId, {
           endTime: endTime.toISOString(),
           duration,
         });

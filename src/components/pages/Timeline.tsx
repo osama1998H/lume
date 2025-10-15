@@ -103,7 +103,7 @@ const Timeline: React.FC<TimelineProps> = ({ dateRange: externalDateRange, onAct
       const endDate = dateRange.end.toISOString();
 
       // Fetch unified activities
-      const activitiesData = await window.electronAPI.getUnifiedActivities(
+      const activitiesData = await window.electronAPI.activities.getAll(
         startDate,
         endDate,
         {
@@ -359,7 +359,7 @@ const Timeline: React.FC<TimelineProps> = ({ dateRange: externalDateRange, onAct
         const duration = Math.floor((end - start) / 1000);
 
         // Update via IPC
-        await window.electronAPI.updateUnifiedActivity({
+        await window.electronAPI.activities.update({
           id: updatedActivity.id,
           sourceType: updatedActivity.sourceType,
           updates: {

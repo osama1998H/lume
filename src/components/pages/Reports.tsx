@@ -27,14 +27,14 @@ const Reports: React.FC = () => {
         startDate.setMonth(startDate.getMonth() - 3);
 
         const [unifiedActivities, cats] = await Promise.all([
-          window.electronAPI.getUnifiedActivities(
+          window.electronAPI.activities.getAll(
             startDate.toISOString(),
             endDate.toISOString(),
             {
               sourceTypes: ['manual', 'automatic', 'pomodoro'],
             }
           ),
-          window.electronAPI.getCategories(),
+          window.electronAPI.categories.getAll(),
         ]);
 
         setActivities(unifiedActivities);

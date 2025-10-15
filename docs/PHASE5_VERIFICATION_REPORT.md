@@ -86,10 +86,10 @@ window.electronAPI.goals.update(id, data)
 window.electronAPI.goals.delete(id)
 
 // Pomodoro
-window.electronAPI.pomodoro.getSettings()
-window.electronAPI.pomodoro.startSession(task, type)
-window.electronAPI.pomodoro.pauseSession()
-window.electronAPI.pomodoro.stopSession()
+window.electronAPI.pomodoro.settings.get()
+window.electronAPI.pomodoro.timer.start(task, type)
+window.electronAPI.pomodoro.timer.pause()
+window.electronAPI.pomodoro.timer.stop()
 
 // Activities
 window.electronAPI.activities.getUnified(start, end, filters)
