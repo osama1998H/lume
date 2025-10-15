@@ -94,10 +94,15 @@ export abstract class BaseRepository<T extends BaseEntity> implements IRepositor
       if (condition.operator === 'IS NULL' || condition.operator === 'IS NOT NULL') {
         parts.push(`${condition.field} ${condition.operator}`);
       } else if (condition.operator === 'IN') {
-        const valueArray = condition.value as QueryParameter[];
-        const placeholders = valueArray.map(() => '?').join(', ');
-        parts.push(`${condition.field} IN (${placeholders})`);
-        values.push(...valueArray);
+        const valueArray = Array.isArray(condition.value) ? (condition.value as QueryParameter[]) : [];
+        if (valueArray.length === 0) {
+          // Empty IN array produces invalid SQL - use always-false condition
+          parts.push('1 = 0');
+        } else {
+          const placeholders = valueArray.map(() => '?').join(', ');
+          parts.push(`${condition.field} IN (${placeholders})`);
+          values.push(...valueArray);
+        }
       } else {
         parts.push(`${condition.field} ${condition.operator} ?`);
         values.push(condition.value as QueryParameter);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Edit2, Trash2, Calendar, Clock, CheckCircle2, Circle, PlayCircle, XCircle } from 'lucide-react';
+import { Edit2, Trash2, Calendar, Clock, CheckCircle2, Circle, PlayCircle, XCircle, Timer } from 'lucide-react';
 import { Todo, TodoStatus, Category } from '../../../types';
 import Badge from '../../ui/Badge';
 import TagDisplay from '../../ui/TagDisplay';
@@ -78,6 +78,21 @@ const TodoCard: React.FC<TodoCardProps> = ({
     if (!date) return '';
     const d = new Date(date);
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const formatDuration = (minutes?: number): string => {
+    if (!minutes || minutes === 0) return '';
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours === 0) return `${mins}m`;
+    if (mins === 0) return `${hours}h`;
+    return `${hours}h ${mins}m`;
+  };
+
+  const calculatePomodoroTime = (pomodoroCount?: number): number => {
+    if (!pomodoroCount) return 0;
+    // Standard pomodoro is 25 minutes
+    return pomodoroCount * 25;
   };
 
   const handleDeleteClick = () => {
@@ -178,7 +193,7 @@ const TodoCard: React.FC<TodoCardProps> = ({
               <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 {getCategoryName(todo.categoryId) && (
                   <span
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md font-medium"
                     style={{
                       backgroundColor: `${getCategoryColor(todo.categoryId)}20`,
                       color: getCategoryColor(todo.categoryId),
@@ -188,38 +203,45 @@ const TodoCard: React.FC<TodoCardProps> = ({
                   </span>
                 )}
                 {todo.dueDate && (
-                  <>
-                    {getCategoryName(todo.categoryId) && <span>•</span>}
-                    <span className="inline-flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      {formatDate(todo.dueDate)}
-                      {todo.dueTime && ` at ${todo.dueTime}`}
-                    </span>
-                  </>
+                  <span className="inline-flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    {formatDate(todo.dueDate)}
+                    {todo.dueTime && ` at ${todo.dueTime}`}
+                  </span>
                 )}
+              </div>
+
+              {/* Time Tracking Badges */}
+              <div className="flex flex-wrap items-center gap-2 mt-2">
                 {todo.estimatedMinutes && (
-                  <>
-                    <span>•</span>
-                    <span className="inline-flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      {Math.floor(todo.estimatedMinutes / 60)}h {todo.estimatedMinutes % 60}m
-                    </span>
-                  </>
+                  <Badge variant="gray" size="sm" className="!text-xs">
+                    <Clock className="h-3 w-3" />
+                    Est: {formatDuration(todo.estimatedMinutes)}
+                  </Badge>
                 )}
                 {todo.pomodoroCount && todo.pomodoroCount > 0 && (
-                  <>
-                    <span>•</span>
-                    <span className="inline-flex items-center gap-1">
-                      🍅 {todo.pomodoroCount}
-                    </span>
-                  </>
+                  <Badge variant="info" size="sm" className="!text-xs">
+                    <Timer className="h-3 w-3" />
+                    🍅 {todo.pomodoroCount} ({formatDuration(calculatePomodoroTime(todo.pomodoroCount))})
+                  </Badge>
+                )}
+                {todo.actualMinutes && todo.actualMinutes > 0 && (
+                  <Badge variant="success" size="sm" className="!text-xs">
+                    <Clock className="h-3 w-3" />
+                    Actual: {formatDuration(todo.actualMinutes)}
+                  </Badge>
+                )}
+                {todo.estimatedMinutes && todo.actualMinutes && (
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {todo.actualMinutes <= todo.estimatedMinutes ? '✓ On track' : '⚠ Over time'}
+                  </span>
                 )}
               </div>
             </div>
           </div>
 
           {/* Right side - Actions */}
-          <div className="flex sm:flex-col gap-2">
+          <div className="flex flex-row gap-2 items-start">
             {/* Quick Status Menu */}
             <div className="relative group/status">
               <button className="p-2 text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
