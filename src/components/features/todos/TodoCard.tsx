@@ -70,6 +70,7 @@ const TodoCard: React.FC<TodoCardProps> = ({
   const isOverdue = (dueDate?: string): boolean => {
     if (!dueDate) return false;
     const today = new Date().toISOString().split('T')[0];
+    if (!today) return false;
     return dueDate < today && todo.status !== 'completed' && todo.status !== 'cancelled';
   };
 

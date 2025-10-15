@@ -34,14 +34,24 @@ export class ActivityMergeService {
       throw new Error('Cannot merge empty activity list');
     }
 
+    const firstActivity = activities[0];
+    if (!firstActivity) {
+      throw new Error('Cannot merge empty activity list');
+    }
+
     if (activities.length === 1) {
-      return activities[0];
+      return firstActivity;
     }
 
     // Sort activities by start time
     const sortedActivities = [...activities].sort(
       (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
     );
+
+    const firstSorted = sortedActivities[0];
+    if (!firstSorted) {
+      throw new Error('Sorted activities array is empty');
+    }
 
     // Determine base activity based on strategy
     let baseActivity: UnifiedActivity;
@@ -50,26 +60,31 @@ export class ActivityMergeService {
       case 'longest':
         baseActivity = sortedActivities.reduce((prev, current) =>
           current.duration > prev.duration ? current : prev
-        );
+        , firstSorted);
         break;
 
       case 'earliest':
-        baseActivity = sortedActivities[0];
+        baseActivity = firstSorted;
         break;
 
-      case 'latest':
-        baseActivity = sortedActivities[sortedActivities.length - 1];
+      case 'latest': {
+        const lastActivity = sortedActivities[sortedActivities.length - 1];
+        if (!lastActivity) {
+          throw new Error('Cannot get last activity');
+        }
+        baseActivity = lastActivity;
         break;
+      }
 
       default:
-        baseActivity = sortedActivities[0];
+        baseActivity = firstSorted;
     }
 
     // Calculate merged time range
-    const earliestStart = sortedActivities[0].startTime;
+    const earliestStart = firstSorted.startTime;
     const latestEnd = sortedActivities.reduce((latest, activity) =>
       new Date(activity.endTime).getTime() > new Date(latest).getTime() ? activity.endTime : latest
-    , sortedActivities[0].endTime);
+    , firstSorted.endTime);
 
     // Calculate merged duration
     const mergedDuration = Math.floor(
@@ -146,9 +161,16 @@ export class ActivityMergeService {
     const splitActivities: UnifiedActivity[] = [];
 
     for (let i = 0; i < boundaries.length - 1; i++) {
-      const start = new Date(boundaries[i]).toISOString();
-      const end = new Date(boundaries[i + 1]).toISOString();
-      const duration = Math.floor((boundaries[i + 1] - boundaries[i]) / 1000);
+      const startTime = boundaries[i];
+      const endTime = boundaries[i + 1];
+
+      if (startTime === undefined || endTime === undefined) {
+        throw new Error('Invalid boundary times');
+      }
+
+      const start = new Date(startTime).toISOString();
+      const end = new Date(endTime).toISOString();
+      const duration = Math.floor((endTime - startTime) / 1000);
 
       // Generate unique temporary IDs for split activities
       // Keep original ID for first split, use negative timestamp-based IDs for others
@@ -219,13 +241,18 @@ export class ActivityMergeService {
         break;
       }
 
-      case 'delete_one':
+      case 'delete_one': {
         // Keep first, delete rest
-        resolved.push({ activity: activities[0], action: 'keep' });
+        const firstActivity = activities[0];
+        if (!firstActivity) {
+          throw new Error('Cannot resolve conflict: activities array is empty');
+        }
+        resolved.push({ activity: firstActivity, action: 'keep' });
         for (const activity of activities.slice(1)) {
           resolved.push({ activity, action: 'delete' });
         }
         break;
+      }
 
       case 'adjust_time': {
         // Adjust times to remove overlap
@@ -267,13 +294,18 @@ export class ActivityMergeService {
         break;
       }
 
-      case 'delete_one':
+      case 'delete_one': {
         // Keep first duplicate, delete rest
-        resolved.push({ activity: activities[0], action: 'keep' });
+        const firstActivity = activities[0];
+        if (!firstActivity) {
+          throw new Error('Cannot resolve duplicate: activities array is empty');
+        }
+        resolved.push({ activity: firstActivity, action: 'keep' });
         for (const activity of activities.slice(1)) {
           resolved.push({ activity, action: 'delete' });
         }
         break;
+      }
 
       default:
         // For duplicates, just keep all
@@ -297,11 +329,20 @@ export class ActivityMergeService {
     const adjusted: UnifiedActivity[] = [];
 
     for (let i = 0; i < sorted.length; i++) {
-      const current = { ...sorted[i] };
+      const currentActivity = sorted[i];
+      if (!currentActivity) {
+        continue; // Skip if undefined
+      }
+
+      const current = { ...currentActivity };
 
       // Check if there's a next activity
       if (i < sorted.length - 1) {
         const next = sorted[i + 1];
+        if (!next) {
+          continue; // Skip if next is undefined
+        }
+
         const currentEnd = new Date(current.endTime).getTime();
         const nextStart = new Date(next.startTime).getTime();
 
@@ -348,8 +389,15 @@ export class ActivityMergeService {
     // Check time gaps between consecutive activities
     let maxGapSeconds = 0;
     for (let i = 0; i < sorted.length - 1; i++) {
-      const end = new Date(sorted[i].endTime).getTime();
-      const nextStart = new Date(sorted[i + 1].startTime).getTime();
+      const current = sorted[i];
+      const next = sorted[i + 1];
+
+      if (!current || !next) {
+        continue; // Skip if either is undefined
+      }
+
+      const end = new Date(current.endTime).getTime();
+      const nextStart = new Date(next.startTime).getTime();
       const gapSeconds = (nextStart - end) / 1000;
       maxGapSeconds = Math.max(maxGapSeconds, gapSeconds);
     }
@@ -422,30 +470,46 @@ export class ActivityMergeService {
       (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
     );
 
+    const firstSorted = sorted[0];
+    if (!firstSorted) {
+      return [];
+    }
+
     const result: UnifiedActivity[] = [];
-    let currentGroup: UnifiedActivity[] = [sorted[0]];
+    let currentGroup: UnifiedActivity[] = [firstSorted];
 
     for (let i = 1; i < sorted.length; i++) {
-      const prevEnd = new Date(sorted[i - 1].endTime).getTime();
-      const currentStart = new Date(sorted[i].startTime).getTime();
+      const prev = sorted[i - 1];
+      const current = sorted[i];
+      const firstInGroup = currentGroup[0];
+
+      if (!prev || !current || !firstInGroup) {
+        continue; // Skip if any is undefined
+      }
+
+      const prevEnd = new Date(prev.endTime).getTime();
+      const currentStart = new Date(current.startTime).getTime();
       const gap = (currentStart - prevEnd) / 1000;
 
       // Check if can merge with current group
       const canMergeWithGroup =
         gap <= thresholdSeconds &&
-        sorted[i].sourceType === currentGroup[0].sourceType;
+        current.sourceType === firstInGroup.sourceType;
 
       if (canMergeWithGroup) {
-        currentGroup.push(sorted[i]);
+        currentGroup.push(current);
       } else {
         // Merge current group and start new group
         if (currentGroup.length > 1) {
           const merged = await this.mergeActivities(currentGroup, 'longest');
           result.push(merged);
         } else {
-          result.push(currentGroup[0]);
+          const groupFirst = currentGroup[0];
+          if (groupFirst) {
+            result.push(groupFirst);
+          }
         }
-        currentGroup = [sorted[i]];
+        currentGroup = [current];
       }
     }
 
@@ -454,7 +518,10 @@ export class ActivityMergeService {
       const merged = await this.mergeActivities(currentGroup, 'longest');
       result.push(merged);
     } else {
-      result.push(currentGroup[0]);
+      const groupFirst = currentGroup[0];
+      if (groupFirst) {
+        result.push(groupFirst);
+      }
     }
 
     return result;
@@ -480,6 +547,10 @@ export class ActivityMergeService {
     for (let i = 0; i < sorted.length - 1; i++) {
       const current = sorted[i];
       const next = sorted[i + 1];
+
+      if (!current || !next) {
+        continue; // Skip if either is undefined
+      }
 
       const currentEnd = new Date(current.endTime);
       const nextStart = new Date(next.startTime);
@@ -515,26 +586,39 @@ export class ActivityMergeService {
       (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
     );
 
+    const firstSorted = sorted[0];
+    if (!firstSorted) {
+      return [];
+    }
+
     const groups: UnifiedActivity[][] = [];
-    let currentGroup: UnifiedActivity[] = [sorted[0]];
+    let currentGroup: UnifiedActivity[] = [firstSorted];
 
     for (let i = 1; i < sorted.length; i++) {
-      const prevEnd = new Date(sorted[i - 1].endTime).getTime();
-      const currentStart = new Date(sorted[i].startTime).getTime();
+      const prev = sorted[i - 1];
+      const current = sorted[i];
+      const firstInGroup = currentGroup[0];
+
+      if (!prev || !current || !firstInGroup) {
+        continue; // Skip if any is undefined
+      }
+
+      const prevEnd = new Date(prev.endTime).getTime();
+      const currentStart = new Date(current.startTime).getTime();
       const gap = (currentStart - prevEnd) / 1000;
 
       const canGroup =
         gap <= maxGapSeconds &&
-        sorted[i].sourceType === currentGroup[0].sourceType &&
-        sorted[i].type === currentGroup[0].type;
+        current.sourceType === firstInGroup.sourceType &&
+        current.type === firstInGroup.type;
 
       if (canGroup) {
-        currentGroup.push(sorted[i]);
+        currentGroup.push(current);
       } else {
         if (currentGroup.length > 1) {
           groups.push(currentGroup);
         }
-        currentGroup = [sorted[i]];
+        currentGroup = [current];
       }
     }
 

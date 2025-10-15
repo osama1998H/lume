@@ -32,7 +32,10 @@ const getStoredLanguage = (): string => {
 const getBrowserLanguage = (): string => {
   try {
     if (typeof navigator !== 'undefined' && navigator.language) {
-      return navigator.language.split('-')[0];
+      const langCode = navigator.language.split('-')[0];
+      if (langCode) {
+        return langCode;
+      }
     }
   } catch (e) {
     console.warn('Failed to detect browser language:', e);

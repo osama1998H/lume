@@ -216,31 +216,65 @@ export class ActivityTrackingService {
   }
 
   private levenshteinDistance(str1: string, str2: string): number {
-    const matrix = [];
+    const matrix: number[][] = [];
 
     for (let i = 0; i <= str2.length; i++) {
       matrix[i] = [i];
     }
 
+    const firstRow = matrix[0];
+    if (!firstRow) {
+      throw new Error('Matrix initialization failed');
+    }
+
     for (let j = 0; j <= str1.length; j++) {
-      matrix[0][j] = j;
+      firstRow[j] = j;
     }
 
     for (let i = 1; i <= str2.length; i++) {
+      const currentRow = matrix[i];
+      if (!currentRow) {
+        continue;
+      }
+
       for (let j = 1; j <= str1.length; j++) {
+        const prevRow = matrix[i - 1];
+        if (!prevRow) {
+          continue;
+        }
+
         if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-          matrix[i][j] = matrix[i - 1][j - 1];
+          const prevDiag = prevRow[j - 1];
+          if (prevDiag !== undefined) {
+            currentRow[j] = prevDiag;
+          }
         } else {
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1,
-            matrix[i][j - 1] + 1,
-            matrix[i - 1][j] + 1
-          );
+          const prevDiag = prevRow[j - 1];
+          const prevLeft = currentRow[j - 1];
+          const prevUp = prevRow[j];
+
+          if (prevDiag !== undefined && prevLeft !== undefined && prevUp !== undefined) {
+            currentRow[j] = Math.min(
+              prevDiag + 1,
+              prevLeft + 1,
+              prevUp + 1
+            );
+          }
         }
       }
     }
 
-    return matrix[str2.length][str1.length];
+    const lastRow = matrix[str2.length];
+    if (!lastRow) {
+      throw new Error('Matrix calculation failed');
+    }
+
+    const distance = lastRow[str1.length];
+    if (distance === undefined) {
+      throw new Error('Distance calculation failed');
+    }
+
+    return distance;
   }
 
   private async finishCurrentSession(): Promise<void> {

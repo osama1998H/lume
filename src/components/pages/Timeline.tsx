@@ -154,6 +154,9 @@ const Timeline: React.FC<TimelineProps> = ({ dateRange: externalDateRange, onAct
         const a1 = acts[i];
         const a2 = acts[j];
 
+        // Guard against undefined array access
+        if (!a1 || !a2) continue;
+
         // Skip activities without endTime
         if (!a1.endTime || !a2.endTime) continue;
 

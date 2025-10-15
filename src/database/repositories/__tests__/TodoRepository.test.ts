@@ -227,7 +227,7 @@ describe('TodoRepository', () => {
       const result = repository.getAll({ status: 'todo' });
 
       expect(result).toHaveLength(1);
-      expect(result[0].status).toBe('todo');
+      expect(result[0]!.status).toBe('todo');
     });
 
     it('should return empty array when no todos match status', () => {
@@ -255,7 +255,7 @@ describe('TodoRepository', () => {
       const result = repository.getAll({ priority: 'urgent' });
 
       expect(result).toHaveLength(1);
-      expect(result[0].priority).toBe('urgent');
+      expect(result[0]!.priority).toBe('urgent');
     });
   });
 
@@ -358,7 +358,7 @@ describe('TodoRepository', () => {
       const result = repository.getTags(1);
 
       expect(result).toHaveLength(2);
-      expect(result[0].name).toBe('work');
+      expect(result[0]!.name).toBe('work');
       expect(mockPrepare).toHaveBeenCalled();
     });
 
@@ -422,7 +422,7 @@ describe('TodoRepository', () => {
       const result = repository.getAllWithTags();
 
       expect(result).toHaveLength(1);
-      expect(result[0].tags).toBeDefined();
+      expect(result[0]!.tags).toBeDefined();
     });
   });
 
@@ -446,8 +446,8 @@ describe('TodoRepository', () => {
       const result = repository.getAllWithCategory();
 
       expect(result).toHaveLength(1);
-      expect(result[0].category?.name).toBe('Work');
-      expect(result[0].category?.color).toBe('#FF0000');
+      expect(result[0]!.category?.name).toBe('Work');
+      expect(result[0]!.category?.color).toBe('#FF0000');
     });
 
     it('should handle todos without categories', () => {
@@ -467,7 +467,7 @@ describe('TodoRepository', () => {
       const result = repository.getAllWithCategory();
 
       expect(result).toHaveLength(1);
-      expect(result[0].category).toBeUndefined();
+      expect(result[0]!.category).toBeUndefined();
     });
   });
 });

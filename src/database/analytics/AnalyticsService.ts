@@ -357,8 +357,13 @@ export class AnalyticsService {
     currentWeekEnd.setDate(currentWeekStart.getDate() + 6);
     currentWeekEnd.setHours(23, 59, 59, 999);
 
-    const weekStart = currentWeekStart.toISOString().split('T')[0];
-    const weekEnd = currentWeekEnd.toISOString().split('T')[0];
+    const weekStartValue = currentWeekStart.toISOString().split('T')[0];
+    const weekEndValue = currentWeekEnd.toISOString().split('T')[0];
+    if (!weekStartValue || !weekEndValue) {
+      throw new Error('Failed to generate week dates');
+    }
+    const weekStart = weekStartValue;
+    const weekEnd = weekEndValue;
 
     // Get total minutes for the week
     const totalStmt = this.db.prepare(`
@@ -556,7 +561,10 @@ export class AnalyticsService {
     }
 
     if (topCategories.length > 0) {
-      insights.push(`You focused most on ${topCategories[0].categoryName} this week.`);
+      const topCategory = topCategories[0];
+      if (topCategory) {
+        insights.push(`You focused most on ${topCategory.categoryName} this week.`);
+      }
     }
 
     const avgDaily = totalMinutes / 7;

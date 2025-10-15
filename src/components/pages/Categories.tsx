@@ -107,7 +107,8 @@ const Categories: React.FC = () => {
     const validation = validateFormData(categorySchema, editForm);
 
     if (!validation.success) {
-      showToast.error(Object.values(validation.errors)[0]);
+      const firstError = Object.values(validation.errors)[0];
+      showToast.error(firstError || 'Validation failed');
       return;
     }
 
@@ -167,7 +168,8 @@ const Categories: React.FC = () => {
     const validation = validateFormData(tagSchema, editForm);
 
     if (!validation.success) {
-      showToast.error(Object.values(validation.errors)[0]);
+      const firstError = Object.values(validation.errors)[0];
+      showToast.error(firstError || 'Validation failed');
       return;
     }
 

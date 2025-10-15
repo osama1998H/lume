@@ -225,7 +225,7 @@ describe('DatabaseManager - Pomodoro Methods', () => {
       expect(success).toBe(true);
 
       const sessions = dbManager.getPomodoroSessions();
-      expect(sessions[0].completed).toBe(true);
+      expect(sessions[0]!.completed).toBe(true);
     });
 
     it('should mark session as interrupted', () => {
@@ -247,7 +247,7 @@ describe('DatabaseManager - Pomodoro Methods', () => {
       expect(success).toBe(true);
 
       const sessions = dbManager.getPomodoroSessions();
-      expect(sessions[0].interrupted).toBe(true);
+      expect(sessions[0]!.interrupted).toBe(true);
     });
 
     it('should return false when no updates provided', () => {
@@ -292,7 +292,7 @@ describe('DatabaseManager - Pomodoro Methods', () => {
       expect(success).toBe(true);
 
       const sessions = dbManager.getPomodoroSessions();
-      expect(sessions[0].task).toBe('Updated Task');
+      expect(sessions[0]!.task).toBe('Updated Task');
     });
 
     it('should update multiple fields at once', () => {
@@ -315,9 +315,9 @@ describe('DatabaseManager - Pomodoro Methods', () => {
       expect(success).toBe(true);
 
       const sessions = dbManager.getPomodoroSessions();
-      expect(sessions[0].completed).toBe(true);
-      expect(sessions[0].interrupted).toBe(false);
-      expect(sessions[0].endTime).toBe('2025-01-01T10:25:00.000Z');
+      expect(sessions[0]!.completed).toBe(true);
+      expect(sessions[0]!.interrupted).toBe(false);
+      expect(sessions[0]!.endTime).toBe('2025-01-01T10:25:00.000Z');
     });
   });
 
@@ -379,8 +379,8 @@ describe('DatabaseManager - Pomodoro Methods', () => {
 
       const sessions = dbManager.getPomodoroSessions();
 
-      expect(sessions[0].task).toBe('Task 2'); // Most recent first
-      expect(sessions[1].task).toBe('Task 1');
+      expect(sessions[0]!.task).toBe('Task 2'); // Most recent first
+      expect(sessions[1]!.task).toBe('Task 1');
     });
 
     it('should respect limit parameter', () => {
@@ -414,10 +414,10 @@ describe('DatabaseManager - Pomodoro Methods', () => {
 
       const sessions = dbManager.getPomodoroSessions();
 
-      expect(typeof sessions[0].completed).toBe('boolean');
-      expect(typeof sessions[0].interrupted).toBe('boolean');
-      expect(sessions[0].completed).toBe(true);
-      expect(sessions[0].interrupted).toBe(false);
+      expect(typeof sessions[0]!.completed).toBe('boolean');
+      expect(typeof sessions[0]!.interrupted).toBe('boolean');
+      expect(sessions[0]!.completed).toBe(true);
+      expect(sessions[0]!.interrupted).toBe(false);
     });
   });
 

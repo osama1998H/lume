@@ -569,7 +569,7 @@ describe('GoalsService', () => {
         const needsAttention = await service.getGoalsNeedingAttention();
 
         expect(needsAttention).toHaveLength(1);
-        expect(needsAttention[0].goalId).toBe(1);
+        expect(needsAttention[0]!.goalId).toBe(1);
       });
 
       it('should not include goals below notification threshold', async () => {

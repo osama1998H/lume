@@ -78,6 +78,8 @@ const ActivityStatsPanel: React.FC<ActivityStatsPanelProps> = ({ activities, dat
     for (let i = 0; i < sortedActivities.length - 1; i++) {
       const current = sortedActivities[i];
       const next = sortedActivities[i + 1];
+      // Guard against undefined
+      if (!current || !next) continue;
       const gapStart = new Date(current.endTime);
       const gapEnd = new Date(next.startTime);
       const gapDuration = (gapEnd.getTime() - gapStart.getTime()) / 1000; // seconds

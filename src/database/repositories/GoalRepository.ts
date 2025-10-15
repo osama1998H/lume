@@ -201,7 +201,11 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
    * Get today's goals with their progress
    */
   getTodayGoalsWithProgress(): GoalWithProgress[] {
-    const today = new Date().toISOString().split('T')[0];
+    const todayValue = new Date().toISOString().split('T')[0];
+    if (!todayValue) {
+      throw new Error('Failed to get today\'s date');
+    }
+    const today = todayValue;
 
     const query = `
       SELECT
@@ -281,10 +285,19 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
    * Get achievement history for a goal
    */
   getAchievementHistory(goalId: number, days: number): GoalProgress[] {
-    const endDate = new Date().toISOString().split('T')[0];
+    const endDateValue = new Date().toISOString().split('T')[0];
+    if (!endDateValue) {
+      throw new Error('Failed to get end date');
+    }
+    const endDate = endDateValue;
+
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
-    const startDateStr = startDate.toISOString().split('T')[0];
+    const startDateValue = startDate.toISOString().split('T')[0];
+    if (!startDateValue) {
+      throw new Error('Failed to get start date');
+    }
+    const startDateStr = startDateValue;
 
     const query = `
       SELECT
@@ -314,7 +327,11 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
    * Get overall goal statistics
    */
   getStats(): GoalStats {
-    const today = new Date().toISOString().split('T')[0];
+    const todayValue = new Date().toISOString().split('T')[0];
+    if (!todayValue) {
+      throw new Error('Failed to get today\'s date');
+    }
+    const today = todayValue;
 
     // Get total and active goals
     const countQuery = `
@@ -361,7 +378,12 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
     todayDate.setHours(0, 0, 0, 0);
 
     for (let i = 0; i < dates.length; i++) {
-      const streakDate = new Date(dates[i].date);
+      const dateEntry = dates[i];
+      if (!dateEntry) {
+        break;
+      }
+
+      const streakDate = new Date(dateEntry.date);
       streakDate.setHours(0, 0, 0, 0);
 
       const expectedDate = new Date(todayDate);
@@ -382,8 +404,15 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
     for (let i = 0; i < dates.length; i++) {
       tempStreak = 1;
       for (let j = i; j < dates.length - 1; j++) {
-        const currentDate = new Date(dates[j].date);
-        const nextDate = new Date(dates[j + 1].date);
+        const currentEntry = dates[j];
+        const nextEntry = dates[j + 1];
+
+        if (!currentEntry || !nextEntry) {
+          break;
+        }
+
+        const currentDate = new Date(currentEntry.date);
+        const nextDate = new Date(nextEntry.date);
         const diffTime = currentDate.getTime() - nextDate.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -399,7 +428,11 @@ export class GoalRepository extends BaseRepository<ProductivityGoal> {
     // Calculate achievement rate (last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
+    const thirtyDaysAgoValue = thirtyDaysAgo.toISOString().split('T')[0];
+    if (!thirtyDaysAgoValue) {
+      throw new Error('Failed to get thirty days ago date');
+    }
+    const thirtyDaysAgoStr = thirtyDaysAgoValue;
 
     const achievementRateQuery = `
       SELECT

@@ -524,7 +524,7 @@ describe('GapDetection', () => {
 
       await waitFor(() => {
         const fillButtons = screen.getAllByText('Fill Gap');
-        fireEvent.click(fillButtons[0]);
+        fireEvent.click(fillButtons[0]!);
       });
 
       expect(mockOnCreateActivity).toHaveBeenCalledWith(mockGaps[0]);
@@ -540,7 +540,7 @@ describe('GapDetection', () => {
 
       await waitFor(() => {
         const fillButtons = screen.getAllByText('Fill Gap');
-        fireEvent.click(fillButtons[0]);
+        fireEvent.click(fillButtons[0]!);
       });
 
       // Should not throw error

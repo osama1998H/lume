@@ -48,6 +48,11 @@ const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = ({
   const hasNext = currentIndex < conflicts.length - 1;
   const hasPrev = currentIndex > 0;
 
+  // Guard against undefined conflict
+  if (!currentConflict) {
+    return null;
+  }
+
   // Format time for display
   const formatTime = (dateString: string): string => {
     return new Date(dateString).toLocaleTimeString('en-US', {

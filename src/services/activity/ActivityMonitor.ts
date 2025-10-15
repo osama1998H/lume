@@ -88,7 +88,12 @@ export class ActivityMonitor implements ActivityTracker {
       const match = stdout.match(/HIDIdleTime"\s*=\s*(\d+)/);
 
       if (match) {
-        const nanoseconds = parseInt(match[1], 10);
+        const matchedValue = match[1];
+        if (!matchedValue) {
+          console.error('Failed to parse macOS idle time: no match value');
+          return 0;
+        }
+        const nanoseconds = parseInt(matchedValue, 10);
         if (isNaN(nanoseconds)) {
           console.error('Failed to parse macOS idle time: invalid number');
           return 0;
@@ -165,7 +170,12 @@ export class ActivityMonitor implements ActivityTracker {
         const { stdout } = await execAsync('xssstate -i');
         const match = stdout.match(/idle:\s*(\d+)/);
         if (match) {
-          const seconds = parseInt(match[1], 10);
+          const matchedValue = match[1];
+          if (!matchedValue) {
+            console.error('Failed to parse Linux idle time from xssstate: no match value');
+            return 0;
+          }
+          const seconds = parseInt(matchedValue, 10);
           if (isNaN(seconds)) {
             console.error('Failed to parse Linux idle time from xssstate');
             return 0;
@@ -253,7 +263,7 @@ export class ActivityMonitor implements ActivityTracker {
           console.log(`🌐 Browser detected: ${browserInfo.domain} (via direct URL)`);
         } else {
           // Fallback to window title parsing
-          const fallbackInfo = await this.extractBrowserInfo(appName, windowTitle);
+          const fallbackInfo = await this.extractBrowserInfo(appName, windowTitle || '');
           if (fallbackInfo) {
             activity.domain = fallbackInfo.domain;
             activity.url = fallbackInfo.url;
@@ -369,13 +379,13 @@ export class ActivityMonitor implements ActivityTracker {
       const activity: CurrentActivity = {
         app_name: appName,
         window_title: windowTitle || '',
-        pid: parseInt(pid) || 0,
+        pid: pid ? parseInt(pid) : 0,
         is_browser: this.isBrowserApp(appName),
         timestamp: Date.now()
       };
 
       if (activity.is_browser) {
-        const browserInfo = await this.extractBrowserInfo(appName, windowTitle);
+        const browserInfo = await this.extractBrowserInfo(appName, windowTitle || '');
         if (browserInfo) {
           activity.domain = browserInfo.domain;
           activity.url = browserInfo.url;
@@ -398,8 +408,8 @@ export class ActivityMonitor implements ActivityTracker {
       const nameMatch = stdout.match(/WM_NAME\(STRING\) = "(.+)"/);
       const classMatch = stdout.match(/WM_CLASS\(STRING\) = "(.+)", "(.+)"/);
 
-      const windowTitle = nameMatch ? nameMatch[1] : '';
-      const appName = classMatch ? classMatch[2] : '';
+      const windowTitle = nameMatch?.[1] || '';
+      const appName = classMatch?.[2] || '';
 
       if (!appName) return null;
 
@@ -459,7 +469,7 @@ export class ActivityMonitor implements ActivityTracker {
           const possibleDomain = match[2];
 
           // Check if it looks like a domain
-          if (this.isValidDomain(possibleDomain)) {
+          if (possibleDomain && this.isValidDomain(possibleDomain)) {
             return {
               domain: possibleDomain,
               url: possibleDomain.startsWith('http') ? possibleDomain : undefined
@@ -471,18 +481,25 @@ export class ActivityMonitor implements ActivityTracker {
       // Fallback: look for URLs anywhere in the title
       const urlMatch = windowTitle.match(/https?:\/\/(www\.)?([^/\s]+)/);
       if (urlMatch) {
-        return {
-          domain: urlMatch[2],
-          url: urlMatch[0]
-        };
+        const domain = urlMatch[2];
+        const url = urlMatch[0];
+        if (domain && url) {
+          return {
+            domain,
+            url
+          };
+        }
       }
 
       // Last resort: extract domain-like strings
       const domainMatch = windowTitle.match(/([a-zA-Z0-9-]+\.[a-zA-Z]{2,})/);
       if (domainMatch) {
-        return {
-          domain: domainMatch[1]
-        };
+        const domain = domainMatch[1];
+        if (domain) {
+          return {
+            domain
+          };
+        }
       }
 
       return null;

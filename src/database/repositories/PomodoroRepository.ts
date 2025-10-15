@@ -219,7 +219,11 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
     today.setHours(0, 0, 0, 0);
 
     for (let i = 0; i < dates.length; i++) {
-      const sessionDate = new Date(dates[i].date);
+      const dateEntry = dates[i];
+      // Guard against undefined array access
+      if (!dateEntry) break;
+
+      const sessionDate = new Date(dateEntry.date);
       sessionDate.setHours(0, 0, 0, 0);
 
       const expectedDate = new Date(today);

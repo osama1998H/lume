@@ -88,7 +88,8 @@ const TagSelector: React.FC<TagSelectorProps> = ({
     try {
       // Generate a random color for the new tag
       const colors = ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#06B6D4', '#EC4899'];
-      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      const randomIndex = Math.floor(Math.random() * colors.length);
+      const randomColor = colors[randomIndex] || '#3B82F6'; // Fallback to first color
 
       const newTagId = await window.electronAPI.tags.add({
         name: searchQuery.trim(),

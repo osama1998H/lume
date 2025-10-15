@@ -33,6 +33,10 @@ export const InsightCard: React.FC<InsightCardProps> = ({ insight }) => {
         const match = insight.description.match(/(\w+) is your most productive day/);
         if (match) {
           const dayEn = match[1];
+          // Guard against undefined
+          if (!dayEn) {
+            return { title, description: insight.description };
+          }
           const day = t(`common.daysOfWeek.${dayEn}`, dayEn);
           const description = t('analytics.insightTypes.productiveDay.description', { day });
           return { title, description };
@@ -56,7 +60,12 @@ export const InsightCard: React.FC<InsightCardProps> = ({ insight }) => {
         const match = insight.description.match(/(.+) has (\d+) short sessions/);
         if (match) {
           const app = match[1];
-          const count = parseInt(match[2]);
+          const countStr = match[2];
+          // Guard against undefined
+          if (!app || !countStr) {
+            return { title, description: insight.description };
+          }
+          const count = parseInt(countStr);
           const description = t('analytics.insightTypes.distraction.description', { app, count });
           return { title, description };
         }
@@ -81,7 +90,12 @@ export const InsightCard: React.FC<InsightCardProps> = ({ insight }) => {
         // Extract days
         const match = insight.description.match(/(\d+) days?/);
         if (match) {
-          const days = parseInt(match[1]);
+          const daysStr = match[1];
+          // Guard against undefined
+          if (!daysStr) {
+            return { title, description: insight.description };
+          }
+          const days = parseInt(daysStr);
           const description = days >= 7
             ? t('analytics.insightTypes.streak.descriptionLong', { days })
             : days > 1

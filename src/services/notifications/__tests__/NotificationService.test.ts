@@ -127,7 +127,7 @@ describe('NotificationService', () => {
       service = new NotificationService(true, true);
       service.notifyFocusComplete('Test Task');
 
-      const mockNotification = (Notification as jest.MockedClass<typeof Notification>).mock.instances[0];
+      const mockNotification = (Notification as jest.MockedClass<typeof Notification>).mock.instances[0]!;
       expect(mockNotification.show).toHaveBeenCalled();
     });
   });

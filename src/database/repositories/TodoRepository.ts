@@ -227,7 +227,11 @@ export class TodoRepository extends BaseRepository<Todo> {
     }
 
     // Get overdue count (todos with due_date before today and status not completed)
-    const today = new Date().toISOString().split('T')[0];
+    const todayValue = new Date().toISOString().split('T')[0];
+    if (!todayValue) {
+      throw new Error('Failed to get today\'s date');
+    }
+    const today = todayValue;
     const overdueQuery = `
       SELECT COUNT(*) as overdue
       FROM ${this.tableName}
@@ -264,7 +268,11 @@ export class TodoRepository extends BaseRepository<Todo> {
    * Get overdue todos
    */
   getOverdue(): Todo[] {
-    const today = new Date().toISOString().split('T')[0];
+    const todayValue = new Date().toISOString().split('T')[0];
+    if (!todayValue) {
+      throw new Error('Failed to get today\'s date');
+    }
+    const today = todayValue;
 
     const query = `
       SELECT

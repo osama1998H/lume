@@ -95,6 +95,10 @@ function formatDate(dateStr: string, locale: string): string {
   } else if (dateStr.match(/^\d{4}-\d{2}$/)) {
     // Month format: 2025-01
     const [year, month] = dateStr.split('-');
+    // Guard against undefined
+    if (!year || !month) {
+      return dateStr;
+    }
     const date = new Date(parseInt(year), parseInt(month) - 1);
     return date.toLocaleDateString(lang, { month: 'short', year: 'numeric' });
   } else {
