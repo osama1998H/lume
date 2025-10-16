@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import {
@@ -38,20 +38,10 @@ const MCPIntegration: React.FC = () => {
   const [manualConfigClient, setManualConfigClient] = useState<MCPClient>('claude-desktop');
   const [manualConfig, setManualConfig] = useState<string>('');
 
-  // Fetch bridge status on mount
-  useEffect(() => {
-    loadBridgeStatus();
-  }, []);
-
-  // Load manual config when client changes
-  useEffect(() => {
-    loadManualConfig(manualConfigClient);
-  }, [manualConfigClient]);
-
   /**
    * Load HTTP Bridge status
    */
-  const loadBridgeStatus = async () => {
+  const loadBridgeStatus = useCallback(async () => {
     try {
       const status = await window.electronAPI.mcpConfig.getBridgeStatus();
       setBridgeStatus(status);
@@ -59,12 +49,12 @@ const MCPIntegration: React.FC = () => {
       logger.error('Failed to load bridge status:', {}, error instanceof Error ? error : undefined);
       toast.error(t('mcp.errors.bridgeStatusFailed'));
     }
-  };
+  }, [t]);
 
   /**
    * Load manual configuration for a client
    */
-  const loadManualConfig = async (client: MCPClient) => {
+  const loadManualConfig = useCallback(async (client: MCPClient) => {
     try {
       const config = await window.electronAPI.mcpConfig.generateConfig(client);
       setManualConfig(config);
@@ -72,7 +62,17 @@ const MCPIntegration: React.FC = () => {
       logger.error('Failed to generate config:', {}, error instanceof Error ? error : undefined);
       toast.error(t('mcp.errors.configGenerationFailed'));
     }
-  };
+  }, [t]);
+
+  // Fetch bridge status on mount
+  useEffect(() => {
+    loadBridgeStatus();
+  }, [loadBridgeStatus]);
+
+  // Load manual config when client changes
+  useEffect(() => {
+    loadManualConfig(manualConfigClient);
+  }, [loadManualConfig, manualConfigClient]);
 
   /**
    * Auto-configure a specific client

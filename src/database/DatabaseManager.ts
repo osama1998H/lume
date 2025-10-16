@@ -58,7 +58,6 @@ import type {
   ActivityConflict,
   UnifiedActivityStats,
   ActivitySourceType,
-  UnifiedActivityType,
 } from '../types';
 import type { ActivitySession } from '../types/activity';
 
