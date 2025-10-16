@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * CategoryMappingsHandlers - IPC handlers for category mappings
@@ -22,7 +23,7 @@ export class CategoryMappingsHandlers implements IIPCHandlerGroup {
       try {
         return await context.categoriesService?.getAppCategoryMappings() || [];
       } catch (error) {
-        console.error('Failed to get app category mappings:', error);
+        logger.error('Failed to get app category mappings:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -33,7 +34,7 @@ export class CategoryMappingsHandlers implements IIPCHandlerGroup {
       try {
         return await context.categoriesService?.addAppCategoryMapping(appName, categoryId) || null;
       } catch (error) {
-        console.error('Failed to add app category mapping:', error);
+        logger.error('Failed to add app category mapping:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });
@@ -44,7 +45,7 @@ export class CategoryMappingsHandlers implements IIPCHandlerGroup {
       try {
         return await context.categoriesService?.deleteAppCategoryMapping(id) || false;
       } catch (error) {
-        console.error('Failed to delete app category mapping:', error);
+        logger.error('Failed to delete app category mapping:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -55,7 +56,7 @@ export class CategoryMappingsHandlers implements IIPCHandlerGroup {
       try {
         return await context.categoriesService?.getDomainCategoryMappings() || [];
       } catch (error) {
-        console.error('Failed to get domain category mappings:', error);
+        logger.error('Failed to get domain category mappings:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -66,7 +67,7 @@ export class CategoryMappingsHandlers implements IIPCHandlerGroup {
       try {
         return await context.categoriesService?.addDomainCategoryMapping(domain, categoryId) || null;
       } catch (error) {
-        console.error('Failed to add domain category mapping:', error);
+        logger.error('Failed to add domain category mapping:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });
@@ -77,7 +78,7 @@ export class CategoryMappingsHandlers implements IIPCHandlerGroup {
       try {
         return await context.categoriesService?.deleteDomainCategoryMapping(id) || false;
       } catch (error) {
-        console.error('Failed to delete domain category mapping:', error);
+        logger.error('Failed to delete domain category mapping:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });

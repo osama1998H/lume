@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Category } from '../../types';
+import { Category } from '@/types';
 
 export interface CategorySelectorProps {
   selectedCategories: Category[];

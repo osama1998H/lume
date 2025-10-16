@@ -1,8 +1,8 @@
 import Database from 'better-sqlite3';
 import { BaseRepository } from '../base/BaseRepository';
 import { QueryOptions } from '../base/RepositoryTypes';
-import { PomodoroSession, PomodoroStats, Tag } from '../../types';
-import { DatabaseRow, QueryParameters } from '../../types/database';
+import { PomodoroSession, PomodoroStats, Tag } from '@/types';
+import { DatabaseRow, QueryParameters } from '@/types/database';
 
 /**
  * Repository for pomodoro_sessions table

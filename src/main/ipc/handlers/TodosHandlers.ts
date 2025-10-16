@@ -1,6 +1,7 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
-import type { Todo, TodoStatus, TodoPriority } from '../../../types';
+import type { Todo, TodoStatus, TodoPriority } from '@/types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * Args interfaces for type-safe IPC communication
@@ -43,7 +44,7 @@ export class TodosHandlers implements IIPCHandlerGroup {
         const todoId = context.dbManager?.addTodo(todo);
         return todoId || null;
       } catch (error) {
-        console.error('Failed to add todo:', error);
+        logger.error('Failed to add todo:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });
@@ -54,7 +55,7 @@ export class TodosHandlers implements IIPCHandlerGroup {
         const { id, updates } = args;
         return context.dbManager?.updateTodo(id, updates) || false;
       } catch (error) {
-        console.error('Failed to update todo:', error);
+        logger.error('Failed to update todo:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -65,7 +66,7 @@ export class TodosHandlers implements IIPCHandlerGroup {
         const { id } = args;
         return context.dbManager?.deleteTodo(id) || false;
       } catch (error) {
-        console.error('Failed to delete todo:', error);
+        logger.error('Failed to delete todo:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -75,7 +76,7 @@ export class TodosHandlers implements IIPCHandlerGroup {
       try {
         return context.dbManager?.getTodos(options) || [];
       } catch (error) {
-        console.error('Failed to get todos:', error);
+        logger.error('Failed to get todos:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -85,7 +86,7 @@ export class TodosHandlers implements IIPCHandlerGroup {
       try {
         return context.dbManager?.getTodo(id) || null;
       } catch (error) {
-        console.error('Failed to get todo:', error);
+        logger.error('Failed to get todo:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });
@@ -102,7 +103,7 @@ export class TodosHandlers implements IIPCHandlerGroup {
           avgCompletionTime: 0,
         };
       } catch (error) {
-        console.error('Failed to get todo stats:', error);
+        logger.error('Failed to get todo stats:', {}, error instanceof Error ? error : undefined);
         return {
           totalTodos: 0,
           completedTodos: 0,
@@ -119,7 +120,7 @@ export class TodosHandlers implements IIPCHandlerGroup {
       try {
         return context.dbManager?.getTodosWithCategory() || [];
       } catch (error) {
-        console.error('Failed to get todos with category:', error);
+        logger.error('Failed to get todos with category:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -129,7 +130,7 @@ export class TodosHandlers implements IIPCHandlerGroup {
       try {
         return context.dbManager?.linkTodoToTimeEntry(todoId, timeEntryId) || false;
       } catch (error) {
-        console.error('Failed to link todo to time entry:', error);
+        logger.error('Failed to link todo to time entry:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -139,7 +140,7 @@ export class TodosHandlers implements IIPCHandlerGroup {
       try {
         return context.dbManager?.incrementTodoPomodoro(todoId) || false;
       } catch (error) {
-        console.error('Failed to increment todo pomodoro:', error);
+        logger.error('Failed to increment todo pomodoro:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });

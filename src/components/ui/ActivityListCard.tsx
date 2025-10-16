@@ -3,7 +3,7 @@ import Badge from './Badge';
 import EmptyState from './EmptyState';
 import TagDisplay from './TagDisplay';
 import { Clock } from 'lucide-react';
-import { Tag } from '../../types';
+import { Tag } from '@/types';
 
 export interface ActivityItem {
   key: string | number;

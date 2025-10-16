@@ -1,8 +1,8 @@
 import Database from 'better-sqlite3';
 import { BaseRepository } from '../base/BaseRepository';
 import { QueryOptions } from '../base/RepositoryTypes';
-import { Category } from '../../types';
-import { QueryParameters } from '../../types/database';
+import { Category } from '@/types';
+import { QueryParameters } from '@/types/database';
 
 /**
  * Repository for categories table

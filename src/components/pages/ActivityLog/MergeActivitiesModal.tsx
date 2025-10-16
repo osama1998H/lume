@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, GitMerge, AlertTriangle, Check } from 'lucide-react';
-import type { UnifiedActivity } from '../../../types';
+import type { UnifiedActivity } from '@/types';
 import SourceTypeIcon from './SourceTypeIcon';
-import { formatDuration } from '../../../utils/format';
+import { formatDuration } from '@/utils/format';
+import { logger } from '@/services/logging/RendererLogger';
 
 interface SelectedActivity {
   id: number;
@@ -116,7 +117,7 @@ const MergeActivitiesModal: React.FC<MergeActivitiesModalProps> = ({
       await onMerge(mergedActivity);
       onClose();
     } catch (err) {
-      console.error('Failed to merge activities:', err);
+      logger.error('Failed to merge activities:', {}, err instanceof Error ? err : undefined);
       setError(t('activityLog.errors.mergeFailed', 'Failed to merge activities'));
     } finally {
       setIsMerging(false);

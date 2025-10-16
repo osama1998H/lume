@@ -1,8 +1,8 @@
 import Database from 'better-sqlite3';
 import { BaseRepository } from '../base/BaseRepository';
 import { QueryOptions } from '../base/RepositoryTypes';
-import { ProductivityGoal, GoalProgress, GoalWithProgress, GoalStats, Tag, GoalStatus } from '../../types';
-import { DatabaseRow } from '../../types/database';
+import { ProductivityGoal, GoalProgress, GoalWithProgress, GoalStats, Tag, GoalStatus } from '@/types';
+import { DatabaseRow } from '@/types/database';
 
 /**
  * Repository for productivity_goals and goal_progress tables

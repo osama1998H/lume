@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * PomodoroTimerHandlers - IPC handlers for pomodoro timer control
@@ -26,7 +27,7 @@ export class PomodoroTimerHandlers implements IIPCHandlerGroup {
             context.pomodoroService.start(task, sessionType, todoId);
           }
         } catch (error) {
-          console.error('Failed to start pomodoro session:', error);
+          logger.error('Failed to start pomodoro session:', {}, error instanceof Error ? error : undefined);
         }
       }
     );
@@ -39,7 +40,7 @@ export class PomodoroTimerHandlers implements IIPCHandlerGroup {
           context.pomodoroService.pause();
         }
       } catch (error) {
-        console.error('Failed to pause pomodoro session:', error);
+        logger.error('Failed to pause pomodoro session:', {}, error instanceof Error ? error : undefined);
       }
     });
 
@@ -51,7 +52,7 @@ export class PomodoroTimerHandlers implements IIPCHandlerGroup {
           context.pomodoroService.resume();
         }
       } catch (error) {
-        console.error('Failed to resume pomodoro session:', error);
+        logger.error('Failed to resume pomodoro session:', {}, error instanceof Error ? error : undefined);
       }
     });
 
@@ -63,7 +64,7 @@ export class PomodoroTimerHandlers implements IIPCHandlerGroup {
           context.pomodoroService.stop();
         }
       } catch (error) {
-        console.error('Failed to stop pomodoro session:', error);
+        logger.error('Failed to stop pomodoro session:', {}, error instanceof Error ? error : undefined);
       }
     });
 
@@ -75,7 +76,7 @@ export class PomodoroTimerHandlers implements IIPCHandlerGroup {
           context.pomodoroService.skip();
         }
       } catch (error) {
-        console.error('Failed to skip pomodoro session:', error);
+        logger.error('Failed to skip pomodoro session:', {}, error instanceof Error ? error : undefined);
       }
     });
 
@@ -94,7 +95,7 @@ export class PomodoroTimerHandlers implements IIPCHandlerGroup {
           }
         );
       } catch (error) {
-        console.error('Failed to get pomodoro status:', error);
+        logger.error('Failed to get pomodoro status:', {}, error instanceof Error ? error : undefined);
         return {
           state: 'idle',
           sessionType: 'focus',

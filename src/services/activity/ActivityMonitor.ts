@@ -1,6 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { CurrentActivity, ActivityTracker } from '../../types/activity';
+import { CurrentActivity, ActivityTracker } from '@/types/activity';
+import { logger } from '@/services/logging/Logger';
 
 const execAsync = promisify(exec);
 
@@ -68,11 +69,14 @@ export class ActivityMonitor implements ActivityTracker {
         case 'linux':
           return await this.getLinuxIdleTime();
         default:
-          console.warn(`Unsupported platform for idle time detection: ${platform}`);
+          logger.warn('Unsupported platform for idle time detection', { platform });
           return 0;
       }
     } catch (error) {
-      console.error(`Error getting system idle time on ${platform}:`, error);
+      logger.error('Error getting system idle time', {
+        platform,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       return 0;
     }
   }
@@ -86,12 +90,14 @@ export class ActivityMonitor implements ActivityTracker {
       if (match) {
         const matchedValue = match[1];
         if (!matchedValue) {
-          console.error('Failed to parse macOS idle time: no match value');
+          logger.error('Failed to parse macOS idle time: no match value');
           return 0;
         }
         const nanoseconds = parseInt(matchedValue, 10);
         if (isNaN(nanoseconds)) {
-          console.error('Failed to parse macOS idle time: invalid number');
+          logger.error('Failed to parse macOS idle time: invalid number', {
+            matchedValue
+          });
           return 0;
         }
         const seconds = Math.floor(nanoseconds / 1000000000); // Convert nanoseconds to seconds
@@ -100,7 +106,9 @@ export class ActivityMonitor implements ActivityTracker {
 
       return 0;
     } catch (error) {
-      console.error('Failed to get macOS idle time:', error);
+      logger.error('Failed to get macOS idle time', {
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       return 0;
     }
   }
@@ -139,13 +147,17 @@ export class ActivityMonitor implements ActivityTracker {
       const { stdout } = await execAsync(`powershell -EncodedCommand ${encodedScript}`);
       const milliseconds = parseInt(stdout.trim(), 10);
       if (isNaN(milliseconds)) {
-        console.error('Failed to parse Windows idle time: invalid number');
+        logger.error('Failed to parse Windows idle time: invalid number', {
+          stdout: stdout.trim()
+        });
         return 0;
       }
       const seconds = Math.floor(milliseconds / 1000);
       return seconds;
     } catch (error) {
-      console.error('Failed to get Windows idle time:', error);
+      logger.error('Failed to get Windows idle time', {
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       return 0;
     }
   }
@@ -168,12 +180,14 @@ export class ActivityMonitor implements ActivityTracker {
         if (match) {
           const matchedValue = match[1];
           if (!matchedValue) {
-            console.error('Failed to parse Linux idle time from xssstate: no match value');
+            logger.error('Failed to parse Linux idle time from xssstate: no match value');
             return 0;
           }
           const seconds = parseInt(matchedValue, 10);
           if (isNaN(seconds)) {
-            console.error('Failed to parse Linux idle time from xssstate');
+            logger.error('Failed to parse Linux idle time from xssstate', {
+              matchedValue
+            });
             return 0;
           }
           return seconds;
@@ -181,7 +195,9 @@ export class ActivityMonitor implements ActivityTracker {
         return 0;
       }
     } catch (error) {
-      console.error('Failed to get Linux idle time:', error);
+      logger.error('Failed to get Linux idle time', {
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       return 0;
     }
   }
@@ -193,7 +209,9 @@ export class ActivityMonitor implements ActivityTracker {
         this.currentActivity = activity;
       }
     } catch (error) {
-      console.error('❌ Failed to capture activity:', error);
+      logger.error('Failed to capture activity', {
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
     }
   }
 
@@ -209,11 +227,14 @@ export class ActivityMonitor implements ActivityTracker {
         case 'linux':
           return await this.getLinuxActivity();
         default:
-          console.warn(`Unsupported platform: ${platform}`);
+          logger.warn('Unsupported platform for activity detection', { platform });
           return null;
       }
     } catch (error) {
-      console.error(`Error detecting active window on ${platform}:`, error);
+      logger.error('Error detecting active window', {
+        platform,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       return null;
     }
   }
@@ -264,7 +285,9 @@ export class ActivityMonitor implements ActivityTracker {
 
       return activity;
     } catch (error) {
-      console.error('❌ macOS activity detection failed:', error);
+      logger.error('macOS activity detection failed', {
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       return null;
     }
   }
@@ -381,7 +404,9 @@ export class ActivityMonitor implements ActivityTracker {
 
       return activity;
     } catch (error) {
-      console.error('Windows activity detection failed:', error);
+      logger.error('Windows activity detection failed', {
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       return null;
     }
   }
@@ -418,7 +443,9 @@ export class ActivityMonitor implements ActivityTracker {
 
       return activity;
     } catch (error) {
-      console.error('Linux activity detection failed:', error);
+      logger.error('Linux activity detection failed', {
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       return null;
     }
   }
@@ -491,7 +518,10 @@ export class ActivityMonitor implements ActivityTracker {
 
       return null;
     } catch (error) {
-      console.error('Failed to extract browser info:', error);
+      logger.error('Failed to extract browser info', {
+        windowTitle: _appName,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       return null;
     }
   }

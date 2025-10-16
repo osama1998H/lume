@@ -5,7 +5,7 @@
     "moduleResolution": "node",
     "target": "ES2022",
     "outDir": "./dist/mcp",
-    "rootDir": "./src/mcp",
+    "rootDir": "./src",
     "noEmit": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -19,6 +19,6 @@
     "allowImportingTsExtensions": false,
     "types": ["node"]
   },
-  "include": ["src/mcp/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/mcp/**/*", "src/services/logging/Logger.ts"],
+  "exclude": ["node_modules", "dist", "src/services/logging/RendererLogger.ts"]
 }

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Save, Calendar, Clock } from 'lucide-react';
-import type { UnifiedActivity, Category, Tag } from '../../../types';
+import type { UnifiedActivity, Category, Tag } from '@/types';
+import { logger } from '@/services/logging/RendererLogger';
 
 interface ActivityEditModalProps {
   activity: UnifiedActivity;
@@ -134,7 +135,7 @@ const ActivityEditModal: React.FC<ActivityEditModalProps> = ({
       await onSave(updates);
       onClose();
     } catch (error) {
-      console.error('Failed to save activity:', error);
+      logger.error('Failed to save activity:', {}, error instanceof Error ? error : undefined);
       setErrors({
         save: t('activityLog.errors.saveFailed', 'Failed to save activity'),
       });

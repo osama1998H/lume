@@ -26,32 +26,33 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { registerAllTools } from './tools/index.js';
 import { registerAllResources } from './resources/index.js';
 import { checkBridgeHealth } from './utils/httpClient.js';
+import { logger } from '../services/logging/Logger';
 
 /**
  * Wait for HTTP Bridge to be available with retry logic
  */
 async function waitForBridge(maxRetries: number = 10, retryDelay: number = 2000): Promise<void> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    console.error(`🔍 Checking HTTP Bridge availability (attempt ${attempt}/${maxRetries})...`);
+    logger.error(`🔍 Checking HTTP Bridge availability (attempt ${attempt}/${maxRetries})...`);
 
     const isHealthy = await checkBridgeHealth();
     if (isHealthy) {
-      console.error('✅ HTTP Bridge is available');
+      logger.error('✅ HTTP Bridge is available');
       return;
     }
 
     if (attempt < maxRetries) {
-      console.error(`⏳ Bridge not ready yet, waiting ${retryDelay / 1000}s before retry...`);
+      logger.error(`⏳ Bridge not ready yet, waiting ${retryDelay / 1000}s before retry...`);
       await new Promise(resolve => setTimeout(resolve, retryDelay));
     }
   }
 
   // All retries exhausted
-  console.error('❌ HTTP Bridge is not available after multiple attempts.');
-  console.error('💡 Please ensure:');
-  console.error('   1. The Lume desktop application is running');
-  console.error('   2. The HTTP Bridge has started (check Lume logs)');
-  console.error('   3. The port file exists and is readable');
+  logger.error('❌ HTTP Bridge is not available after multiple attempts.');
+  logger.error('💡 Please ensure:');
+  logger.error('   1. The Lume desktop application is running');
+  logger.error('   2. The HTTP Bridge has started (check Lume logs)');
+  logger.error('   3. The port file exists and is readable');
   process.exit(1);
 }
 
@@ -60,7 +61,7 @@ async function waitForBridge(maxRetries: number = 10, retryDelay: number = 2000)
  */
 async function main() {
   try {
-    console.error('🚀 Starting Lume MCP Server...');
+    logger.error('🚀 Starting Lume MCP Server...');
 
     // Wait for HTTP Bridge to be available (with retries)
     await waitForBridge();
@@ -71,9 +72,9 @@ async function main() {
       version: '3.0.1',
     });
 
-    console.error('📋 Lume MCP Server v3.0.1');
-    console.error('📡 Transport: stdio');
-    console.error('🌉 Using HTTP Bridge to communicate with Lume app');
+    logger.error('📋 Lume MCP Server v3.0.1');
+    logger.error('📡 Transport: stdio');
+    logger.error('🌉 Using HTTP Bridge to communicate with Lume app');
 
     // Register all tools and resources
     registerAllTools(server);
@@ -85,10 +86,10 @@ async function main() {
     // Connect server to transport
     await server.connect(transport);
 
-    console.error('✅ Lume MCP Server started successfully');
-    console.error('⏳ Waiting for requests...');
+    logger.error('✅ Lume MCP Server started successfully');
+    logger.error('⏳ Waiting for requests...');
   } catch (error) {
-    console.error('❌ Fatal error during server startup:', error);
+    logger.error('❌ Fatal error during server startup', {}, error instanceof Error ? error : undefined);
     process.exit(1);
   }
 }
@@ -97,8 +98,8 @@ async function main() {
  * Graceful shutdown handler
  */
 function shutdown(signal: string) {
-  console.error(`\n📡 Received ${signal}, shutting down gracefully...`);
-  console.error('👋 Lume MCP Server stopped');
+  logger.error(`\n📡 Received ${signal}, shutting down gracefully...`);
+  logger.error('👋 Lume MCP Server stopped');
   process.exit(0);
 }
 
@@ -108,17 +109,17 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 
 // Handle uncaught errors
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught exception:', error);
+  logger.error('❌ Uncaught exception', {}, error instanceof Error ? error : undefined);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled promise rejection at:', promise, 'reason:', reason);
+  logger.error('❌ Unhandled promise rejection', { promise: String(promise), reason: String(reason) });
   process.exit(1);
 });
 
 // Start the server
 main().catch((error) => {
-  console.error('❌ Failed to start server:', error);
+  logger.error('❌ Failed to start server', {}, error instanceof Error ? error : undefined);
   process.exit(1);
 });

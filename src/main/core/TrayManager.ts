@@ -2,6 +2,7 @@ import { Tray, Menu, nativeImage, app } from 'electron';
 import { WindowManager } from './WindowManager';
 import { SettingsManager } from './SettingsManager';
 import { getIconPath } from '../utils';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * Interface for activity tracker (optional dependency)
@@ -100,7 +101,7 @@ export class TrayManager {
 
       // Validate icon loaded successfully
       if (icon.isEmpty()) {
-        console.warn(`⚠️  Failed to load tray icon from: ${iconPath}`);
+        logger.warn(`⚠️  Failed to load tray icon from: ${iconPath}`);
         return;
       }
 
@@ -133,7 +134,7 @@ export class TrayManager {
       });
 
     } catch (error) {
-      console.error('Failed to setup tray:', error);
+      logger.error('Failed to setup tray:', {}, error instanceof Error ? error : undefined);
     }
   }
 

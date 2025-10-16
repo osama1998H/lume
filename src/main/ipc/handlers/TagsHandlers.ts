@@ -1,6 +1,7 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
-import type { Tag } from '../../../types';
+import type { Tag } from '@/types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * Args interfaces for type-safe IPC communication
@@ -37,7 +38,7 @@ export class TagsHandlers implements IIPCHandlerGroup {
       try {
         return (await context.categoriesService?.getTags()) || [];
       } catch (error) {
-        console.error('Failed to get tags:', error);
+        logger.error('Failed to get tags:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -49,7 +50,7 @@ export class TagsHandlers implements IIPCHandlerGroup {
         const { tag } = args;
         return (await context.categoriesService?.addTag(tag)) || null;
       } catch (error) {
-        console.error('Failed to add tag:', error);
+        logger.error('Failed to add tag:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });
@@ -61,7 +62,7 @@ export class TagsHandlers implements IIPCHandlerGroup {
         const { id, updates } = args;
         return (await context.categoriesService?.updateTag(id, updates)) || false;
       } catch (error) {
-        console.error('Failed to update tag:', error);
+        logger.error('Failed to update tag:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -73,7 +74,7 @@ export class TagsHandlers implements IIPCHandlerGroup {
         const { id } = args;
         return (await context.categoriesService?.deleteTag(id)) || false;
       } catch (error) {
-        console.error('Failed to delete tag:', error);
+        logger.error('Failed to delete tag:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });

@@ -1,10 +1,10 @@
 import React from 'react';
 import { Clock, Calendar } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { UnifiedActivity } from '../../../types';
+import type { UnifiedActivity } from '@/types';
 import SourceTypeIcon from './SourceTypeIcon';
 import ConflictBadge from './ConflictBadge';
-import { formatDuration } from '../../../utils/format';
+import { formatDuration } from '@/utils/format';
 
 interface ActivityCardProps {
   activity: UnifiedActivity;

@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * TimelineHandlers - IPC handlers for timeline data
@@ -17,13 +18,13 @@ export class TimelineHandlers implements IIPCHandlerGroup {
     ipcMain.handle('get-timeline-activities', async (_, startDate: string, endDate: string) => {
       try {
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return [];
         }
         const activities = context.dbManager.getTimelineActivities(startDate, endDate);
         return activities;
       } catch (error) {
-        console.error('Failed to get timeline activities:', error);
+        logger.error('Failed to get timeline activities:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -33,7 +34,7 @@ export class TimelineHandlers implements IIPCHandlerGroup {
     ipcMain.handle('get-timeline-summary', async (_, startDate: string, endDate: string) => {
       try {
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return {
             totalActivities: 0,
             totalDuration: 0,
@@ -69,7 +70,7 @@ export class TimelineHandlers implements IIPCHandlerGroup {
           categoryBreakdown
         };
       } catch (error) {
-        console.error('Failed to get timeline summary:', error);
+        logger.error('Failed to get timeline summary:', {}, error instanceof Error ? error : undefined);
         return {
           totalActivities: 0,
           totalDuration: 0,

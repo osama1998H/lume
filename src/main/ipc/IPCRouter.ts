@@ -1,6 +1,7 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from './types';
 import { HTTPBridge } from './HTTPBridge';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * IPCRouter - Central router for IPC handler registration
@@ -40,7 +41,7 @@ export class IPCRouter {
     const groupName = handlerGroup.constructor.name;
 
     if (this.registeredGroups.includes(groupName)) {
-      console.warn(`⚠️  IPC handler group '${groupName}' already registered, skipping`);
+      logger.warn(`⚠️  IPC handler group '${groupName}' already registered, skipping`);
       return;
     }
 
@@ -74,7 +75,7 @@ export class IPCRouter {
         handlerGroup.register(this.ipcMain, this.context);
 
         this.registeredGroups.push(groupName);
-        console.log(`✅ Registered IPC handler group: ${groupName}`);
+        logger.info(`✅ Registered IPC handler group: ${groupName}`);
       } finally {
         // Always restore original handle function, even if registration throws
         if (this.httpBridge) {
@@ -82,7 +83,7 @@ export class IPCRouter {
         }
       }
     } catch (error) {
-      console.error(`❌ Failed to register IPC handler group '${groupName}':`, error);
+      logger.error(`❌ Failed to register IPC handler group '${groupName}'`, {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -92,7 +93,7 @@ export class IPCRouter {
    * @param handlerGroups - Array of handler groups to register
    */
   registerAll(handlerGroups: IIPCHandlerGroup[]): void {
-    console.log(`🔌 Registering ${handlerGroups.length} IPC handler groups...`);
+    logger.info(`🔌 Registering ${handlerGroups.length} IPC handler groups...`);
 
     let successCount = 0;
     let failCount = 0;
@@ -107,7 +108,7 @@ export class IPCRouter {
       }
     }
 
-    console.log(
+    logger.info(
       `✅ IPC registration complete: ${successCount} succeeded, ${failCount} failed`
     );
   }

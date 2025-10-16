@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { BehavioralInsight } from '../../../types';
+import type { BehavioralInsight } from '@/types';
 
 interface InsightCardProps {
   insight: BehavioralInsight;

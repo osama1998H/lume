@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, GitMerge, Clock, Trash2, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { UnifiedActivity } from '../../../types';
+import type { UnifiedActivity } from '@/types';
 import SourceTypeIcon from './SourceTypeIcon';
-import { formatDuration } from '../../../utils/format';
+import { formatDuration } from '@/utils/format';
+import { logger } from '@/services/logging/RendererLogger';
 
 interface ConflictData {
   type: 'overlap' | 'duplicate' | 'gap';
@@ -212,7 +213,7 @@ const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = ({
         onClose();
       }
     } catch (err) {
-      console.error('Failed to resolve conflict:', err);
+      logger.error('Failed to resolve conflict:', {}, err instanceof Error ? err : undefined);
       setError(t('activityLog.errors.resolutionFailed', 'Failed to resolve conflict'));
     } finally {
       setIsResolving(false);

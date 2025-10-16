@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { HeatmapDay } from '../../../types';
+import type { HeatmapDay } from '@/types';
 import { ChartCard } from './ChartCard';
 
 interface CalendarHeatmapProps {

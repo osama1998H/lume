@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * AnalyticsHandlers - IPC handlers for analytics and insights
@@ -24,13 +25,13 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
       try {
         const { startDate, endDate } = args;
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return [];
         }
         const stats = context.dbManager.getDailyProductivityStats(startDate, endDate);
         return stats;
       } catch (error) {
-        console.error('Failed to get daily productivity stats:', error);
+        logger.error('Failed to get daily productivity stats:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -41,13 +42,13 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
       try {
         const { days } = args;
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return [];
         }
         const patterns = context.dbManager.getHourlyPatterns(days);
         return patterns;
       } catch (error) {
-        console.error('Failed to get hourly patterns:', error);
+        logger.error('Failed to get hourly patterns:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -58,13 +59,13 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
       try {
         const { year } = args;
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return [];
         }
         const heatmapData = context.dbManager.getHeatmapData(year);
         return heatmapData;
       } catch (error) {
-        console.error('Failed to get heatmap data:', error);
+        logger.error('Failed to get heatmap data:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -75,7 +76,7 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
       try {
         const { weekOffset } = args;
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return {
             weekStart: '',
             weekEnd: '',
@@ -92,7 +93,7 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
         const summary = context.dbManager.getWeeklySummary(weekOffset);
         return summary;
       } catch (error) {
-        console.error('Failed to get weekly summary:', error);
+        logger.error('Failed to get weekly summary:', {}, error instanceof Error ? error : undefined);
         return {
           weekStart: '',
           weekEnd: '',
@@ -114,13 +115,13 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
       try {
         const { startDate, endDate, groupBy } = args;
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return [];
         }
         const trends = context.dbManager.getProductivityTrends(startDate, endDate, groupBy);
         return trends;
       } catch (error) {
-        console.error('Failed to get productivity trends:', error);
+        logger.error('Failed to get productivity trends:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -130,13 +131,13 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
     ipcMain.handle('get-behavioral-insights', async () => {
       try {
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return [];
         }
         const insights = context.dbManager.getBehavioralInsights();
         return insights;
       } catch (error) {
-        console.error('Failed to get behavioral insights:', error);
+        logger.error('Failed to get behavioral insights:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -146,7 +147,7 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
     ipcMain.handle('get-analytics-summary', async () => {
       try {
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return {
             productivityScore: 0,
             totalProductiveMinutes: 0,
@@ -159,7 +160,7 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
         const summary = context.dbManager.getAnalyticsSummary();
         return summary;
       } catch (error) {
-        console.error('Failed to get analytics summary:', error);
+        logger.error('Failed to get analytics summary:', {}, error instanceof Error ? error : undefined);
         return {
           productivityScore: 0,
           totalProductiveMinutes: 0,
@@ -177,13 +178,13 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
       try {
         const { days } = args;
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return [];
         }
         const analysis = context.dbManager.getDistractionAnalysis(days);
         return analysis;
       } catch (error) {
-        console.error('Failed to get distraction analysis:', error);
+        logger.error('Failed to get distraction analysis:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Target, TrendingUp, Award, Flame, Edit2, Trash2, Plus } from 'lucide-react';
-import { ProductivityGoal, GoalWithProgress, GoalStats, GoalType, GoalOperator, GoalPeriod, GoalStatus, Tag } from '../../types';
+import { ProductivityGoal, GoalWithProgress, GoalStats, GoalType, GoalOperator, GoalPeriod, GoalStatus, Tag } from '@/types';
 import StatCard from '../ui/StatCard';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
@@ -11,8 +11,9 @@ import { FormModal, ConfirmModal } from '../ui/Modal';
 import FormField, { SelectField } from '../ui/FormField';
 import TagSelector from '../ui/TagSelector';
 import TagDisplay from '../ui/TagDisplay';
-import { showToast } from '../../utils/toast';
+import { showToast } from '@/utils/toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { logger } from '@/services/logging/RendererLogger';
 
 interface CategoryData {
   id?: number;
@@ -85,7 +86,7 @@ const Goals: React.FC = () => {
         setGoals(goalsWithTags);
       }
     } catch (error) {
-      console.error('Failed to load goals:', error);
+      logger.error('Failed to load goals:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('goals.loadingGoals') || 'Failed to load goals');
     } finally {
       setIsLoading(false);
@@ -99,7 +100,7 @@ const Goals: React.FC = () => {
         setStats(statsData);
       }
     } catch (error) {
-      console.error('Failed to load stats:', error);
+      logger.error('Failed to load stats:', {}, error instanceof Error ? error : undefined);
     }
   }, []);
 
@@ -110,7 +111,7 @@ const Goals: React.FC = () => {
         setCategories(categoriesData);
       }
     } catch (error) {
-      console.error('Failed to load categories:', error);
+      logger.error('Failed to load categories:', {}, error instanceof Error ? error : undefined);
     }
   }, []);
 
@@ -121,7 +122,7 @@ const Goals: React.FC = () => {
         setApplications(appsData);
       }
     } catch (error) {
-      console.error('Failed to load applications:', error);
+      logger.error('Failed to load applications:', {}, error instanceof Error ? error : undefined);
     }
   }, []);
 
@@ -217,7 +218,7 @@ const Goals: React.FC = () => {
         await loadStats();
       }
     } catch (error) {
-      console.error('Failed to save goal:', error);
+      logger.error('Failed to save goal:', {}, error instanceof Error ? error : undefined);
       showToast.error(editingGoal ? t('goals.updateFailed') : t('goals.createFailed'));
     } finally {
       setIsSaving(false);
@@ -243,7 +244,7 @@ const Goals: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Failed to delete goal:', error);
+      logger.error('Failed to delete goal:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('goals.deleteFailed') || 'Failed to delete goal');
     } finally {
       setIsSaving(false);
@@ -261,7 +262,7 @@ const Goals: React.FC = () => {
         showToast.success(goal.active ? 'Goal paused' : 'Goal activated');
       }
     } catch (error) {
-      console.error('Failed to toggle goal:', error);
+      logger.error('Failed to toggle goal:', {}, error instanceof Error ? error : undefined);
       showToast.error('Failed to update goal status');
     }
   };

@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * MigrationRunner handles all database schema creation and migrations
@@ -15,7 +16,7 @@ export class MigrationRunner {
    * Run all migrations in order
    */
   runMigrations(): void {
-    console.log('🗄️  Running database migrations...');
+    logger.info('Running database migrations');
 
     this.createTimeTables();
     this.createPomodoroTables();
@@ -26,7 +27,7 @@ export class MigrationRunner {
     this.addMissingColumns();
     this.createIndexes();
 
-    console.log('✅ Database migrations complete');
+    logger.info('Database migrations complete');
   }
 
   /**

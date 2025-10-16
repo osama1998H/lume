@@ -1,8 +1,8 @@
 import { ActivityMonitor } from './ActivityMonitor';
-import { DatabaseManager } from '../../database/DatabaseManager';
-import { ActivitySession, CurrentActivity, ActivityTrackingSettings } from '../../types/activity';
+import { DatabaseManager } from '@/database/DatabaseManager';
+import { ActivitySession, CurrentActivity, ActivityTrackingSettings } from '@/types/activity';
 import { GoalsService } from '../goals/GoalsService';
-import { logger } from '../../main/utils/logger';
+import { logger } from '@/main/utils/logger';
 
 export class ActivityTrackingService {
   private monitor: ActivityMonitor;
@@ -105,7 +105,7 @@ export class ActivityTrackingService {
           this.resetIdleTimer();
         }
       } catch (error) {
-        console.error('Error polling activity:', error);
+        logger.error('Error polling activity:', error);
       }
 
       // Schedule next poll

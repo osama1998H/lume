@@ -1,4 +1,5 @@
-import { DatabaseManager } from '../../database/DatabaseManager';
+import { DatabaseManager } from '@/database/DatabaseManager';
+import { logger } from '@/services/logging/Logger';
 import {
   Category,
   Tag,
@@ -6,7 +7,7 @@ import {
   DomainCategoryMapping,
   CategoryStats,
   TagStats,
-} from '../../types';
+} from '@/types';
 
 export class CategoriesService {
   private db: DatabaseManager;
@@ -24,7 +25,7 @@ export class CategoriesService {
     try {
       return await this.db.getCategories();
     } catch (error) {
-      console.error('Failed to get categories:', error);
+      logger.error('Failed to get categories:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -36,7 +37,7 @@ export class CategoriesService {
     try {
       return await this.db.getCategoryById(id);
     } catch (error) {
-      console.error('Failed to get category by ID:', error);
+      logger.error('Failed to get category by ID:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -49,7 +50,7 @@ export class CategoriesService {
       const id = await this.db.addCategory(category);
       return id;
     } catch (error) {
-      console.error('Failed to add category:', error);
+      logger.error('Failed to add category:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -62,7 +63,7 @@ export class CategoriesService {
       const success = await this.db.updateCategory(id, updates);
       return success;
     } catch (error) {
-      console.error('Failed to update category:', error);
+      logger.error('Failed to update category:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -75,7 +76,7 @@ export class CategoriesService {
       const success = await this.db.deleteCategory(id);
       return success;
     } catch (error) {
-      console.error('Failed to delete category:', error);
+      logger.error('Failed to delete category:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -89,7 +90,7 @@ export class CategoriesService {
     try {
       return await this.db.getTags();
     } catch (error) {
-      console.error('Failed to get tags:', error);
+      logger.error('Failed to get tags:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -102,7 +103,7 @@ export class CategoriesService {
       const id = await this.db.addTag(tag);
       return id;
     } catch (error) {
-      console.error('Failed to add tag:', error);
+      logger.error('Failed to add tag:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -115,7 +116,7 @@ export class CategoriesService {
       const success = await this.db.updateTag(id, updates);
       return success;
     } catch (error) {
-      console.error('Failed to update tag:', error);
+      logger.error('Failed to update tag:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -128,7 +129,7 @@ export class CategoriesService {
       const success = await this.db.deleteTag(id);
       return success;
     } catch (error) {
-      console.error('Failed to delete tag:', error);
+      logger.error('Failed to delete tag:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -142,7 +143,7 @@ export class CategoriesService {
     try {
       return await this.db.getAppCategoryMappings();
     } catch (error) {
-      console.error('Failed to get app category mappings:', error);
+      logger.error('Failed to get app category mappings:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -155,7 +156,7 @@ export class CategoriesService {
       const id = await this.db.addAppCategoryMapping(appName, categoryId);
       return id;
     } catch (error) {
-      console.error('Failed to add app category mapping:', error);
+      logger.error('Failed to add app category mapping:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -168,7 +169,7 @@ export class CategoriesService {
       const success = await this.db.deleteAppCategoryMapping(id);
       return success;
     } catch (error) {
-      console.error('Failed to delete app category mapping:', error);
+      logger.error('Failed to delete app category mapping:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -180,7 +181,7 @@ export class CategoriesService {
     try {
       return await this.db.getCategoryIdForApp(appName);
     } catch (error) {
-      console.error('Failed to get category ID for app:', error);
+      logger.error('Failed to get category ID for app:', {}, error instanceof Error ? error : undefined);
       return null;
     }
   }
@@ -194,7 +195,7 @@ export class CategoriesService {
     try {
       return await this.db.getDomainCategoryMappings();
     } catch (error) {
-      console.error('Failed to get domain category mappings:', error);
+      logger.error('Failed to get domain category mappings:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -207,7 +208,7 @@ export class CategoriesService {
       const id = await this.db.addDomainCategoryMapping(domain, categoryId);
       return id;
     } catch (error) {
-      console.error('Failed to add domain category mapping:', error);
+      logger.error('Failed to add domain category mapping:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -220,7 +221,7 @@ export class CategoriesService {
       const success = await this.db.deleteDomainCategoryMapping(id);
       return success;
     } catch (error) {
-      console.error('Failed to delete domain category mapping:', error);
+      logger.error('Failed to delete domain category mapping:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -232,7 +233,7 @@ export class CategoriesService {
     try {
       return await this.db.getCategoryIdForDomain(domain);
     } catch (error) {
-      console.error('Failed to get category ID for domain:', error);
+      logger.error('Failed to get category ID for domain:', {}, error instanceof Error ? error : undefined);
       return null;
     }
   }
@@ -246,7 +247,7 @@ export class CategoriesService {
     try {
       await this.db.addTimeEntryTags(timeEntryId, tagIds);
     } catch (error) {
-      console.error('Failed to add tags to time entry:', error);
+      logger.error('Failed to add tags to time entry:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -258,7 +259,7 @@ export class CategoriesService {
     try {
       return await this.db.getTimeEntryTags(timeEntryId);
     } catch (error) {
-      console.error('Failed to get time entry tags:', error);
+      logger.error('Failed to get time entry tags:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -270,7 +271,7 @@ export class CategoriesService {
     try {
       await this.db.addAppUsageTags(appUsageId, tagIds);
     } catch (error) {
-      console.error('Failed to add tags to app usage:', error);
+      logger.error('Failed to add tags to app usage:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -282,7 +283,7 @@ export class CategoriesService {
     try {
       return await this.db.getAppUsageTags(appUsageId);
     } catch (error) {
-      console.error('Failed to get app usage tags:', error);
+      logger.error('Failed to get app usage tags:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -298,7 +299,7 @@ export class CategoriesService {
       const categoryId = await this.getCategoryIdForApp(appName);
       return categoryId;
     } catch (error) {
-      console.error('Failed to auto-categorize app:', error);
+      logger.error('Failed to auto-categorize app:', {}, error instanceof Error ? error : undefined);
       return null;
     }
   }
@@ -312,7 +313,7 @@ export class CategoriesService {
       const categoryId = await this.getCategoryIdForDomain(domain);
       return categoryId;
     } catch (error) {
-      console.error('Failed to auto-categorize domain:', error);
+      logger.error('Failed to auto-categorize domain:', {}, error instanceof Error ? error : undefined);
       return null;
     }
   }
@@ -324,7 +325,7 @@ export class CategoriesService {
    */
   async getCategoryStats(_startDate?: string, _endDate?: string): Promise<CategoryStats[]> {
     // This will be implemented in the next version with proper aggregation queries
-    console.warn('getCategoryStats: Not yet implemented');
+    logger.warn('getCategoryStats: Not yet implemented');
     return [];
   }
 
@@ -333,7 +334,7 @@ export class CategoriesService {
    */
   async getTagStats(_startDate?: string, _endDate?: string): Promise<TagStats[]> {
     // This will be implemented in the next version with proper aggregation queries
-    console.warn('getTagStats: Not yet implemented');
+    logger.warn('getTagStats: Not yet implemented');
     return [];
   }
 
@@ -363,7 +364,7 @@ export class CategoriesService {
       }
 
     } catch (error) {
-      console.error('Failed to initialize default categories:', error);
+      logger.error('Failed to initialize default categories:', {}, error instanceof Error ? error : undefined);
     }
   }
 }

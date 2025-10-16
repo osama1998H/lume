@@ -1,6 +1,7 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
 import type { Settings } from '../../core/SettingsManager';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * SettingsHandlers - IPC handlers for application settings management
@@ -24,7 +25,7 @@ export class SettingsHandlers implements IIPCHandlerGroup {
       try {
         return context.settingsManager.getSettings();
       } catch (error) {
-        console.error('Failed to get settings:', error);
+        logger.error('Failed to get settings:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });
@@ -35,7 +36,7 @@ export class SettingsHandlers implements IIPCHandlerGroup {
       try {
         // Only log in development to reduce noise in production
         if (process.env.NODE_ENV !== 'production') {
-          console.debug('💾 Saving settings:', JSON.stringify(settings, null, 2));
+          logger.debug('💾 Saving settings', { settings: JSON.stringify(settings, null, 2) });
         }
 
         // Get previous settings before saving
@@ -63,7 +64,7 @@ export class SettingsHandlers implements IIPCHandlerGroup {
 
         return success;
       } catch (error) {
-        console.error('❌ Failed to save settings:', error);
+        logger.error('❌ Failed to save settings:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });

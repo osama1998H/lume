@@ -1,6 +1,7 @@
 import { IpcMain, clipboard } from 'electron';
 import { IIPCHandlerGroup, IIPCHandlerContext } from '../types';
-import type { MCPClient } from '../../../types';
+import type { MCPClient } from '@/types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * IPC Handlers for MCP Configuration
@@ -20,7 +21,7 @@ export class MCPConfigHandlers implements IIPCHandlerGroup {
         const status = context.mcpConfigService.getHTTPBridgeStatus();
         return status;
       } catch (error) {
-        console.error('Failed to get bridge status:', error);
+        logger.error('Failed to get bridge status:', {}, error instanceof Error ? error : undefined);
         return { running: false, port: null };
       }
     });
@@ -37,7 +38,7 @@ export class MCPConfigHandlers implements IIPCHandlerGroup {
         const serverPath = context.mcpConfigService.getMCPServerPath();
         return serverPath;
       } catch (error) {
-        console.error('Failed to get MCP server path:', error);
+        logger.error('Failed to get MCP server path:', {}, error instanceof Error ? error : undefined);
         throw error;
       }
     });
@@ -56,7 +57,7 @@ export class MCPConfigHandlers implements IIPCHandlerGroup {
 
         return configJson;
       } catch (error) {
-        console.error(`Failed to generate config for ${client}:`, error);
+        logger.error(`Failed to generate config for ${client}`, {}, error instanceof Error ? error : undefined);
         throw error;
       }
     });
@@ -73,12 +74,12 @@ export class MCPConfigHandlers implements IIPCHandlerGroup {
         const result = await context.mcpConfigService.autoConfigure(client);
 
         if (!result.success) {
-          console.error(`❌ Failed to configure ${client}:`, result.message);
+          logger.error(`❌ Failed to configure ${client}`, { message: result.message });
         }
 
         return result;
       } catch (error) {
-        console.error(`❌ Failed to auto-configure ${client}:`, error);
+        logger.error(`❌ Failed to auto-configure ${client}`, {}, error instanceof Error ? error : undefined);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
         return {
@@ -100,7 +101,7 @@ export class MCPConfigHandlers implements IIPCHandlerGroup {
         const fileInfo = await context.mcpConfigService.detectConfigFile(client);
         return fileInfo;
       } catch (error) {
-        console.error(`Failed to detect config file for ${client}:`, error);
+        logger.error(`Failed to detect config file for ${client}`, {}, error instanceof Error ? error : undefined);
         return { exists: false, path: '' };
       }
     });
@@ -113,7 +114,7 @@ export class MCPConfigHandlers implements IIPCHandlerGroup {
         clipboard.writeText(text);
         return true;
       } catch (error) {
-        console.error('Failed to copy to clipboard:', error);
+        logger.error('Failed to copy to clipboard:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -129,7 +130,7 @@ export class MCPConfigHandlers implements IIPCHandlerGroup {
 
         return context.mcpConfigService.getClientDisplayName(client);
       } catch (error) {
-        console.error(`Failed to get display name for ${client}:`, error);
+        logger.error(`Failed to get display name for ${client}`, {}, error instanceof Error ? error : undefined);
         return client;
       }
     });

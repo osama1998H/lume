@@ -1,5 +1,6 @@
 import { createServer, IncomingMessage, ServerResponse, Server } from 'http';
 import { IIPCHandlerContext } from './types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * HTTP Bridge for IPC Handlers
@@ -36,7 +37,7 @@ export class HTTPBridge {
       this.server = createServer((req, res) => this.handleRequest(req, res));
 
       this.server.on('error', (error) => {
-        console.error('❌ HTTP Bridge server error:', error);
+        logger.error('❌ HTTP Bridge server error:', {}, error instanceof Error ? error : undefined);
         reject(error);
       });
 
@@ -44,7 +45,7 @@ export class HTTPBridge {
         const address = this.server!.address();
         if (address && typeof address === 'object') {
           this.port = address.port;
-          console.log(`✅ HTTP Bridge started on http://127.0.0.1:${this.port}`);
+          logger.info(`✅ HTTP Bridge started on http://127.0.0.1:${this.port}`);
           resolve(this.port);
         } else {
           reject(new Error('Failed to get server address'));
@@ -60,7 +61,7 @@ export class HTTPBridge {
     return new Promise((resolve) => {
       if (this.server) {
         this.server.close(() => {
-          console.log('✅ HTTP Bridge stopped');
+          logger.info('✅ HTTP Bridge stopped');
           this.server = null;
           resolve();
         });
@@ -96,7 +97,7 @@ export class HTTPBridge {
     // Security: Only accept requests from localhost
     const remoteAddress = req.socket.remoteAddress;
     if (remoteAddress !== '127.0.0.1' && remoteAddress !== '::1' && remoteAddress !== '::ffff:127.0.0.1') {
-      console.warn('⚠️  Rejected request from non-localhost address: %s', remoteAddress);
+      logger.warn('⚠️  Rejected request from non-localhost address', { remoteAddress });
       this.sendError(res, 403, 'Forbidden');
       return;
     }
@@ -150,13 +151,13 @@ export class HTTPBridge {
         // Send response
         this.sendSuccess(res, result);
       } catch (error) {
-        console.error('❌ Error handling IPC request for %s:', channel, error);
+        logger.error('❌ Error handling IPC request', { channel }, error instanceof Error ? error : undefined);
         this.sendError(res, 500, error instanceof Error ? error.message : 'Internal Server Error');
       }
     });
 
     req.on('error', (error) => {
-      console.error('❌ Request error:', error);
+      logger.error('❌ Request error:', {}, error instanceof Error ? error : undefined);
       this.sendError(res, 500, 'Request Error');
     });
   }

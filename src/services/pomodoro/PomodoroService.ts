@@ -1,7 +1,8 @@
 import { EventEmitter } from 'events';
-import { PomodoroSettings, PomodoroSession } from '../../types';
-import { DatabaseManager } from '../../database/DatabaseManager';
+import { PomodoroSettings, PomodoroSession } from '@/types';
+import { DatabaseManager } from '@/database/DatabaseManager';
 import { NotificationService } from '../notifications/NotificationService';
+import { logger } from '@/services/logging/Logger';
 
 export type PomodoroTimerState = 'idle' | 'running' | 'paused';
 export type SessionType = 'focus' | 'shortBreak' | 'longBreak';
@@ -80,7 +81,7 @@ export class PomodoroService extends EventEmitter {
    */
   start(task: string, sessionType: SessionType = 'focus', todoId?: number): void {
     if (this.state === 'running') {
-      console.warn('⚠️  Timer already running');
+      logger.warn('⚠️  Timer already running');
       return;
     }
 
@@ -130,7 +131,7 @@ export class PomodoroService extends EventEmitter {
    */
   pause(): void {
     if (this.state !== 'running') {
-      console.warn('⚠️  Timer not running');
+      logger.warn('⚠️  Timer not running');
       return;
     }
 
@@ -147,7 +148,7 @@ export class PomodoroService extends EventEmitter {
    */
   resume(): void {
     if (this.state !== 'paused') {
-      console.warn('⚠️  Timer not paused');
+      logger.warn('⚠️  Timer not paused');
       return;
     }
 
@@ -164,7 +165,7 @@ export class PomodoroService extends EventEmitter {
    */
   stop(): void {
     if (this.state === 'idle') {
-      console.warn('⚠️  Timer not active');
+      logger.warn('⚠️  Timer not active');
       return;
     }
 
@@ -189,7 +190,7 @@ export class PomodoroService extends EventEmitter {
    */
   skip(): void {
     if (this.state === 'idle') {
-      console.warn('⚠️  Timer not active');
+      logger.warn('⚠️  Timer not active');
       return;
     }
 

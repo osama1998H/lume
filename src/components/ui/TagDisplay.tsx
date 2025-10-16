@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tag } from '../../types';
+import { Tag } from '@/types';
 
 export interface TagDisplayProps {
   tags: Tag[];

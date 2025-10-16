@@ -7,7 +7,7 @@ import {
   ColumnMapping,
   TransactionFn,
 } from './RepositoryTypes';
-import { DatabaseRow, QueryParameters, QueryParameter } from '../../types/database';
+import { DatabaseRow, QueryParameters, QueryParameter } from '@/types/database';
 
 /**
  * Base repository class providing generic CRUD operations

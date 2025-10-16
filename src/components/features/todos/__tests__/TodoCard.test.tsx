@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import TodoCard from '../TodoCard';
-import { Todo, Category } from '../../../../types';
+import { Todo, Category } from '@/types';
 
 // Mock framer-motion
 jest.mock('framer-motion', () => ({

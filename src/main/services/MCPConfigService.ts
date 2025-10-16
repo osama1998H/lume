@@ -8,7 +8,8 @@ import type {
   MCPBridgeStatus,
   MCPConfigResult,
   MCPConfigFileInfo,
-} from '../../types';
+} from '@/types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * Service for managing MCP client configurations
@@ -28,11 +29,13 @@ export class MCPConfigService {
     // In production, the app is packaged and we need to find the resources path
     if (app.isPackaged) {
       // In packaged app, MCP server is in extraResources (outside app.asar for Node.js accessibility)
+      // electron-builder flattens dist/mcp/mcp/* to resources/mcp/*
       return path.join(process.resourcesPath, 'mcp', 'server.js');
     } else {
       // In development, use process.cwd() which is the project root directory
       // (app.getAppPath() returns dist/main when running electron dist/main/main.js)
-      return path.join(process.cwd(), 'dist', 'mcp', 'server.js');
+      // TypeScript compiles to dist/mcp/mcp/ due to rootDir: ./src preserving mcp/ path
+      return path.join(process.cwd(), 'dist', 'mcp', 'mcp', 'server.js');
     }
   }
 
@@ -135,7 +138,7 @@ export class MCPConfigService {
       const exists = await this.fileExists(configPath);
       return { exists, path: configPath };
     } catch (error) {
-      console.error(`Failed to detect config file for ${client}:`, error);
+      logger.error(`Failed to detect config file for ${client}`, {}, error instanceof Error ? error : undefined);
       return { exists: false, path: '' };
     }
   }
@@ -176,7 +179,7 @@ export class MCPConfigService {
       await fs.copyFile(filePath, backupPath);
       return backupPath;
     } catch (error) {
-      console.error('Failed to create config backup:', error);
+      logger.error('Failed to create config backup:', {}, error instanceof Error ? error : undefined);
       throw new Error('Failed to create backup file');
     }
   }
@@ -264,7 +267,7 @@ export class MCPConfigService {
         backupPath,
       };
     } catch (error) {
-      console.error(`❌ Failed to auto-configure ${client}:`, error);
+      logger.error(`❌ Failed to auto-configure ${client}`, {}, error instanceof Error ? error : undefined);
 
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 

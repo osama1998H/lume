@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * DataQualityHandlers - IPC handlers for data quality analysis and validation
@@ -24,7 +25,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
     ipcMain.handle('detect-activity-gaps', async (_, startDate: string, endDate: string, minGapMinutes = 5) => {
       try {
         if (!context.dbManager || !context.activityMergeService) {
-          console.error('❌ Services not initialized');
+          logger.error('❌ Services not initialized');
           return [];
         }
 
@@ -41,7 +42,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
 
         return filteredGaps;
       } catch (error) {
-        console.error('Failed to detect activity gaps:', error);
+        logger.error('Failed to detect activity gaps:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -51,7 +52,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
     ipcMain.handle('get-gap-statistics', async (_, startDate: string, endDate: string, minGapMinutes = 5) => {
       try {
         if (!context.dbManager || !context.activityMergeService) {
-          console.error('❌ Services not initialized');
+          logger.error('❌ Services not initialized');
           return { totalGaps: 0, totalUntrackedSeconds: 0, averageGapSeconds: 0, longestGapSeconds: 0 };
         }
 
@@ -74,7 +75,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
 
         return stats;
       } catch (error) {
-        console.error('Failed to get gap statistics:', error);
+        logger.error('Failed to get gap statistics:', {}, error instanceof Error ? error : undefined);
         return { totalGaps: 0, totalUntrackedSeconds: 0, averageGapSeconds: 0, longestGapSeconds: 0 };
       }
     });
@@ -84,7 +85,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
     ipcMain.handle('detect-duplicate-activities', async (_, startDate: string, endDate: string, similarityThreshold = 80) => {
       try {
         if (!context.dbManager || !context.activityValidationService) {
-          console.error('❌ Services not initialized');
+          logger.error('❌ Services not initialized');
           return [];
         }
 
@@ -121,7 +122,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
 
         return duplicateGroups;
       } catch (error) {
-        console.error('Failed to detect duplicate activities:', error);
+        logger.error('Failed to detect duplicate activities:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -131,7 +132,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
     ipcMain.handle('find-mergeable-groups', async (_, startDate: string, endDate: string, maxGapSeconds = 300) => {
       try {
         if (!context.dbManager || !context.activityMergeService) {
-          console.error('❌ Services not initialized');
+          logger.error('❌ Services not initialized');
           return [];
         }
 
@@ -141,7 +142,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
 
         return mergeableGroups;
       } catch (error) {
-        console.error('Failed to find mergeable groups:', error);
+        logger.error('Failed to find mergeable groups:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -151,7 +152,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
     ipcMain.handle('find-orphaned-activities', async (_, startDate: string, endDate: string) => {
       try {
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return [];
         }
 
@@ -170,7 +171,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
 
         return orphaned;
       } catch (error) {
-        console.error('Failed to find orphaned activities:', error);
+        logger.error('Failed to find orphaned activities:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -180,7 +181,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
     ipcMain.handle('validate-activities-batch', async (_, startDate: string, endDate: string) => {
       try {
         if (!context.dbManager || !context.activityValidationService) {
-          console.error('❌ Services not initialized');
+          logger.error('❌ Services not initialized');
           return { valid: [], invalid: [] };
         }
 
@@ -206,7 +207,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
 
         return { valid, invalid };
       } catch (error) {
-        console.error('Failed to validate activities batch:', error);
+        logger.error('Failed to validate activities batch:', {}, error instanceof Error ? error : undefined);
         return { valid: [], invalid: [] };
       }
     });
@@ -216,7 +217,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
     ipcMain.handle('recalculate-activity-durations', async (_, startDate: string, endDate: string) => {
       try {
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return { success: false, recalculated: 0, errors: [] };
         }
 
@@ -252,7 +253,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
 
         return { success: true, recalculated, errors };
       } catch (error) {
-        console.error('Failed to recalculate activity durations:', error);
+        logger.error('Failed to recalculate activity durations:', {}, error instanceof Error ? error : undefined);
         return {
           success: false,
           recalculated: 0,
@@ -266,7 +267,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
     ipcMain.handle('find-zero-duration-activities', async (_, startDate: string, endDate: string, removeIfConfirmed = false) => {
       try {
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return { activities: [], removed: 0 };
         }
 
@@ -284,7 +285,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
 
         return { activities: zeroDuration, removed: 0 };
       } catch (error) {
-        console.error('Failed to find zero-duration activities:', error);
+        logger.error('Failed to find zero-duration activities:', {}, error instanceof Error ? error : undefined);
         return { activities: [], removed: 0 };
       }
     });
@@ -294,7 +295,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
     ipcMain.handle('get-data-quality-report', async (_, startDate: string, endDate: string) => {
       try {
         if (!context.dbManager || !context.activityValidationService || !context.activityMergeService) {
-          console.error('❌ Services not initialized');
+          logger.error('❌ Services not initialized');
           return {
             totalActivities: 0,
             validActivities: 0,
@@ -376,7 +377,7 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
 
         return report;
       } catch (error) {
-        console.error('Failed to generate data quality report:', error);
+        logger.error('Failed to generate data quality report:', {}, error instanceof Error ? error : undefined);
         return {
           totalActivities: 0,
           validActivities: 0,

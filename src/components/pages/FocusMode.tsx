@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Play, Pause, Square, SkipForward, Coffee, TrendingUp, Award } from 'lucide-react';
-import { PomodoroStats, Tag, Todo } from '../../types';
-import { usePomodoro, SessionType } from '../../contexts/PomodoroContext';
+import { PomodoroStats, Tag, Todo } from '@/types';
+import { usePomodoro, SessionType } from '@/contexts/PomodoroContext';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import StatCard from '../ui/StatCard';
 import Skeleton from '../ui/Skeleton';
 import TagSelector from '../ui/TagSelector';
 import { TodoSelectorSuffix } from '../ui/TodoSelectorSuffix';
+import { logger } from '@/services/logging/RendererLogger';
 
 const FocusMode: React.FC = () => {
   const { t } = useTranslation();
@@ -49,7 +50,7 @@ const FocusMode: React.FC = () => {
         setTodos(activeTodos);
       }
     } catch (error) {
-      console.error('Failed to load todos:', error);
+      logger.error('Failed to load todos:', {}, error instanceof Error ? error : undefined);
     }
   };
 
@@ -61,7 +62,7 @@ const FocusMode: React.FC = () => {
         setStats(pomodoroStats);
       }
     } catch (error) {
-      console.error('Failed to load pomodoro stats:', error);
+      logger.error('Failed to load pomodoro stats:', {}, error instanceof Error ? error : undefined);
     }
   };
 
@@ -78,7 +79,7 @@ const FocusMode: React.FC = () => {
           .filter((id): id is number => id != null);
         await window.electronAPI.tagAssociations.pomodoroSessions.add(status.currentSessionId, tagIds);
       } catch (error) {
-        console.error('Failed to add tags to pomodoro session:', error);
+        logger.error('Failed to add tags to pomodoro session:', {}, error instanceof Error ? error : undefined);
       }
     }
 
@@ -87,7 +88,7 @@ const FocusMode: React.FC = () => {
       try {
         await window.electronAPI.todos.incrementPomodoro(selectedTodo);
       } catch (error) {
-        console.error('Failed to increment pomodoro count:', error);
+        logger.error('Failed to increment pomodoro count:', {}, error instanceof Error ? error : undefined);
       }
     }
 

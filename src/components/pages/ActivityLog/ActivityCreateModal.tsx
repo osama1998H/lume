@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Save, Calendar, Clock, Plus, AlertTriangle } from 'lucide-react';
-import type { Category, Tag } from '../../../types';
+import type { Category, Tag } from '@/types';
+import { logger } from '@/services/logging/RendererLogger';
 
 interface ActivityCreateModalProps {
   categories: Category[];
@@ -185,7 +186,7 @@ const ActivityCreateModal: React.FC<ActivityCreateModalProps> = ({
       await onCreate(newActivity);
       onClose();
     } catch (error) {
-      console.error('Failed to create activity:', error);
+      logger.error('Failed to create activity:', {}, error instanceof Error ? error : undefined);
       setErrors({
         save: t('activityLog.errors.createFailed', 'Failed to create activity'),
       });

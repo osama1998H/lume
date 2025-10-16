@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { CalendarHeatmap } from '../CalendarHeatmap';
-import type { HeatmapDay } from '../../../../types';
+import type { HeatmapDay } from '@/types';
 
 // Mock i18n
 jest.mock('react-i18next', () => ({

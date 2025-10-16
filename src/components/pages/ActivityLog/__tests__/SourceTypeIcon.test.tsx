@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import SourceTypeIcon from '../SourceTypeIcon';
-import type { ActivitySourceType } from '../../../../types';
+import type { ActivitySourceType } from '@/types';
 
 // Mock lucide-react icons
 jest.mock('lucide-react', () => ({

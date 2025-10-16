@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { InsightCard } from '../InsightCard';
-import type { BehavioralInsight } from '../../../../types';
+import type { BehavioralInsight } from '@/types';
 
 // Mock i18n
 jest.mock('react-i18next', () => ({

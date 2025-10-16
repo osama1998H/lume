@@ -13,9 +13,10 @@ import {
 import { motion } from 'framer-motion';
 import Modal from '../ui/Modal';
 import DateRangeFilter from '../ui/DateRangeFilter';
-import { formatDuration as formatDurationUtil } from '../../utils/format';
-import { useActivityLog } from '../../contexts/ActivityLogContext';
-import type { UnifiedActivity, UnifiedActivityFilters } from '../../types';
+import { formatDuration as formatDurationUtil } from '@/utils/format';
+import { useActivityLog } from '@/contexts/ActivityLogContext';
+import type { UnifiedActivity, UnifiedActivityFilters } from '@/types';
+import { logger } from '@/services/logging/RendererLogger';
 
 interface TimelineProps {
   dateRange?: { start: Date; end: Date };
@@ -135,7 +136,7 @@ const Timeline: React.FC<TimelineProps> = ({ dateRange: externalDateRange, onAct
         detectLocalConflicts(activitiesData);
       }
     } catch (error) {
-      console.error('Failed to fetch timeline data:', error);
+      logger.error('Failed to fetch timeline data:', {}, error instanceof Error ? error : undefined);
     } finally {
       setLoading(false);
     }
@@ -375,7 +376,7 @@ const Timeline: React.FC<TimelineProps> = ({ dateRange: externalDateRange, onAct
         // Refresh data
         await fetchTimelineData();
       } catch (error) {
-        console.error('Failed to update activity:', error);
+        logger.error('Failed to update activity:', {}, error instanceof Error ? error : undefined);
         // Revert on error
         await fetchTimelineData();
       }

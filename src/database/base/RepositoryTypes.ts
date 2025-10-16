@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import { QueryParameter } from '../../types/database';
+import { QueryParameter } from '@/types/database';
 
 /**
  * Base entity interface - all entities should have an optional id

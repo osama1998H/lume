@@ -5,12 +5,13 @@ import { registerCategoryTools } from './categories.js';
 import { registerAnalyticsTools } from './analytics.js';
 import { registerGoalTools } from './goals.js';
 import { registerTagTools } from './tags.js';
+import { logger } from '../../services/logging/Logger';
 
 /**
  * Register all MCP tools with the server
  */
 export function registerAllTools(server: McpServer) {
-  console.error('📝 Registering MCP tools...');
+  logger.error('📝 Registering MCP tools...');
 
   // Register tool groups
   registerTodoTools(server);
@@ -20,5 +21,5 @@ export function registerAllTools(server: McpServer) {
   registerTagTools(server);
   registerAnalyticsTools(server);
 
-  console.error('✅ All MCP tools registered');
+  logger.error('✅ All MCP tools registered');
 }

@@ -8,7 +8,7 @@ import {
   BehavioralInsight,
   AnalyticsSummary,
   CategoryTime,
-} from '../../types';
+} from '@/types';
 import {
   DailyStatsQueryRow,
   CategoryTimeQueryRow,
@@ -27,7 +27,7 @@ import {
   StreakQueryRow,
   AnalyticsSummaryProductiveQueryRow,
   AnalyticsSummaryAvgFocusQueryRow,
-} from '../../types/dtos';
+} from '@/types/dtos';
 
 /**
  * Service for analytics and statistics calculations

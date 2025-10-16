@@ -1,7 +1,7 @@
 import { DatabaseManager } from '../DatabaseManager';
 import Database from 'better-sqlite3';
 import { app } from 'electron';
-import { ActivitySession } from '../../types/activity';
+import { ActivitySession } from '@/types/activity';
 
 // Mock better-sqlite3
 jest.mock('better-sqlite3');

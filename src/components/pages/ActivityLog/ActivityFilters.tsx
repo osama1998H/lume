@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, X, Filter, Save, ChevronDown, Trash2 } from 'lucide-react';
-import { useActivityLog } from '../../../contexts/ActivityLogContext';
-import { useDebounce } from '../../../hooks/useDebounce';
-import type { UnifiedActivityFilters, Category, Tag, ActivitySourceType } from '../../../types';
+import { useActivityLog } from '@/contexts/ActivityLogContext';
+import { useDebounce } from '@/hooks/useDebounce';
+import type { UnifiedActivityFilters, Category, Tag, ActivitySourceType } from '@/types';
 import DateRangeFilter from '../../ui/DateRangeFilter';
 import TagSelector from '../../ui/TagSelector';
 import CategorySelector from '../../ui/CategorySelector';
 import DurationRangeInput from '../../ui/DurationRangeInput';
+import { logger } from '@/services/logging/RendererLogger';
 
 interface FilterPreset {
   id: string;
@@ -58,7 +59,7 @@ const ActivityFilters: React.FC<ActivityFiltersProps> = ({ categories, tags, onC
       try {
         setPresets(JSON.parse(savedPresets));
       } catch (error) {
-        console.error('Failed to load filter presets:', error);
+        logger.error('Failed to load filter presets:', {}, error instanceof Error ? error : undefined);
       }
     }
   }, []);

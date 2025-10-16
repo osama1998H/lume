@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * PomodoroSettingsHandlers - IPC handlers for pomodoro settings management
@@ -33,7 +34,7 @@ export class PomodoroSettingsHandlers implements IIPCHandlerGroup {
           dailyGoal: 8,
         };
       } catch (error) {
-        console.error('Failed to get pomodoro settings:', error);
+        logger.error('Failed to get pomodoro settings:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });
@@ -57,7 +58,7 @@ export class PomodoroSettingsHandlers implements IIPCHandlerGroup {
 
         return success;
       } catch (error) {
-        console.error('Failed to save pomodoro settings:', error);
+        logger.error('Failed to save pomodoro settings:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });

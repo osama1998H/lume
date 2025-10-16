@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import GapDetection from '../GapDetection';
-import type { TimeGap } from '../../../../types';
+import type { TimeGap } from '@/types';
 
 // Mock i18n
 jest.mock('react-i18next', () => ({

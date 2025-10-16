@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, Upload, Trash2, Settings as SettingsIcon, Activity, Database, Info, Wifi } from 'lucide-react';
-import { useLanguage } from '../../hooks/useLanguage';
-import { useTheme, Theme } from '../../contexts/ThemeContext';
+import { useLanguage } from '@/hooks/useLanguage';
+import { useTheme, Theme } from '@/contexts/ThemeContext';
 import Button from '../ui/Button';
 import Skeleton from '../ui/Skeleton';
 import { ConfirmModal } from '../ui/Modal';
-import { showToast } from '../../utils/toast';
+import { showToast } from '@/utils/toast';
 import MCPIntegration from './MCPIntegration';
-import type { Category } from '../../types';
+import type { Category } from '@/types';
+import { logger } from '@/services/logging/RendererLogger';
 
 type SettingsTab = 'general' | 'tracking' | 'data' | 'mcp' | 'about';
 
@@ -72,7 +73,7 @@ const Settings: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Failed to load settings:', error);
+      logger.error('Failed to load settings:', {}, error instanceof Error ? error : undefined);
     } finally {
       setIsLoading(false);
     }
@@ -85,7 +86,7 @@ const Settings: React.FC = () => {
         setIsTracking(status);
       }
     } catch (error) {
-      console.error('Failed to load tracking status:', error);
+      logger.error('Failed to load tracking status:', {}, error instanceof Error ? error : undefined);
     }
   };
 
@@ -96,7 +97,7 @@ const Settings: React.FC = () => {
         setCategories(fetchedCategories);
       }
     } catch (error) {
-      console.error('Failed to load categories:', error);
+      logger.error('Failed to load categories:', {}, error instanceof Error ? error : undefined);
     }
   };
 
@@ -132,7 +133,7 @@ const Settings: React.FC = () => {
 
         // Only update state if API call succeeded
         if (!apiSuccess) {
-          console.error('❌ Failed to toggle tracking state');
+          logger.error('❌ Failed to toggle tracking state');
           return;
         }
 
@@ -151,9 +152,9 @@ const Settings: React.FC = () => {
           // Only update UI state after both API and save succeed
           setIsTracking(newTrackingState);
           setSettings(updatedSettings);
-          console.log(`✅ Activity tracking ${newTrackingState ? 'enabled' : 'disabled'} and saved to settings`);
+          logger.info(`✅ Activity tracking ${newTrackingState ? 'enabled' : 'disabled'} and saved to settings`);
         } else {
-          console.error('❌ Failed to save tracking state to settings');
+          logger.error('❌ Failed to save tracking state to settings');
           // Rollback the tracking state since save failed
           if (newTrackingState) {
             await window.electronAPI.activityTracking.stop();
@@ -163,7 +164,7 @@ const Settings: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('❌ Failed to toggle activity tracking:', error);
+      logger.error('❌ Failed to toggle activity tracking:', {}, error instanceof Error ? error : undefined);
     }
   };
 
@@ -182,7 +183,7 @@ const Settings: React.FC = () => {
         showToast.error(t('settings.settingsFunctionalityUnavailable'));
       }
     } catch (error) {
-      console.error('Failed to save settings:', error);
+      logger.error('Failed to save settings:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('settings.settingsSaveFailed'));
     } finally {
       setIsSaving(false);
@@ -204,12 +205,12 @@ const Settings: React.FC = () => {
 
       if (result.success && result.filePath) {
         showToast.success(t('settings.exportSuccess'));
-        console.log(`✅ Data exported to: ${result.filePath}`);
+        logger.info(`✅ Data exported to: ${result.filePath}`);
       } else {
         showToast.error(result.error || t('settings.exportFailed'));
       }
     } catch (error) {
-      console.error('Failed to export data:', error);
+      logger.error('Failed to export data:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('settings.exportFailed'));
     }
   };
@@ -234,10 +235,10 @@ const Settings: React.FC = () => {
             count: result.recordsImported
           })
         );
-        console.log(`✅ Imported ${result.recordsImported} records`);
+        logger.info(`✅ Imported ${result.recordsImported} records`);
 
         if (result.warnings.length > 0) {
-          console.warn('Import warnings:', result.warnings);
+          logger.warn('Import warnings:', result.warnings);
         }
 
         // Reload the app after successful import to refresh all data
@@ -249,7 +250,7 @@ const Settings: React.FC = () => {
         showToast.error(errorMessage);
       }
     } catch (error) {
-      console.error('Failed to import data:', error);
+      logger.error('Failed to import data:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('settings.importFailed'));
     }
   };
@@ -293,7 +294,7 @@ const Settings: React.FC = () => {
         showToast.error(t('settings.clearDataFailed'));
       }
     } catch (error) {
-      console.error('Failed to clear data:', error);
+      logger.error('Failed to clear data:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('settings.clearDataFailed'));
     }
   };

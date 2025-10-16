@@ -1,6 +1,7 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
-import type { AppUsage } from '../../../types';
+import type { AppUsage } from '@/types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * AppUsageHandlers - IPC handlers for application usage tracking
@@ -18,7 +19,7 @@ export class AppUsageHandlers implements IIPCHandlerGroup {
       try {
         // Only log in development; redact PII fields (url, windowTitle)
         if (process.env.NODE_ENV !== 'production') {
-          console.debug('Add app usage:', {
+          logger.debug('Add app usage:', {
             ...usage,
             url: usage.url ? '[redacted]' : undefined,
             windowTitle: usage.windowTitle ? '[redacted]' : undefined,
@@ -26,7 +27,7 @@ export class AppUsageHandlers implements IIPCHandlerGroup {
         }
         return context.dbManager?.addAppUsage(usage as AppUsage) || null;
       } catch (error) {
-        console.error('Failed to add app usage:', error);
+        logger.error('Failed to add app usage:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });

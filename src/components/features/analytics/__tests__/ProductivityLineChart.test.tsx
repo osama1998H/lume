@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ProductivityLineChart } from '../ProductivityLineChart';
-import type { ProductivityTrend } from '../../../../types';
+import type { ProductivityTrend } from '@/types';
 
 // Mock i18n
 jest.mock('react-i18next', () => ({

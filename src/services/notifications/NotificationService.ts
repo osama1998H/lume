@@ -1,4 +1,5 @@
 import { Notification } from 'electron';
+import { logger } from '../logging/Logger';
 
 export type NotificationType = 'sessionComplete' | 'breakComplete' | 'timeToFocus';
 
@@ -35,7 +36,11 @@ export class NotificationService {
 
       notification.show();
     } catch (error) {
-      console.error('❌ Failed to show notification:', error);
+      logger.error('Failed to show notification', {
+        type: _type,
+        title: config.title,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
     }
   }
 

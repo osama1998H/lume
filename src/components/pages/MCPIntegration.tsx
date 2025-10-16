@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import {
@@ -13,7 +13,8 @@ import {
   Info,
 } from 'lucide-react';
 import Button from '../ui/Button';
-import type { MCPClient, MCPBridgeStatus, MCPConfigResult } from '../../types';
+import type { MCPClient, MCPBridgeStatus, MCPConfigResult } from '@/types';
+import { logger } from '@/services/logging/RendererLogger';
 
 /**
  * MCPIntegration Component
@@ -37,41 +38,41 @@ const MCPIntegration: React.FC = () => {
   const [manualConfigClient, setManualConfigClient] = useState<MCPClient>('claude-desktop');
   const [manualConfig, setManualConfig] = useState<string>('');
 
-  // Fetch bridge status on mount
-  useEffect(() => {
-    loadBridgeStatus();
-  }, []);
-
-  // Load manual config when client changes
-  useEffect(() => {
-    loadManualConfig(manualConfigClient);
-  }, [manualConfigClient]);
-
   /**
    * Load HTTP Bridge status
    */
-  const loadBridgeStatus = async () => {
+  const loadBridgeStatus = useCallback(async () => {
     try {
       const status = await window.electronAPI.mcpConfig.getBridgeStatus();
       setBridgeStatus(status);
     } catch (error) {
-      console.error('Failed to load bridge status:', error);
+      logger.error('Failed to load bridge status:', {}, error instanceof Error ? error : undefined);
       toast.error(t('mcp.errors.bridgeStatusFailed'));
     }
-  };
+  }, [t]);
 
   /**
    * Load manual configuration for a client
    */
-  const loadManualConfig = async (client: MCPClient) => {
+  const loadManualConfig = useCallback(async (client: MCPClient) => {
     try {
       const config = await window.electronAPI.mcpConfig.generateConfig(client);
       setManualConfig(config);
     } catch (error) {
-      console.error('Failed to generate config:', error);
+      logger.error('Failed to generate config:', {}, error instanceof Error ? error : undefined);
       toast.error(t('mcp.errors.configGenerationFailed'));
     }
-  };
+  }, [t]);
+
+  // Fetch bridge status on mount
+  useEffect(() => {
+    loadBridgeStatus();
+  }, [loadBridgeStatus]);
+
+  // Load manual config when client changes
+  useEffect(() => {
+    loadManualConfig(manualConfigClient);
+  }, [loadManualConfig, manualConfigClient]);
 
   /**
    * Auto-configure a specific client
@@ -91,7 +92,7 @@ const MCPIntegration: React.FC = () => {
         toast.error(result.message);
       }
     } catch (error) {
-      console.error(`Failed to auto-configure ${client}:`, error);
+      logger.error(`Failed to auto-configure ${client}:`, {}, error instanceof Error ? error : undefined);
       const errorMessage = error instanceof Error ? error.message : t('mcp.errors.unknownError');
       toast.error(t('mcp.errors.configurationFailed', { error: errorMessage }));
     } finally {
@@ -111,7 +112,7 @@ const MCPIntegration: React.FC = () => {
         toast.error(t('mcp.errors.copyFailed'));
       }
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
+      logger.error('Failed to copy to clipboard:', {}, error instanceof Error ? error : undefined);
       toast.error(t('mcp.errors.copyFailed'));
     }
   };
