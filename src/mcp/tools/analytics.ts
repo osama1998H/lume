@@ -1,12 +1,11 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import Database from 'better-sqlite3';
-import { getTodayDate, formatDuration } from '../utils/database.js';
+import { callIPC, getTodayDate, formatDuration } from '../utils/httpClient.js';
 
 /**
  * Register analytics tools with the MCP server
  */
-export function registerAnalyticsTools(server: McpServer, db: Database.Database) {
+export function registerAnalyticsTools(server: McpServer) {
   // Get today's statistics
   server.registerTool(
     'analytics_today',
@@ -17,29 +16,9 @@ export function registerAnalyticsTools(server: McpServer, db: Database.Database)
     async () => {
       try {
         const today = getTodayDate();
-
-        // Get time entries for today
-        const timeStats = db.prepare(`
-          SELECT
-            COUNT(*) as count,
-            SUM(duration) as total_duration
-          FROM time_entries
-          WHERE date(start_time) = ? AND duration IS NOT NULL
-        `).get(today) as any;
-
-        // Get completed todos for today
-        const todoStats = db.prepare(`
-          SELECT COUNT(*) as count
-          FROM todos
-          WHERE date(completed_at) = ? AND completed = 1
-        `).get(today) as any;
-
-        // Get pomodoro sessions for today
-        const pomodoroStats = db.prepare(`
-          SELECT COUNT(*) as count, SUM(duration) as total_duration
-          FROM pomodoro_sessions
-          WHERE date(start_time) = ? AND session_type = 'focus'
-        `).get(today) as any;
+        const stats = await callIPC<any>('get-daily-productivity-stats', {
+          date: today,
+        });
 
         return {
           content: [{
@@ -47,14 +26,14 @@ export function registerAnalyticsTools(server: McpServer, db: Database.Database)
             text: `📊 Today's Statistics (${today}):
 
 ⏱️  Time Entries:
-  - Count: ${timeStats.count || 0}
-  - Total Time: ${timeStats.total_duration ? formatDuration(timeStats.total_duration) : '0s'}
+  - Count: ${stats.timeEntries?.count || 0}
+  - Total Time: ${stats.timeEntries?.totalDuration ? formatDuration(stats.timeEntries.totalDuration) : '0s'}
 
-✅ Completed Todos: ${todoStats.count || 0}
+✅ Completed Todos: ${stats.completedTodos || 0}
 
 🍅 Pomodoro Sessions:
-  - Count: ${pomodoroStats.count || 0}
-  - Total Time: ${pomodoroStats.total_duration ? formatDuration(pomodoroStats.total_duration) : '0s'}`,
+  - Count: ${stats.pomodoroSessions?.count || 0}
+  - Total Time: ${stats.pomodoroSessions?.totalDuration ? formatDuration(stats.pomodoroSessions.totalDuration) : '0s'}`,
           }],
         };
       } catch (error) {
@@ -78,19 +57,9 @@ export function registerAnalyticsTools(server: McpServer, db: Database.Database)
     },
     async () => {
       try {
-        const stats = db.prepare(`
-          SELECT
-            date(start_time) as date,
-            COUNT(*) as entries,
-            SUM(duration) as total_duration
-          FROM time_entries
-          WHERE date(start_time) >= date('now', '-7 days')
-            AND duration IS NOT NULL
-          GROUP BY date(start_time)
-          ORDER BY date DESC
-        `).all() as any[];
+        const stats = await callIPC<any>('get-weekly-summary', {});
 
-        if (stats.length === 0) {
+        if (!stats || !stats.dailyStats || stats.dailyStats.length === 0) {
           return {
             content: [{
               type: 'text',
@@ -99,7 +68,9 @@ export function registerAnalyticsTools(server: McpServer, db: Database.Database)
           };
         }
 
-        const formatted = stats.map(s => `${s.date}: ${s.entries} entries, ${formatDuration(s.total_duration)}`).join('\n');
+        const formatted = stats.dailyStats
+          .map((s: any) => `${s.date}: ${s.entries} entries, ${formatDuration(s.totalDuration)}`)
+          .join('\n');
 
         return {
           content: [{
@@ -131,21 +102,19 @@ export function registerAnalyticsTools(server: McpServer, db: Database.Database)
     async ({ days }) => {
       try {
         const numDays = days || 7;
-        const stats = db.prepare(`
-          SELECT
-            c.name as category,
-            c.color,
-            COUNT(*) as entries,
-            SUM(te.duration) as total_duration
-          FROM time_entries te
-          LEFT JOIN categories c ON te.category_id = c.id
-          WHERE date(te.start_time) >= date('now', '-${numDays} days')
-            AND te.duration IS NOT NULL
-          GROUP BY c.id, c.name, c.color
-          ORDER BY total_duration DESC
-        `).all() as any[];
 
-        if (stats.length === 0) {
+        // Calculate date range
+        const endDate = getTodayDate();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - numDays);
+        const startDateStr = startDate.toISOString().split('T')[0];
+
+        const stats = await callIPC<any>('get-analytics-summary', {
+          startDate: startDateStr,
+          endDate: endDate,
+        });
+
+        if (!stats || !stats.categoryBreakdown || stats.categoryBreakdown.length === 0) {
           return {
             content: [{
               type: 'text',
@@ -154,9 +123,9 @@ export function registerAnalyticsTools(server: McpServer, db: Database.Database)
           };
         }
 
-        const formatted = stats.map(s =>
-          `${s.category || 'Uncategorized'}: ${s.entries} entries, ${formatDuration(s.total_duration)}`
-        ).join('\n');
+        const formatted = stats.categoryBreakdown
+          .map((s: any) => `${s.category || 'Uncategorized'}: ${s.entries} entries, ${formatDuration(s.totalDuration)}`)
+          .join('\n');
 
         return {
           content: [{

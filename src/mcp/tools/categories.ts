@@ -1,12 +1,11 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import Database from 'better-sqlite3';
-import { getCurrentTimestamp } from '../utils/database.js';
+import { callIPC } from '../utils/httpClient.js';
 
 /**
  * Register category management tools with the MCP server
  */
-export function registerCategoryTools(server: McpServer, db: Database.Database) {
+export function registerCategoryTools(server: McpServer) {
   // List all categories
   server.registerTool(
     'categories_list',
@@ -16,11 +15,7 @@ export function registerCategoryTools(server: McpServer, db: Database.Database) 
     },
     async () => {
       try {
-        const categories = db.prepare(`
-          SELECT id, name, color, icon, created_at, updated_at
-          FROM categories
-          ORDER BY name ASC
-        `).all();
+        const categories = await callIPC<any[]>('get-categories', {});
 
         if (categories.length === 0) {
           return {
@@ -62,18 +57,22 @@ export function registerCategoryTools(server: McpServer, db: Database.Database) 
     },
     async ({ name, color, icon }) => {
       try {
-        const now = getCurrentTimestamp();
-        const stmt = db.prepare(`
-          INSERT INTO categories (name, color, icon, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?)
-        `);
+        const categoryId = await callIPC<number>('add-category', {
+          category: {
+            name,
+            color: color || '#3B82F6',
+            icon: icon || null,
+          }
+        });
 
-        const result = stmt.run(name, color || '#3B82F6', icon || null, now, now);
+        if (!categoryId) {
+          throw new Error('Failed to create category - no ID returned');
+        }
 
         return {
           content: [{
             type: 'text',
-            text: `✅ Created category: "${name}" (ID: ${result.lastInsertRowid})`,
+            text: `✅ Created category: "${name}" (ID: ${categoryId})`,
           }],
         };
       } catch (error) {
@@ -102,23 +101,8 @@ export function registerCategoryTools(server: McpServer, db: Database.Database) 
     },
     async ({ id, name, color, icon }) => {
       try {
-        const updates: string[] = [];
-        const params: any[] = [];
-
-        if (name !== undefined) {
-          updates.push('name = ?');
-          params.push(name);
-        }
-        if (color !== undefined) {
-          updates.push('color = ?');
-          params.push(color);
-        }
-        if (icon !== undefined) {
-          updates.push('icon = ?');
-          params.push(icon);
-        }
-
-        if (updates.length === 0) {
+        // Check if at least one field is provided
+        if (name === undefined && color === undefined && icon === undefined) {
           return {
             content: [{
               type: 'text',
@@ -127,13 +111,17 @@ export function registerCategoryTools(server: McpServer, db: Database.Database) 
           };
         }
 
-        updates.push('updated_at = ?');
-        params.push(getCurrentTimestamp());
-        params.push(id);
+        const updates: any = {};
+        if (name !== undefined) updates.name = name;
+        if (color !== undefined) updates.color = color;
+        if (icon !== undefined) updates.icon = icon;
 
-        const result = db.prepare(`UPDATE categories SET ${updates.join(', ')} WHERE id = ?`).run(...params);
+        const success = await callIPC<boolean>('update-category', {
+          id,
+          updates
+        });
 
-        if (result.changes === 0) {
+        if (!success) {
           return {
             content: [{
               type: 'text',
@@ -154,6 +142,47 @@ export function registerCategoryTools(server: McpServer, db: Database.Database) 
           content: [{
             type: 'text',
             text: `❌ Failed to update category: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          }],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  // Delete a category
+  server.registerTool(
+    'categories_delete',
+    {
+      description: 'Delete a category by ID',
+      inputSchema: {
+        id: z.number().describe('Category ID to delete'),
+      }
+    },
+    async ({ id }) => {
+      try {
+        const success = await callIPC<boolean>('delete-category', { id });
+
+        if (!success) {
+          return {
+            content: [{
+              type: 'text',
+              text: `❌ Category with ID ${id} not found.`,
+            }],
+            isError: true,
+          };
+        }
+
+        return {
+          content: [{
+            type: 'text',
+            text: `✅ Deleted category ID ${id} successfully.`,
+          }],
+        };
+      } catch (error) {
+        return {
+          content: [{
+            type: 'text',
+            text: `❌ Failed to delete category: ${error instanceof Error ? error.message : 'Unknown error'}`,
           }],
           isError: true,
         };

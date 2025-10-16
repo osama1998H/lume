@@ -16,7 +16,8 @@
     "strict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "allowImportingTsExtensions": false
+    "allowImportingTsExtensions": false,
+    "types": ["node"]
   },
   "include": ["src/mcp/**/*"],
   "exclude": ["node_modules", "dist"]

@@ -25,7 +25,11 @@ import type {
   TodoWithCategory,
   TodoStats,
   TodoStatus,
-  TodoPriority
+  TodoPriority,
+  MCPClient,
+  MCPBridgeStatus,
+  MCPConfigResult,
+  MCPConfigFileInfo
 } from '../types';
 
 // Note: Sentry is initialized in the main process only, not in preload
@@ -290,6 +294,17 @@ interface IDataQualityAPI {
   };
 }
 
+// MCP Configuration namespace
+interface IMCPConfigAPI {
+  getBridgeStatus: () => Promise<MCPBridgeStatus>;
+  getServerPath: () => Promise<string>;
+  generateConfig: (client: MCPClient) => Promise<string>;
+  autoConfigure: (client: MCPClient) => Promise<MCPConfigResult>;
+  detectConfigFile: (client: MCPClient) => Promise<MCPConfigFileInfo>;
+  copyToClipboard: (text: string) => Promise<boolean>;
+  getClientDisplayName: (client: MCPClient) => Promise<string>;
+}
+
 /**
  * New Namespaced Electron API Interface
  * @see Phase 4 Refactoring for better API organization
@@ -314,6 +329,7 @@ export interface IElectronAPINamespaced {
   dataManagement: IDataManagementAPI;
   activities: IActivitiesAPI;
   dataQuality: IDataQualityAPI;
+  mcpConfig: IMCPConfigAPI;
 }
 
 /**
@@ -566,6 +582,18 @@ function createDataQualityAPI(): IDataQualityAPI {
   };
 }
 
+function createMCPConfigAPI(): IMCPConfigAPI {
+  return {
+    getBridgeStatus: () => ipcRenderer.invoke('mcp-get-bridge-status'),
+    getServerPath: () => ipcRenderer.invoke('mcp-get-server-path'),
+    generateConfig: (client) => ipcRenderer.invoke('mcp-generate-config', client),
+    autoConfigure: (client) => ipcRenderer.invoke('mcp-auto-configure', client),
+    detectConfigFile: (client) => ipcRenderer.invoke('mcp-detect-config-file', client),
+    copyToClipboard: (text) => ipcRenderer.invoke('mcp-copy-to-clipboard', text),
+    getClientDisplayName: (client) => ipcRenderer.invoke('mcp-get-client-display-name', client),
+  };
+}
+
 /**
  * Create Namespaced Electron API
  * This is the new, organized API structure
@@ -590,6 +618,7 @@ const electronAPINamespaced: IElectronAPINamespaced = {
   dataManagement: createDataManagementAPI(),
   activities: createActivitiesAPI(),
   dataQuality: createDataQualityAPI(),
+  mcpConfig: createMCPConfigAPI(),
 };
 
 /**

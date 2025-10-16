@@ -13,7 +13,7 @@
     "build": "npm run build:react && npm run build:electron && npm run build:mcp",
     "build:react": "vite build",
     "build:electron": "tsc -p tsconfig.electron.json",
-    "build:mcp": "tsc -p tsconfig.mcp.json && chmod +x dist/mcp/server.js",
+    "build:mcp": "tsc -p tsconfig.mcp.json && cp src/mcp/package.json dist/mcp/package.json && chmod +x dist/mcp/server.js",
     "watch:electron": "tsc -p tsconfig.electron.json --watch",
     "watch:mcp": "tsc -p tsconfig.mcp.json --watch",
     "dev:mcp": "npm run build:mcp && node dist/mcp/server.js",

@@ -211,9 +211,62 @@
       "general": "عام",
       "tracking": "تتبع النشاط",
       "data": "البيانات والخصوصية",
+      "mcp": "تكامل MCP",
       "about": "حول"
     },
     "tabsLabel": "أقسام الإعدادات"
+  },
+  "mcp": {
+    "title": "تكامل MCP",
+    "description": "تكوين تكامل بروتوكول سياق النموذج (MCP) لمساعدي الذكاء الاصطناعي مثل Claude Desktop و Claude Code و Cursor",
+    "bridgeStatus": {
+      "title": "حالة جسر HTTP",
+      "running": "يعمل على المنفذ",
+      "port": "{{port}}",
+      "notRunning": "لا يعمل"
+    },
+    "refresh": "تحديث",
+    "warnings": {
+      "bridgeNotRunning": "جسر HTTP لا يعمل",
+      "bridgeNotRunningDescription": "يجب أن يكون جسر HTTP قيد التشغيل لكي يعمل تكامل MCP. يرجى إعادة تشغيل التطبيق إذا استمرت هذه المشكلة."
+    },
+    "autoConfig": {
+      "title": "التكوين التلقائي",
+      "description": "قم بتكوين عملاء MCP تلقائيًا بنقرة واحدة. سيتم اكتشاف وتحديث ملفات التكوين بأمان."
+    },
+    "clients": {
+      "claudeDesktop": {
+        "description": "تطبيق Claude لسطح المكتب الرسمي من Anthropic"
+      },
+      "claudeCode": {
+        "description": "Claude لـ VS Code وواجهة سطر الأوامر"
+      },
+      "cursor": {
+        "description": "محرر أكواد مدعوم بالذكاء الاصطناعي مع تكامل Claude"
+      }
+    },
+    "autoConfigure": "تكوين تلقائي",
+    "configuring": "جاري التكوين...",
+    "backupCreated": "تم إنشاء نسخة احتياطية في",
+    "manualConfig": {
+      "title": "التكوين اليدوي",
+      "description": "إذا لم يعمل التكوين التلقائي، انسخ والصق هذا التكوين يدويًا في ملف تكوين العميل.",
+      "selectClient": "اختر العميل",
+      "needHelp": "هل تحتاج مساعدة في التكوين اليدوي؟",
+      "readDocs": "اقرأ دليل الإعداد الكامل في وثائق تكامل MCP."
+    },
+    "copyConfig": "نسخ التكوين",
+    "success": {
+      "configured": "تم تكوين {{client}} بنجاح",
+      "copiedToClipboard": "تم نسخ التكوين إلى الحافظة"
+    },
+    "errors": {
+      "bridgeStatusFailed": "فشل في تحميل حالة جسر HTTP",
+      "configGenerationFailed": "فشل في إنشاء التكوين",
+      "configurationFailed": "فشل في التكوين {{error}}",
+      "unknownError": "خطأ غير معروف",
+      "copyFailed": "فشل في النسخ إلى الحافظة"
+    }
   },
   "common": {
     "save": "حفظ",

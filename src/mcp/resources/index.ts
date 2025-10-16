@@ -1,15 +1,14 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import Database from 'better-sqlite3';
 import { registerDashboardResources } from './dashboard.js';
 
 /**
  * Register all MCP resources with the server
  */
-export function registerAllResources(server: McpServer, db: Database.Database) {
+export function registerAllResources(server: McpServer) {
   console.error('📦 Registering MCP resources...');
 
   // Register resource groups
-  registerDashboardResources(server, db);
+  registerDashboardResources(server);
 
   console.error('✅ All MCP resources registered');
 }

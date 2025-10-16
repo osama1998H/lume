@@ -23,13 +23,37 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { initializeDatabase } from './utils/database.js';
 import { registerAllTools } from './tools/index.js';
 import { registerAllResources } from './resources/index.js';
-import Database from 'better-sqlite3';
+import { checkBridgeHealth } from './utils/httpClient.js';
 
-// Global database instance
-let db: Database.Database | null = null;
+/**
+ * Wait for HTTP Bridge to be available with retry logic
+ */
+async function waitForBridge(maxRetries: number = 10, retryDelay: number = 2000): Promise<void> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    console.error(`🔍 Checking HTTP Bridge availability (attempt ${attempt}/${maxRetries})...`);
+
+    const isHealthy = await checkBridgeHealth();
+    if (isHealthy) {
+      console.error('✅ HTTP Bridge is available');
+      return;
+    }
+
+    if (attempt < maxRetries) {
+      console.error(`⏳ Bridge not ready yet, waiting ${retryDelay / 1000}s before retry...`);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+    }
+  }
+
+  // All retries exhausted
+  console.error('❌ HTTP Bridge is not available after multiple attempts.');
+  console.error('💡 Please ensure:');
+  console.error('   1. The Lume desktop application is running');
+  console.error('   2. The HTTP Bridge has started (check Lume logs)');
+  console.error('   3. The port file exists and is readable');
+  process.exit(1);
+}
 
 /**
  * Main server initialization and startup
@@ -38,8 +62,8 @@ async function main() {
   try {
     console.error('🚀 Starting Lume MCP Server...');
 
-    // Initialize database connection
-    db = initializeDatabase();
+    // Wait for HTTP Bridge to be available (with retries)
+    await waitForBridge();
 
     // Create MCP server instance
     const server = new McpServer({
@@ -49,10 +73,11 @@ async function main() {
 
     console.error('📋 Lume MCP Server v3.0.1');
     console.error('📡 Transport: stdio');
+    console.error('🌉 Using HTTP Bridge to communicate with Lume app');
 
     // Register all tools and resources
-    registerAllTools(server, db);
-    registerAllResources(server, db);
+    registerAllTools(server);
+    registerAllResources(server);
 
     // Setup stdio transport
     const transport = new StdioServerTransport();
@@ -73,16 +98,6 @@ async function main() {
  */
 function shutdown(signal: string) {
   console.error(`\n📡 Received ${signal}, shutting down gracefully...`);
-
-  try {
-    if (db) {
-      db.close();
-      console.error('✅ Database connection closed');
-    }
-  } catch (error) {
-    console.error('❌ Error during shutdown:', error);
-  }
-
   console.error('👋 Lume MCP Server stopped');
   process.exit(0);
 }
@@ -94,17 +109,11 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 // Handle uncaught errors
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught exception:', error);
-  if (db) {
-    db.close();
-  }
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled promise rejection at:', promise, 'reason:', reason);
-  if (db) {
-    db.close();
-  }
   process.exit(1);
 });
 

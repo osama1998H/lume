@@ -1,12 +1,11 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import Database from 'better-sqlite3';
-import { getCurrentTimestamp } from '../utils/database.js';
+import { callIPC } from '../utils/httpClient.js';
 
 /**
  * Register todo management tools with the MCP server
  */
-export function registerTodoTools(server: McpServer, db: Database.Database) {
+export function registerTodoTools(server: McpServer) {
   // Add a new todo
   server.registerTool(
     'todos_add',
@@ -22,30 +21,24 @@ export function registerTodoTools(server: McpServer, db: Database.Database) {
     },
     async ({ title, description, categoryId, priority, dueDate }) => {
       try {
-        const stmt = db.prepare(`
-          INSERT INTO todos (
-            title, description, category_id, priority, status,
-            due_date, completed, created_at, updated_at
-          )
-          VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)
-        `);
+        const todoId = await callIPC<number>('add-todo', {
+          todo: {
+            title,
+            description: description || null,
+            categoryId: categoryId || null,
+            priority: priority || 'medium',
+            dueDate: dueDate || null,
+          }
+        });
 
-        const now = getCurrentTimestamp();
-        const result = stmt.run(
-          title,
-          description || null,
-          categoryId || null,
-          priority || 'medium',
-          'todo',
-          dueDate || null,
-          now,
-          now
-        );
+        if (!todoId) {
+          throw new Error('Failed to create todo - no ID returned');
+        }
 
         return {
           content: [{
             type: 'text',
-            text: `✅ Created todo: "${title}" (ID: ${result.lastInsertRowid})`,
+            text: `✅ Created todo: "${title}" (ID: ${todoId})`,
           }],
         };
       } catch (error) {
@@ -74,36 +67,12 @@ export function registerTodoTools(server: McpServer, db: Database.Database) {
     },
     async ({ status, priority, categoryId, limit }) => {
       try {
-        let query = `
-          SELECT
-            t.*,
-            c.name as category_name,
-            c.color as category_color
-          FROM todos t
-          LEFT JOIN categories c ON t.category_id = c.id
-          WHERE 1=1
-        `;
-        const params: any[] = [];
-
-        if (status !== undefined) {
-          query += ' AND t.status = ?';
-          params.push(status);
-        }
-
-        if (priority !== undefined) {
-          query += ' AND t.priority = ?';
-          params.push(priority);
-        }
-
-        if (categoryId !== undefined) {
-          query += ' AND t.category_id = ?';
-          params.push(categoryId);
-        }
-
-        query += ' ORDER BY t.created_at DESC LIMIT ?';
-        params.push(limit || 50);
-
-        const todos = db.prepare(query).all(...params);
+        const todos = await callIPC<any[]>('get-todos', {
+          status,
+          priority,
+          categoryId,
+          limit: limit || 50,
+        });
 
         if (todos.length === 0) {
           return {
@@ -150,45 +119,9 @@ export function registerTodoTools(server: McpServer, db: Database.Database) {
     },
     async ({ id, title, description, status, priority, categoryId, dueDate }) => {
       try {
-        const updates: string[] = [];
-        const params: any[] = [];
-
-        if (title !== undefined) {
-          updates.push('title = ?');
-          params.push(title);
-        }
-        if (description !== undefined) {
-          updates.push('description = ?');
-          params.push(description);
-        }
-        if (status !== undefined) {
-          updates.push('status = ?');
-          params.push(status);
-
-          // Update completed status and timestamp
-          if (status === 'completed') {
-            updates.push('completed = 1');
-            updates.push('completed_at = ?');
-            params.push(getCurrentTimestamp());
-          } else {
-            updates.push('completed = 0');
-            updates.push('completed_at = NULL');
-          }
-        }
-        if (priority !== undefined) {
-          updates.push('priority = ?');
-          params.push(priority);
-        }
-        if (categoryId !== undefined) {
-          updates.push('category_id = ?');
-          params.push(categoryId);
-        }
-        if (dueDate !== undefined) {
-          updates.push('due_date = ?');
-          params.push(dueDate);
-        }
-
-        if (updates.length === 0) {
+        // Check if at least one field is provided
+        if (title === undefined && description === undefined && status === undefined &&
+            priority === undefined && categoryId === undefined && dueDate === undefined) {
           return {
             content: [{
               type: 'text',
@@ -197,14 +130,20 @@ export function registerTodoTools(server: McpServer, db: Database.Database) {
           };
         }
 
-        updates.push('updated_at = ?');
-        params.push(getCurrentTimestamp());
-        params.push(id);
+        const updates: any = {};
+        if (title !== undefined) updates.title = title;
+        if (description !== undefined) updates.description = description;
+        if (status !== undefined) updates.status = status;
+        if (priority !== undefined) updates.priority = priority;
+        if (categoryId !== undefined) updates.categoryId = categoryId;
+        if (dueDate !== undefined) updates.dueDate = dueDate;
 
-        const query = `UPDATE todos SET ${updates.join(', ')} WHERE id = ?`;
-        const result = db.prepare(query).run(...params);
+        const success = await callIPC<boolean>('update-todo', {
+          id,
+          updates
+        });
 
-        if (result.changes === 0) {
+        if (!success) {
           return {
             content: [{
               type: 'text',
@@ -243,9 +182,9 @@ export function registerTodoTools(server: McpServer, db: Database.Database) {
     },
     async ({ id }) => {
       try {
-        const result = db.prepare('DELETE FROM todos WHERE id = ?').run(id);
+        const success = await callIPC<boolean>('delete-todo', { id });
 
-        if (result.changes === 0) {
+        if (!success) {
           return {
             content: [{
               type: 'text',
@@ -284,14 +223,14 @@ export function registerTodoTools(server: McpServer, db: Database.Database) {
     },
     async ({ id }) => {
       try {
-        const now = getCurrentTimestamp();
-        const result = db.prepare(`
-          UPDATE todos
-          SET status = 'completed', completed = 1, completed_at = ?, updated_at = ?
-          WHERE id = ?
-        `).run(now, now, id);
+        const success = await callIPC<boolean>('update-todo', {
+          id,
+          updates: {
+            status: 'completed',
+          }
+        });
 
-        if (result.changes === 0) {
+        if (!success) {
           return {
             content: [{
               type: 'text',
@@ -328,25 +267,17 @@ export function registerTodoTools(server: McpServer, db: Database.Database) {
     },
     async () => {
       try {
-        const stats = db.prepare(`
-          SELECT
-            COUNT(*) as total,
-            SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-            SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress,
-            SUM(CASE WHEN status = 'todo' THEN 1 ELSE 0 END) as todo,
-            SUM(CASE WHEN due_date IS NOT NULL AND due_date < date('now') AND completed = 0 THEN 1 ELSE 0 END) as overdue
-          FROM todos
-        `).get() as any;
+        const stats = await callIPC<any>('get-todo-stats', {});
 
         return {
           content: [{
             type: 'text',
             text: `📊 Todo Statistics:
-- Total: ${stats.total}
-- Completed: ${stats.completed}
-- In Progress: ${stats.in_progress}
-- Todo: ${stats.todo}
-- Overdue: ${stats.overdue}`,
+- Total: ${stats.total || 0}
+- Completed: ${stats.completed || 0}
+- In Progress: ${stats.in_progress || 0}
+- Todo: ${stats.todo || 0}
+- Overdue: ${stats.overdue || 0}`,
           }],
         };
       } catch (error) {

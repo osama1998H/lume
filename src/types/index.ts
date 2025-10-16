@@ -849,6 +849,37 @@ interface IDataQualityAPI {
   };
 }
 
+// MCP Configuration Types
+export type MCPClient = 'claude-desktop' | 'claude-code' | 'cursor';
+
+export interface MCPBridgeStatus {
+  running: boolean;
+  port: number | null;
+}
+
+export interface MCPConfigResult {
+  success: boolean;
+  message: string;
+  configPath?: string;
+  backupPath?: string;
+}
+
+export interface MCPConfigFileInfo {
+  exists: boolean;
+  path: string;
+}
+
+// MCP Configuration namespace
+interface IMCPConfigAPI {
+  getBridgeStatus: () => Promise<MCPBridgeStatus>;
+  getServerPath: () => Promise<string>;
+  generateConfig: (client: MCPClient) => Promise<string>;
+  autoConfigure: (client: MCPClient) => Promise<MCPConfigResult>;
+  detectConfigFile: (client: MCPClient) => Promise<MCPConfigFileInfo>;
+  copyToClipboard: (text: string) => Promise<boolean>;
+  getClientDisplayName: (client: MCPClient) => Promise<string>;
+}
+
 /**
  * Namespaced Electron API Interface
  * All renderer components use this structured API
@@ -873,6 +904,7 @@ export interface IElectronAPINamespaced {
   dataManagement: IDataManagementAPI;
   activities: IActivitiesAPI;
   dataQuality: IDataQualityAPI;
+  mcpConfig: IMCPConfigAPI;
 }
 
 declare global {

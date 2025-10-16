@@ -10,7 +10,140 @@ The Model Context Protocol (MCP) allows AI assistants like Claude to interact wi
 - 📁 Manage categories
 - 📈 Access dashboard summaries
 
-## Prerequisites
+## Integration Methods
+
+Lume supports two ways to integrate with MCP clients:
+
+1. **HTTP Bridge (Recommended)** - Easy setup via the Settings UI with auto-configuration
+2. **Stdio Server** - Direct stdio communication for advanced users
+
+### Which Method Should I Use?
+
+| Feature | HTTP Bridge | Stdio Server |
+|---------|-------------|--------------|
+| **Setup Difficulty** | ✅ Easy (one-click) | ⚠️ Manual configuration required |
+| **Auto-configuration** | ✅ Yes | ❌ No |
+| **Backup creation** | ✅ Automatic | ❌ Manual |
+| **UI in Settings** | ✅ Yes | ❌ No |
+| **Node.js required** | ❌ No | ✅ Yes |
+| **Build step required** | ❌ No | ✅ Yes (`npm run build:mcp`) |
+| **Best for** | Most users | Advanced users, custom setups |
+
+**Recommendation**: Use the HTTP Bridge unless you have specific requirements for the Stdio Server.
+
+## HTTP Bridge Integration (Recommended)
+
+### Overview
+
+The HTTP Bridge provides an easy way to connect MCP clients to Lume without manual configuration. It runs automatically when Lume starts and provides:
+
+- 🎯 **Auto-configuration** for Claude Desktop, Claude Code, and Cursor
+- 🔒 **Localhost-only** HTTP server for secure communication
+- 🖥️ **User-friendly UI** in the Settings page
+- 🔄 **Automatic backup** of existing config files
+
+### Quick Start
+
+1. **Open Lume Settings**
+   - Launch Lume
+   - Go to Settings → MCP Integration
+
+2. **Verify Bridge Status**
+   - Check that "HTTP Bridge Status" shows "Running on port [port number]"
+   - If not running, restart Lume
+
+3. **Auto-Configure Your Client**
+   - Click "Auto-Configure" next to your MCP client (Claude Desktop, Claude Code, or Cursor)
+   - The configuration will be automatically detected and updated
+   - A backup of your existing config will be created
+
+4. **Restart Your MCP Client**
+   - Restart Claude Desktop, Claude Code, or Cursor
+   - The Lume MCP server should now be available
+
+### Supported Clients
+
+#### Claude Desktop
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Linux**: `~/.config/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+#### Claude Code
+- **All platforms**: `~/.claude.json` or `%USERPROFILE%\.claude.json`
+
+#### Cursor
+- **macOS**: `~/Library/Application Support/Cursor/User/globalStorage/config.json`
+- **Linux**: `~/.config/Cursor/User/globalStorage/config.json`
+- **Windows**: `%APPDATA%\Cursor\User\globalStorage\config.json`
+
+### Manual Configuration
+
+If auto-configuration doesn't work, you can copy the configuration manually:
+
+1. Open Settings → MCP Integration
+2. Scroll to "Manual Configuration"
+3. Select your client from the dropdown
+4. Click "Copy Config"
+5. Manually paste into your client's config file
+6. Restart your client
+
+### HTTP Bridge Configuration Format
+
+The HTTP Bridge adds this configuration to your MCP client:
+
+```json
+{
+  "mcpServers": {
+    "lume": {
+      "url": "http://localhost:[PORT]/sse"
+    }
+  }
+}
+```
+
+The port number is automatically assigned when Lume starts (typically in the 3000-4000 range).
+
+### Troubleshooting HTTP Bridge
+
+#### Bridge Not Running
+
+**Symptom**: Settings shows "HTTP Bridge Status: Not Running"
+
+**Solutions**:
+- Restart Lume completely
+- Check if another process is using the port
+- Look for errors in Lume's console logs
+
+#### Auto-Configuration Failed
+
+**Symptom**: "Failed to configure" error message
+
+**Possible causes**:
+- Config file not found (client not installed)
+- Permission denied (read-only config file)
+- Invalid JSON in existing config
+
+**Solutions**:
+- Verify the client is installed
+- Check file permissions on the config file
+- Try manual configuration instead
+- Check the backup file to restore if needed
+
+#### Client Not Connecting
+
+**Symptom**: MCP tools not available in Claude/Cursor after configuration
+
+**Solutions**:
+- Verify the HTTP Bridge is running in Lume Settings
+- Restart your MCP client completely
+- Check the port number in the config matches the bridge port
+- Look for connection errors in your client's logs
+
+## Stdio Server Integration (Advanced)
+
+For advanced users who prefer direct stdio communication, Lume also provides a standalone MCP server.
+
+### Prerequisites
 
 - Lume app must be installed and run at least once (to create the database)
 - Node.js installed on your system
@@ -283,10 +416,20 @@ Claude: ✅ Created todo: "Prepare presentation" (ID: 16)
 
 ## Security & Privacy
 
-- The MCP server accesses the local SQLite database only
-- No data is sent over the network
-- Stdio transport is local-only communication
+### HTTP Bridge
+- Runs only on localhost (127.0.0.1) - not accessible from external networks
+- Automatically assigns an available port (typically 3000-4000 range)
+- Communicates with Electron IPC internally
+- No data leaves your local machine
+- No authentication required (localhost-only access)
+
+### Stdio Server
+- Direct local process communication via stdin/stdout
+- No network access whatsoever
+- Accesses the local SQLite database only
 - No authentication required (local process only)
+
+Both methods are secure and keep all data on your local machine.
 
 ## Advanced Configuration
 
@@ -320,6 +463,15 @@ For issues or questions:
 - Review the [GitHub repository](https://github.com/your-repo/lume)
 - Check server logs (stderr output)
 
+## Recent Updates
+
+### HTTP Bridge (v1.1.0)
+- ✅ One-click auto-configuration for Claude Desktop, Claude Code, and Cursor
+- ✅ User-friendly Settings UI
+- ✅ Automatic config backup before modifications
+- ✅ Manual configuration fallback
+- ✅ Real-time bridge status monitoring
+
 ## What's Next?
 
 More tools and resources will be added in future releases:
@@ -327,4 +479,5 @@ More tools and resources will be added in future releases:
 - Goals management
 - Activity log queries
 - Data export/import
+- Real-time notifications
 - And more!
