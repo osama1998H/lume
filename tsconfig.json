@@ -34,6 +34,6 @@
     }
   },
   "include": ["src"],
-  "exclude": ["src/main", "vite.config.ts"],
+  "exclude": ["src/main", "src/services", "src/database", "vite.config.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
