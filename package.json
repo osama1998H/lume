@@ -1,6 +1,6 @@
 {
   "name": "lume",
-  "version": "3.0.1",
+  "version": "3.2.0",
   "description": "A desktop application that tracks and visualizes time spent on tasks and applications",
   "main": "dist/main/main.js",
   "homepage": "./",
