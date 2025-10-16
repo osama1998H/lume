@@ -106,12 +106,6 @@ export function registerAnalyticsTools(server: McpServer) {
       try {
         const numDays = days || 7;
 
-        // Calculate date range (inclusive)
-        const endDate = getTodayDate();
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - numDays + 1);
-        const startDateStr = startDate.toISOString().split('T')[0];
-
         const stats = await callIPC<any>('get-analytics-summary', {});
 
         if (!stats || !stats.categoryBreakdown || stats.categoryBreakdown.length === 0) {

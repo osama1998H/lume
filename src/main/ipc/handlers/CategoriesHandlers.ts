@@ -40,8 +40,9 @@ export class CategoriesHandlers implements IIPCHandlerGroup {
 
     // Add category
     // Extracted from main.ts:689-700
-    ipcMain.handle('add-category', async (_, category: Partial<Category>) => {
+    ipcMain.handle('add-category', async (_, args: Record<string, any>) => {
       try {
+        const { category } = args;
         return (await context.categoriesService?.addCategory(category as Category)) || null;
       } catch (error) {
         console.error('Failed to add category:', error);
@@ -51,8 +52,9 @@ export class CategoriesHandlers implements IIPCHandlerGroup {
 
     // Update category
     // Extracted from main.ts:702-713
-    ipcMain.handle('update-category', async (_, id: number, updates: Partial<Category>) => {
+    ipcMain.handle('update-category', async (_, args: Record<string, any>) => {
       try {
+        const { id, updates } = args;
         return (await context.categoriesService?.updateCategory(id, updates)) || false;
       } catch (error) {
         console.error('Failed to update category:', error);
@@ -62,8 +64,9 @@ export class CategoriesHandlers implements IIPCHandlerGroup {
 
     // Delete category
     // Extracted from main.ts:715-726
-    ipcMain.handle('delete-category', async (_, id: number) => {
+    ipcMain.handle('delete-category', async (_, args: Record<string, any>) => {
       try {
+        const { id } = args;
         return (await context.categoriesService?.deleteCategory(id)) || false;
       } catch (error) {
         console.error('Failed to delete category:', error);

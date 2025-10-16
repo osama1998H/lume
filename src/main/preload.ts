@@ -409,22 +409,22 @@ function createPomodoroAPI(): IPomodoroAPI {
 
 function createGoalsAPI(): IGoalsAPI {
   return {
-    add: (goal) => ipcRenderer.invoke('add-goal', goal),
-    update: (id, updates) => ipcRenderer.invoke('update-goal', id, updates),
-    delete: (id) => ipcRenderer.invoke('delete-goal', id),
+    add: (goal) => ipcRenderer.invoke('add-goal', { goal }),
+    update: (id, updates) => ipcRenderer.invoke('update-goal', { id, updates }),
+    delete: (id) => ipcRenderer.invoke('delete-goal', { id }),
     getAll: (activeOnly) => ipcRenderer.invoke('get-goals', activeOnly),
     getTodayWithProgress: () => ipcRenderer.invoke('get-today-goals-with-progress'),
-    getProgress: (goalId, date) => ipcRenderer.invoke('get-goal-progress', goalId, date),
-    getAchievementHistory: (goalId, days) => ipcRenderer.invoke('get-goal-achievement-history', goalId, days),
+    getProgress: (goalId, date) => ipcRenderer.invoke('get-goal-progress', { goalId, date }),
+    getAchievementHistory: (goalId, days) => ipcRenderer.invoke('get-goal-achievement-history', { goalId, days }),
     getStats: () => ipcRenderer.invoke('get-goal-stats'),
   };
 }
 
 function createTodosAPI(): ITodosAPI {
   return {
-    add: (todo) => ipcRenderer.invoke('add-todo', todo),
-    update: (id, updates) => ipcRenderer.invoke('update-todo', id, updates),
-    delete: (id) => ipcRenderer.invoke('delete-todo', id),
+    add: (todo) => ipcRenderer.invoke('add-todo', { todo }),
+    update: (id, updates) => ipcRenderer.invoke('update-todo', { id, updates }),
+    delete: (id) => ipcRenderer.invoke('delete-todo', { id }),
     getAll: (options) => ipcRenderer.invoke('get-todos', options),
     getById: (id) => ipcRenderer.invoke('get-todo-by-id', id),
     getStats: () => ipcRenderer.invoke('get-todo-stats'),
@@ -438,18 +438,18 @@ function createCategoriesAPI(): ICategoriesAPI {
   return {
     getAll: () => ipcRenderer.invoke('get-categories'),
     getById: (id) => ipcRenderer.invoke('get-category-by-id', id),
-    add: (category) => ipcRenderer.invoke('add-category', category),
-    update: (id, updates) => ipcRenderer.invoke('update-category', id, updates),
-    delete: (id) => ipcRenderer.invoke('delete-category', id),
+    add: (category) => ipcRenderer.invoke('add-category', { category }),
+    update: (id, updates) => ipcRenderer.invoke('update-category', { id, updates }),
+    delete: (id) => ipcRenderer.invoke('delete-category', { id }),
   };
 }
 
 function createTagsAPI(): ITagsAPI {
   return {
     getAll: () => ipcRenderer.invoke('get-tags'),
-    add: (tag) => ipcRenderer.invoke('add-tag', tag),
-    update: (id, updates) => ipcRenderer.invoke('update-tag', id, updates),
-    delete: (id) => ipcRenderer.invoke('delete-tag', id),
+    add: (tag) => ipcRenderer.invoke('add-tag', { tag }),
+    update: (id, updates) => ipcRenderer.invoke('update-tag', { id, updates }),
+    delete: (id) => ipcRenderer.invoke('delete-tag', { id }),
   };
 }
 
@@ -512,14 +512,14 @@ function createTimelineAPI(): ITimelineAPI {
 
 function createAnalyticsAPI(): IAnalyticsAPI {
   return {
-    getDailyStats: (startDate, endDate) => ipcRenderer.invoke('get-daily-productivity-stats', startDate, endDate),
-    getHourlyPatterns: (days) => ipcRenderer.invoke('get-hourly-patterns', days),
-    getHeatmap: (year) => ipcRenderer.invoke('get-heatmap-data', year),
-    getWeeklySummary: (weekOffset) => ipcRenderer.invoke('get-weekly-summary', weekOffset),
-    getTrends: (startDate, endDate, groupBy) => ipcRenderer.invoke('get-productivity-trends', startDate, endDate, groupBy),
+    getDailyStats: (startDate, endDate) => ipcRenderer.invoke('get-daily-productivity-stats', { startDate, endDate }),
+    getHourlyPatterns: (days) => ipcRenderer.invoke('get-hourly-patterns', { days }),
+    getHeatmap: (year) => ipcRenderer.invoke('get-heatmap-data', { year }),
+    getWeeklySummary: (weekOffset) => ipcRenderer.invoke('get-weekly-summary', { weekOffset }),
+    getTrends: (startDate, endDate, groupBy) => ipcRenderer.invoke('get-productivity-trends', { startDate, endDate, groupBy }),
     getInsights: () => ipcRenderer.invoke('get-behavioral-insights'),
     getSummary: () => ipcRenderer.invoke('get-analytics-summary'),
-    getDistractionAnalysis: (days) => ipcRenderer.invoke('get-distraction-analysis', days),
+    getDistractionAnalysis: (days) => ipcRenderer.invoke('get-distraction-analysis', { days }),
   };
 }
 
