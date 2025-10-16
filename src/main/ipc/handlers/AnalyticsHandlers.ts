@@ -28,7 +28,6 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
           return [];
         }
         const stats = context.dbManager.getDailyProductivityStats(startDate, endDate);
-        console.log(`📊 Retrieved daily productivity stats for ${startDate} to ${endDate}`);
         return stats;
       } catch (error) {
         console.error('Failed to get daily productivity stats:', error);
@@ -46,7 +45,6 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
           return [];
         }
         const patterns = context.dbManager.getHourlyPatterns(days);
-        console.log(`📊 Retrieved hourly patterns for last ${days} days`);
         return patterns;
       } catch (error) {
         console.error('Failed to get hourly patterns:', error);
@@ -64,7 +62,6 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
           return [];
         }
         const heatmapData = context.dbManager.getHeatmapData(year);
-        console.log(`📊 Retrieved heatmap data for year ${year}`);
         return heatmapData;
       } catch (error) {
         console.error('Failed to get heatmap data:', error);
@@ -93,7 +90,6 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
           };
         }
         const summary = context.dbManager.getWeeklySummary(weekOffset);
-        console.log(`📊 Retrieved weekly summary for week offset ${weekOffset}`);
         return summary;
       } catch (error) {
         console.error('Failed to get weekly summary:', error);
@@ -122,7 +118,6 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
           return [];
         }
         const trends = context.dbManager.getProductivityTrends(startDate, endDate, groupBy);
-        console.log(`📊 Retrieved productivity trends for ${startDate} to ${endDate} grouped by ${groupBy}`);
         return trends;
       } catch (error) {
         console.error('Failed to get productivity trends:', error);
@@ -139,7 +134,6 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
           return [];
         }
         const insights = context.dbManager.getBehavioralInsights();
-        console.log(`📊 Retrieved ${insights.length} behavioral insights`);
         return insights;
       } catch (error) {
         console.error('Failed to get behavioral insights:', error);
@@ -163,7 +157,6 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
           };
         }
         const summary = context.dbManager.getAnalyticsSummary();
-        console.log(`📊 Retrieved analytics summary - Score: ${summary.productivityScore}`);
         return summary;
       } catch (error) {
         console.error('Failed to get analytics summary:', error);
@@ -188,7 +181,6 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
           return [];
         }
         const analysis = context.dbManager.getDistractionAnalysis(days);
-        console.log(`📊 Retrieved distraction analysis for last ${days} days`);
         return analysis;
       } catch (error) {
         console.error('Failed to get distraction analysis:', error);

@@ -40,7 +40,6 @@ export class TodosHandlers implements IIPCHandlerGroup {
     ipcMain.handle('add-todo', async (_, args: AddTodoArgs) => {
       try {
         const { todo } = args;
-        console.log('➕ Adding todo:', todo.title);
         const todoId = context.dbManager?.addTodo(todo);
         return todoId || null;
       } catch (error) {
@@ -53,7 +52,6 @@ export class TodosHandlers implements IIPCHandlerGroup {
     ipcMain.handle('update-todo', async (_, args: UpdateTodoArgs) => {
       try {
         const { id, updates } = args;
-        console.log('📝 Updating todo:', { id, updates });
         return context.dbManager?.updateTodo(id, updates) || false;
       } catch (error) {
         console.error('Failed to update todo:', error);
@@ -65,7 +63,6 @@ export class TodosHandlers implements IIPCHandlerGroup {
     ipcMain.handle('delete-todo', async (_, args: DeleteTodoArgs) => {
       try {
         const { id } = args;
-        console.log('🗑️  Deleting todo:', { id });
         return context.dbManager?.deleteTodo(id) || false;
       } catch (error) {
         console.error('Failed to delete todo:', error);
@@ -130,7 +127,6 @@ export class TodosHandlers implements IIPCHandlerGroup {
     // Link todo to time entry
     ipcMain.handle('link-todo-time-entry', async (_, todoId: number, timeEntryId: number) => {
       try {
-        console.log(`🔗 Linking todo ${todoId} to time entry ${timeEntryId}`);
         return context.dbManager?.linkTodoToTimeEntry(todoId, timeEntryId) || false;
       } catch (error) {
         console.error('Failed to link todo to time entry:', error);
@@ -141,7 +137,6 @@ export class TodosHandlers implements IIPCHandlerGroup {
     // Increment pomodoro count
     ipcMain.handle('increment-todo-pomodoro', async (_, todoId: number) => {
       try {
-        console.log(`🍅 Incrementing pomodoro count for todo ${todoId}`);
         return context.dbManager?.incrementTodoPomodoro(todoId) || false;
       } catch (error) {
         console.error('Failed to increment todo pomodoro:', error);

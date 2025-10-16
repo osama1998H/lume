@@ -87,7 +87,6 @@ export class ServiceContainer {
     this.userDataPath = userDataPath;
     this.settings = settings;
 
-    console.log('🔧 Initializing ServiceContainer...');
 
     try {
       // Step 1: Initialize database manager (root dependency)
@@ -115,7 +114,6 @@ export class ServiceContainer {
       this.initializePomodoroService();
 
       this.initialized = true;
-      console.log('✅ ServiceContainer initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize ServiceContainer:', error);
       throw error;
@@ -133,7 +131,6 @@ export class ServiceContainer {
     try {
       this.dbManager = new DatabaseManager();
       this.dbManager.initialize(this.userDataPath);
-      console.log('✅ Database initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize database:', error);
       throw error;
@@ -154,7 +151,6 @@ export class ServiceContainer {
         pomodoroSettings?.soundEnabled !== false,
         pomodoroSettings?.notificationsEnabled !== false
       );
-      console.log('✅ Notification service initialized');
     } catch (error) {
       console.error('❌ Failed to initialize notification service:', error);
       throw error;
@@ -171,11 +167,9 @@ export class ServiceContainer {
 
     try {
       this.categoriesService = new CategoriesService(this.dbManager);
-      console.log('✅ Categories service initialized');
 
       // Initialize default categories for first-run users (async, non-blocking)
       this.categoriesService.initializeDefaultCategories().then(() => {
-        console.log('✅ Default categories initialized');
       }).catch((error) => {
         console.error('⚠️ Failed to initialize default categories:', error);
       });
@@ -195,7 +189,6 @@ export class ServiceContainer {
 
     try {
       this.activityValidationService = new ActivityValidationService(this.dbManager);
-      console.log('✅ Activity validation service initialized');
     } catch (error) {
       console.error('❌ Failed to initialize activity validation service:', error);
       throw error;
@@ -215,7 +208,6 @@ export class ServiceContainer {
         this.dbManager,
         this.activityValidationService
       );
-      console.log('✅ Activity merge service initialized');
     } catch (error) {
       console.error('❌ Failed to initialize activity merge service:', error);
       throw error;
@@ -232,7 +224,6 @@ export class ServiceContainer {
 
     try {
       this.goalsService = new GoalsService(this.dbManager, this.notificationService || undefined);
-      console.log('✅ Goals service initialized');
     } catch (error) {
       console.error('❌ Failed to initialize goals service:', error);
       throw error;
@@ -252,7 +243,6 @@ export class ServiceContainer {
         this.dbManager,
         this.goalsService || undefined
       );
-      console.log('✅ Activity tracking service initialized');
     } catch (error) {
       console.error('❌ Failed to initialize activity tracking service:', error);
       throw error;
@@ -278,7 +268,6 @@ export class ServiceContainer {
         this.notificationService,
         pomodoroSettings
       );
-      console.log('✅ Pomodoro service initialized');
     } catch (error) {
       console.error('❌ Failed to initialize pomodoro service:', error);
       throw error;
@@ -308,7 +297,6 @@ export class ServiceContainer {
    * @see {@link initialize} for startup
    */
   async cleanup(): Promise<void> {
-    console.log('🧹 Cleaning up ServiceContainer...');
 
     try {
       // Stop activity tracking if running
@@ -335,7 +323,6 @@ export class ServiceContainer {
       this.userDataPath = null;
       this.settings = null;
 
-      console.log('✅ ServiceContainer cleaned up successfully');
     } catch (error) {
       console.error('❌ Failed to cleanup ServiceContainer:', error);
       throw error;

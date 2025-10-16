@@ -340,7 +340,7 @@ export interface IElectronAPINamespaced {
 function createTimeEntriesAPI(): ITimeEntriesAPI {
   return {
     add: (entry) => ipcRenderer.invoke('add-time-entry', entry),
-    update: (id, updates) => ipcRenderer.invoke('update-time-entry', id, updates),
+    update: (id, updates) => ipcRenderer.invoke('update-time-entry', { id, updates }),
     getActive: () => ipcRenderer.invoke('get-active-time-entry'),
   };
 }

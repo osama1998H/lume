@@ -100,7 +100,6 @@ class LumeApp {
         if (this.httpBridge) {
           await this.httpBridge.stop();
           deletePortFile();
-          console.log('🌉 HTTP Bridge stopped');
         }
       },
       onReady: async () => {
@@ -157,18 +156,13 @@ class LumeApp {
   private autoStartTracking(): void {
     try {
       const settings = this.settingsManager.getSettings();
-      console.log('📋 Loaded settings:', JSON.stringify(settings, null, 2));
 
       if (settings.activityTracking?.enabled) {
-        console.log('🚀 Auto-starting activity tracking (enabled in settings)');
         const activityTracker = this.serviceContainer?.getActivityTrackingService();
         if (activityTracker) {
           // updateSettings will automatically start tracking if enabled and not already running
           activityTracker.updateSettings(settings.activityTracking);
-          console.log('✅ Activity tracking auto-started successfully');
         }
-      } else {
-        console.log('ℹ️  Activity tracking disabled in settings - not auto-starting');
       }
     } catch (error) {
       console.error('❌ Failed to auto-start activity tracking:', error);
@@ -199,25 +193,20 @@ class LumeApp {
     // Initialize HTTP Bridge for MCP server integration
     this.httpBridge = new HTTPBridge(context);
     try {
-      console.log('🔄 Initializing HTTP Bridge for MCP integration...');
       const port = await this.httpBridge.start(0); // Use port 0 for random available port
-      console.log(`🌉 HTTP Bridge started on port ${port} for MCP integration`);
 
       // Store port in environment for MCP server to access
       process.env.LUME_IPC_BRIDGE_PORT = port.toString();
 
       // Write port to file for external processes (like MCP server)
       writePortFile(port);
-      console.log(`📝 Port file written to user data directory`);
 
       // Initialize MCP Config Service now that HTTP Bridge is running
       this.mcpConfigService = new MCPConfigService(this.httpBridge);
-      console.log('🔧 MCP Config Service initialized');
 
       // Update context with MCP services
       context.httpBridge = this.httpBridge;
       context.mcpConfigService = this.mcpConfigService;
-      console.log('✅ MCP integration setup complete');
     } catch (error) {
       console.error('❌ Failed to start HTTP Bridge - MCP integration unavailable');
       console.error('Error details:', error instanceof Error ? error.message : String(error));

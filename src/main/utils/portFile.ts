@@ -24,7 +24,6 @@ export function writePortFile(port: number): void {
   try {
     const portFilePath = getPortFilePath();
     fs.writeFileSync(portFilePath, port.toString(), 'utf8');
-    console.log(`📝 Wrote bridge port ${port} to ${portFilePath}`);
   } catch (error) {
     console.error('❌ Failed to write port file:', error);
   }
@@ -38,7 +37,6 @@ export function deletePortFile(): void {
     const portFilePath = getPortFilePath();
     if (fs.existsSync(portFilePath)) {
       fs.unlinkSync(portFilePath);
-      console.log('🗑️  Deleted bridge port file');
     }
   } catch (error) {
     console.error('❌ Failed to delete port file:', error);

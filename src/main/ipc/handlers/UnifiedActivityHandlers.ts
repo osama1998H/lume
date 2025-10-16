@@ -30,7 +30,6 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
           return [];
         }
         const activities = context.dbManager.getUnifiedActivities(startDate, endDate, filters);
-        console.log(`📊 Retrieved ${activities.length} unified activities`);
         return activities;
       } catch (error) {
         console.error('Failed to get unified activities:', error);
@@ -47,7 +46,6 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
           return null;
         }
         const activity = context.dbManager.getUnifiedActivity(id, sourceType);
-        console.log(`📊 Retrieved unified activity: ${id} (${sourceType})`);
         return activity;
       } catch (error) {
         console.error('Failed to get unified activity:', error);
@@ -63,11 +61,8 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
           console.error('❌ Database manager not initialized');
           return false;
         }
-        console.log('✏️  Updating unified activity:', options.id, options.sourceType);
         const success = context.dbManager.updateUnifiedActivity(options);
-        if (success) {
-          console.log('✅ Unified activity updated successfully');
-        } else {
+        if (!success) {
           console.error('❌ Failed to update unified activity');
         }
         return success;
@@ -85,11 +80,8 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
           console.error('❌ Database manager not initialized');
           return false;
         }
-        console.log('🗑️  Deleting unified activity:', id, sourceType);
         const success = context.dbManager.deleteUnifiedActivity(id, sourceType);
-        if (success) {
-          console.log('✅ Unified activity deleted successfully');
-        } else {
+        if (!success) {
           console.error('❌ Failed to delete unified activity');
         }
         return success;
@@ -107,9 +99,7 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
           console.error('❌ Database manager not initialized');
           return { success: false, updated: 0, failed: 0 };
         }
-        console.log(`📦 Bulk updating ${operation.activityIds.length} activities`);
         const result = context.dbManager.bulkUpdateActivities(operation);
-        console.log(`✅ Bulk update complete: ${result.updated} updated, ${result.failed} failed`);
         return result;
       } catch (error) {
         console.error('Failed to bulk update activities:', error);
@@ -125,9 +115,7 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
           console.error('❌ Database manager not initialized');
           return { success: false, deleted: 0, failed: 0 };
         }
-        console.log(`🗑️  Bulk deleting ${activityIds.length} activities`);
         const result = context.dbManager.bulkDeleteActivities(activityIds);
-        console.log(`✅ Bulk delete complete: ${result.deleted} deleted, ${result.failed} failed`);
         return result;
       } catch (error) {
         console.error('Failed to bulk delete activities:', error);
@@ -144,7 +132,6 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
           return [];
         }
         const conflicts = context.dbManager.getActivityConflicts(startDate, endDate);
-        console.log(`⚠️  Found ${conflicts.length} activity conflicts`);
         return conflicts;
       } catch (error) {
         console.error('Failed to get activity conflicts:', error);
@@ -169,7 +156,6 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
           };
         }
         const stats = context.dbManager.getUnifiedActivityStats(startDate, endDate);
-        console.log(`📊 Retrieved unified activity stats: ${stats.totalActivities} activities`);
         return stats;
       } catch (error) {
         console.error('Failed to get unified activity stats:', error);
@@ -193,9 +179,7 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
           console.error('❌ Database manager not initialized');
           return [];
         }
-        console.log(`🔍 Searching activities with query: "${query}"`);
         const results = context.dbManager.searchActivities(query, filters);
-        console.log(`✅ Found ${results.length} matching activities`);
         return results;
       } catch (error) {
         console.error('Failed to search activities:', error);
@@ -211,14 +195,11 @@ export class UnifiedActivityHandlers implements IIPCHandlerGroup {
           console.error('❌ Database manager not initialized');
           return { success: false, error: 'Database not initialized' };
         }
-        console.log(`🔄 Merging ${activityIds.length} activities with strategy: ${strategy}`);
         const result = await context.dbManager.mergeActivitiesById(
           activityIds,
           strategy
         );
-        if (result.success) {
-          console.log('✅ Activities merged successfully');
-        } else {
+        if (!result.success) {
           console.error(`❌ Failed to merge activities: ${result.error}`);
         }
         return result;

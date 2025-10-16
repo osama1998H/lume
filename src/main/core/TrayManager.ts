@@ -132,7 +132,6 @@ export class TrayManager {
         }
       });
 
-      console.log('✅ System tray initialized');
     } catch (error) {
       console.error('Failed to setup tray:', error);
     }
@@ -213,7 +212,6 @@ export class TrayManager {
     if (this.tray) {
       this.tray.destroy();
       this.tray = null;
-      console.log('✅ System tray removed');
     }
   }
 
