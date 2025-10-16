@@ -1,6 +1,22 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
-import type { TodoStatus, TodoPriority } from '../../../types';
+import type { Todo, TodoStatus, TodoPriority } from '../../../types';
+
+/**
+ * Args interfaces for type-safe IPC communication
+ */
+interface AddTodoArgs {
+  todo: Partial<Todo>;
+}
+
+interface UpdateTodoArgs {
+  id: number;
+  updates: Partial<Todo>;
+}
+
+interface DeleteTodoArgs {
+  id: number;
+}
 
 /**
  * TodosHandlers - IPC handlers for todo/task management
@@ -21,10 +37,10 @@ import type { TodoStatus, TodoPriority } from '../../../types';
 export class TodosHandlers implements IIPCHandlerGroup {
   register(ipcMain: IpcMain, context: IIPCHandlerContext): void {
     // Add todo
-    ipcMain.handle('add-todo', async (_, args: Record<string, any>) => {
+    ipcMain.handle('add-todo', async (_, args: AddTodoArgs) => {
       try {
         const { todo } = args;
-        console.log('➕ Adding todo:', todo?.title);
+        console.log('➕ Adding todo:', todo.title);
         const todoId = context.dbManager?.addTodo(todo);
         return todoId || null;
       } catch (error) {
@@ -34,7 +50,7 @@ export class TodosHandlers implements IIPCHandlerGroup {
     });
 
     // Update todo
-    ipcMain.handle('update-todo', async (_, args: Record<string, any>) => {
+    ipcMain.handle('update-todo', async (_, args: UpdateTodoArgs) => {
       try {
         const { id, updates } = args;
         console.log('📝 Updating todo:', { id, updates });
@@ -46,7 +62,7 @@ export class TodosHandlers implements IIPCHandlerGroup {
     });
 
     // Delete todo
-    ipcMain.handle('delete-todo', async (_, args: Record<string, any>) => {
+    ipcMain.handle('delete-todo', async (_, args: DeleteTodoArgs) => {
       try {
         const { id } = args;
         console.log('🗑️  Deleting todo:', { id });

@@ -3,6 +3,22 @@ import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
 import type { Category } from '../../../types';
 
 /**
+ * Args interfaces for type-safe IPC communication
+ */
+interface AddCategoryArgs {
+  category: Category;
+}
+
+interface UpdateCategoryArgs {
+  id: number;
+  updates: Partial<Category>;
+}
+
+interface DeleteCategoryArgs {
+  id: number;
+}
+
+/**
  * CategoriesHandlers - IPC handlers for category management
  *
  * Handles:
@@ -40,10 +56,10 @@ export class CategoriesHandlers implements IIPCHandlerGroup {
 
     // Add category
     // Extracted from main.ts:689-700
-    ipcMain.handle('add-category', async (_, args: Record<string, any>) => {
+    ipcMain.handle('add-category', async (_, args: AddCategoryArgs) => {
       try {
         const { category } = args;
-        return (await context.categoriesService?.addCategory(category as Category)) || null;
+        return (await context.categoriesService?.addCategory(category)) || null;
       } catch (error) {
         console.error('Failed to add category:', error);
         return null;
@@ -52,7 +68,7 @@ export class CategoriesHandlers implements IIPCHandlerGroup {
 
     // Update category
     // Extracted from main.ts:702-713
-    ipcMain.handle('update-category', async (_, args: Record<string, any>) => {
+    ipcMain.handle('update-category', async (_, args: UpdateCategoryArgs) => {
       try {
         const { id, updates } = args;
         return (await context.categoriesService?.updateCategory(id, updates)) || false;
@@ -64,7 +80,7 @@ export class CategoriesHandlers implements IIPCHandlerGroup {
 
     // Delete category
     // Extracted from main.ts:715-726
-    ipcMain.handle('delete-category', async (_, args: Record<string, any>) => {
+    ipcMain.handle('delete-category', async (_, args: DeleteCategoryArgs) => {
       try {
         const { id } = args;
         return (await context.categoriesService?.deleteCategory(id)) || false;
