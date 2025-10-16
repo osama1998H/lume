@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FolderOpen, Plus, Tag, Link, Trash2, Edit2, Check, X } from 'lucide-react';
-import { Category, Tag as TagType, AppCategoryMapping, DomainCategoryMapping } from '../../types';
+import { Category, Tag as TagType, AppCategoryMapping, DomainCategoryMapping } from '@/types';
 import Button from '../ui/Button';
 import Skeleton from '../ui/Skeleton';
 import EmptyState from '../ui/EmptyState';
 import { FormModal, ConfirmModal } from '../ui/Modal';
 import FormField, { SelectField } from '../ui/FormField';
-import { showToast } from '../../utils/toast';
-import { validateFormData, categorySchema, tagSchema, mappingSchema } from '../../utils/validation';
+import { showToast } from '@/utils/toast';
+import { validateFormData, categorySchema, tagSchema, mappingSchema } from '@/utils/validation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { logger } from '@/services/logging/RendererLogger';
 
 const Categories: React.FC = () => {
   const { t } = useTranslation();
@@ -54,7 +55,7 @@ const Categories: React.FC = () => {
         setDomainMappings(domainMappingsData);
       }
     } catch (error) {
-      console.error('Failed to load categories and tags:', error);
+      logger.error('Failed to load categories and tags:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('categories.loadError') || 'Failed to load data');
     } finally {
       setIsLoading(false);
@@ -86,7 +87,7 @@ const Categories: React.FC = () => {
         showToast.success(t('categories.addSuccess') || 'Category added successfully');
       }
     } catch (error) {
-      console.error('Failed to add category:', error);
+      logger.error('Failed to add category:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('categories.addError') || 'Failed to add category');
     } finally {
       setIsSaving(false);
@@ -121,7 +122,7 @@ const Categories: React.FC = () => {
         showToast.success(t('categories.updateSuccess') || 'Category updated successfully');
       }
     } catch (error) {
-      console.error('Failed to update category:', error);
+      logger.error('Failed to update category:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('categories.updateError') || 'Failed to update category');
     }
   };
@@ -147,7 +148,7 @@ const Categories: React.FC = () => {
         showToast.success(t('categories.tagAddSuccess') || 'Tag added successfully');
       }
     } catch (error) {
-      console.error('Failed to add tag:', error);
+      logger.error('Failed to add tag:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('categories.tagAddError') || 'Failed to add tag');
     } finally {
       setIsSaving(false);
@@ -182,7 +183,7 @@ const Categories: React.FC = () => {
         showToast.success(t('categories.tagUpdateSuccess') || 'Tag updated successfully');
       }
     } catch (error) {
-      console.error('Failed to update tag:', error);
+      logger.error('Failed to update tag:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('categories.tagUpdateError') || 'Failed to update tag');
     }
   };
@@ -212,7 +213,7 @@ const Categories: React.FC = () => {
         showToast.success(t('categories.mappingAddSuccess') || 'Mapping added successfully');
       }
     } catch (error) {
-      console.error('Failed to add mapping:', error);
+      logger.error('Failed to add mapping:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('categories.mappingAddError') || 'Failed to add mapping');
     } finally {
       setIsSaving(false);
@@ -252,7 +253,7 @@ const Categories: React.FC = () => {
         await loadData();
       }
     } catch (error) {
-      console.error('Failed to delete:', error);
+      logger.error('Failed to delete:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('categories.deleteError') || 'Failed to delete');
     } finally {
       setIsSaving(false);

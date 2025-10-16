@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Copy, AlertCircle, Percent, GitMerge, ChevronDown, ChevronUp } from 'lucide-react';
-import { UnifiedActivity } from '../../../types';
-import { formatDuration, formatTime, formatDate } from '../../../utils/format';
+import { UnifiedActivity } from '@/types';
+import { formatDuration, formatTime, formatDate } from '@/utils/format';
+import { logger } from '@/services/logging/RendererLogger';
 
 interface DuplicateGroup {
   activities: UnifiedActivity[];
@@ -48,7 +49,7 @@ const DuplicateDetection: React.FC<DuplicateDetectionProps> = ({
 
       setDuplicateGroups(duplicates);
     } catch (err) {
-      console.error('Failed to load duplicate data:', err);
+      logger.error('Failed to load duplicate data:', {}, err instanceof Error ? err : undefined);
       setError(t('dataQuality.duplicates.loadError', 'Failed to load duplicate data'));
     } finally {
       setLoading(false);
@@ -85,7 +86,7 @@ const DuplicateDetection: React.FC<DuplicateDetectionProps> = ({
       // Reload data after merge
       await loadDuplicateData();
     } catch (err) {
-      console.error('Failed to merge activities:', err);
+      logger.error('Failed to merge activities:', {}, err instanceof Error ? err : undefined);
       setError(t('dataQuality.duplicates.mergeError', 'Failed to merge activities'));
     } finally {
       setMergingGroups((prev) => {

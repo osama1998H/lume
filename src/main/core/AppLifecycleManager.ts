@@ -1,5 +1,6 @@
 import { App } from 'electron';
 import { getIconPath } from '../utils';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * Lifecycle callbacks for the application
@@ -105,7 +106,7 @@ export class AppLifecycleManager {
           const dockIconPath = getIconPath();
           this.app.dock.setIcon(dockIconPath);
         } catch (error) {
-          console.warn('⚠️  Failed to set dock icon:', error);
+          logger.warn('⚠️  Failed to set dock icon', { error: String(error) });
           // Non-critical error - app can continue without dock icon
         }
       }

@@ -4,7 +4,7 @@ import Dashboard from '../pages/Dashboard';
 import TimeTracker from '../pages/TimeTracker';
 import Reports from '../pages/Reports';
 import Sidebar from '../layout/Sidebar';
-import { ThemeProvider } from '../../contexts/ThemeContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {

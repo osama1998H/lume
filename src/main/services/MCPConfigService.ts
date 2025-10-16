@@ -8,7 +8,8 @@ import type {
   MCPBridgeStatus,
   MCPConfigResult,
   MCPConfigFileInfo,
-} from '../../types';
+} from '@/types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * Service for managing MCP client configurations
@@ -135,7 +136,7 @@ export class MCPConfigService {
       const exists = await this.fileExists(configPath);
       return { exists, path: configPath };
     } catch (error) {
-      console.error(`Failed to detect config file for ${client}:`, error);
+      logger.error(`Failed to detect config file for ${client}`, {}, error instanceof Error ? error : undefined);
       return { exists: false, path: '' };
     }
   }
@@ -176,7 +177,7 @@ export class MCPConfigService {
       await fs.copyFile(filePath, backupPath);
       return backupPath;
     } catch (error) {
-      console.error('Failed to create config backup:', error);
+      logger.error('Failed to create config backup:', {}, error instanceof Error ? error : undefined);
       throw new Error('Failed to create backup file');
     }
   }
@@ -264,7 +265,7 @@ export class MCPConfigService {
         backupPath,
       };
     } catch (error) {
-      console.error(`❌ Failed to auto-configure ${client}:`, error);
+      logger.error(`❌ Failed to auto-configure ${client}`, {}, error instanceof Error ? error : undefined);
 
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 

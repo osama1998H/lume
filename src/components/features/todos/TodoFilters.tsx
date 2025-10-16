@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search } from 'lucide-react';
-import { TodoStatus, TodoPriority, Category } from '../../../types';
+import { TodoStatus, TodoPriority, Category } from '@/types';
 import { SelectField } from '../../ui/FormField';
 
 interface TodoFiltersProps {

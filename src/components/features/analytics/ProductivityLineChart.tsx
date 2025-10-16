@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import type { ProductivityTrend } from '../../../types';
+import type { ProductivityTrend } from '@/types';
 import { ChartCard } from './ChartCard';
 
 interface ProductivityLineChartProps {

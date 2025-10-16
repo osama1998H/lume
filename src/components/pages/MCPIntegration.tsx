@@ -13,7 +13,8 @@ import {
   Info,
 } from 'lucide-react';
 import Button from '../ui/Button';
-import type { MCPClient, MCPBridgeStatus, MCPConfigResult } from '../../types';
+import type { MCPClient, MCPBridgeStatus, MCPConfigResult } from '@/types';
+import { logger } from '@/services/logging/RendererLogger';
 
 /**
  * MCPIntegration Component
@@ -55,7 +56,7 @@ const MCPIntegration: React.FC = () => {
       const status = await window.electronAPI.mcpConfig.getBridgeStatus();
       setBridgeStatus(status);
     } catch (error) {
-      console.error('Failed to load bridge status:', error);
+      logger.error('Failed to load bridge status:', {}, error instanceof Error ? error : undefined);
       toast.error(t('mcp.errors.bridgeStatusFailed'));
     }
   };
@@ -68,7 +69,7 @@ const MCPIntegration: React.FC = () => {
       const config = await window.electronAPI.mcpConfig.generateConfig(client);
       setManualConfig(config);
     } catch (error) {
-      console.error('Failed to generate config:', error);
+      logger.error('Failed to generate config:', {}, error instanceof Error ? error : undefined);
       toast.error(t('mcp.errors.configGenerationFailed'));
     }
   };
@@ -91,7 +92,7 @@ const MCPIntegration: React.FC = () => {
         toast.error(result.message);
       }
     } catch (error) {
-      console.error(`Failed to auto-configure ${client}:`, error);
+      logger.error(`Failed to auto-configure ${client}:`, {}, error instanceof Error ? error : undefined);
       const errorMessage = error instanceof Error ? error.message : t('mcp.errors.unknownError');
       toast.error(t('mcp.errors.configurationFailed', { error: errorMessage }));
     } finally {
@@ -111,7 +112,7 @@ const MCPIntegration: React.FC = () => {
         toast.error(t('mcp.errors.copyFailed'));
       }
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
+      logger.error('Failed to copy to clipboard:', {}, error instanceof Error ? error : undefined);
       toast.error(t('mcp.errors.copyFailed'));
     }
   };

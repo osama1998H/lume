@@ -1,8 +1,8 @@
 import Database from 'better-sqlite3';
 import { BaseRepository } from '../base/BaseRepository';
 import { QueryOptions, WhereClause } from '../base/RepositoryTypes';
-import { Todo, TodoStatus, TodoPriority, TodoWithCategory, TodoStats, Tag } from '../../types';
-import { DatabaseRow } from '../../types/database';
+import { Todo, TodoStatus, TodoPriority, TodoWithCategory, TodoStats, Tag } from '@/types';
+import { DatabaseRow } from '@/types/database';
 
 /**
  * Repository for todos table

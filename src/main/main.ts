@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv';
 import { initializeSentry } from '../config/sentry';
 import { initializeCrashReporter } from '../config/crashReporter';
 import { writePortFile, deletePortFile } from './utils/portFile';
+import { logger } from '../services/logging/Logger';
 
 // Import core managers
 import { WindowManager } from './core/WindowManager';
@@ -148,7 +149,7 @@ class LumeApp {
       // Auto-start tracking if enabled in settings
       this.autoStartTracking();
     } catch (error) {
-      console.error('❌ Failed to initialize services:', error);
+      logger.error('❌ Failed to initialize services:', {}, error instanceof Error ? error : undefined);
       // Continue without services for now
     }
   }
@@ -165,7 +166,7 @@ class LumeApp {
         }
       }
     } catch (error) {
-      console.error('❌ Failed to auto-start activity tracking:', error);
+      logger.error('❌ Failed to auto-start activity tracking:', {}, error instanceof Error ? error : undefined);
     }
   }
 
@@ -208,12 +209,12 @@ class LumeApp {
       context.httpBridge = this.httpBridge;
       context.mcpConfigService = this.mcpConfigService;
     } catch (error) {
-      console.error('❌ Failed to start HTTP Bridge - MCP integration unavailable');
-      console.error('Error details:', error instanceof Error ? error.message : String(error));
+      logger.error('❌ Failed to start HTTP Bridge - MCP integration unavailable');
+      logger.error('Error details', { message: error instanceof Error ? error.message : String(error) });
       if (error instanceof Error && error.stack) {
-        console.error('Stack trace:', error.stack);
+        logger.error('Stack trace', { stack: error.stack });
       }
-      console.error('⚠️  Lume will continue without MCP support');
+      logger.error('⚠️  Lume will continue without MCP support');
       this.httpBridge = null;
       this.mcpConfigService = null;
     }

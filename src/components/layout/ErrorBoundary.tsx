@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import { logger } from '@/services/logging/RendererLogger';
 
 interface Props extends WithTranslation {
   children: ReactNode;
@@ -28,17 +29,13 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    logger.error('ErrorBoundary caught an error', {
+      message: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+    }, error);
 
-    // You can also log the error to your crash reporting service here
-    if (window.electronAPI) {
-      // Future: Send error to crash reporting
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        componentStack: errorInfo.componentStack,
-      });
-    }
+    // Future: Send error to crash reporting service via IPC if needed
   }
 
   handleReset = (): void => {

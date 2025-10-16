@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { List, Calendar, Clock, Filter, RefreshCw, Plus, BarChart3, RotateCcw, RotateCw, ChevronDown, Sparkles } from 'lucide-react';
-import { ActivityLogProvider, useActivityLog, parseSelectionKey } from '../../contexts/ActivityLogContext';
+import { ActivityLogProvider, useActivityLog, parseSelectionKey } from '@/contexts/ActivityLogContext';
 import BulkActionToolbar from './ActivityLog/BulkActionToolbar';
 import ActivityFilters from './ActivityLog/ActivityFilters';
 import ActivityStatsPanel from './ActivityLog/ActivityStatsPanel';
 import DataQualityPanel from '../features/dataQuality/DataQualityPanel';
-import { formatActionDescription } from '../../utils/activityHistory';
-import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
-import type { UnifiedActivity, Category, Tag, TimeGap } from '../../types';
+import { formatActionDescription } from '@/utils/activityHistory';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import type { UnifiedActivity, Category, Tag, TimeGap } from '@/types';
 
 // View components
 import ActivityListView from './ActivityLog/ActivityListView';
@@ -21,6 +21,7 @@ import ActivityEditModal from './ActivityLog/ActivityEditModal';
 import ActivityCreateModal, { NewActivityData } from './ActivityLog/ActivityCreateModal';
 import BulkActionsModal, { BulkUpdateData } from './ActivityLog/BulkActionsModal';
 import MergeActivitiesModal from './ActivityLog/MergeActivitiesModal';
+import { logger } from '@/services/logging/RendererLogger';
 
 /**
  * ActivityLog
@@ -80,7 +81,7 @@ const ActivityLogContent: React.FC = () => {
         setCategories(categoriesData);
         setTags(tagsData);
       } catch (error) {
-        console.error('Failed to load categories and tags:', error);
+        logger.error('Failed to load categories and tags:', {}, error instanceof Error ? error : undefined);
       }
 
       // Load settings separately so failure doesn't block categories/tags
@@ -88,7 +89,7 @@ const ActivityLogContent: React.FC = () => {
         const settings = await window.electronAPI.settings.get();
         setDefaultCategory(settings?.defaultCategory || null);
       } catch (error) {
-        console.error('Failed to load settings:', error);
+        logger.error('Failed to load settings:', {}, error instanceof Error ? error : undefined);
         // Categories and tags still work even if settings fails
       }
     };
@@ -111,7 +112,7 @@ const ActivityLogContent: React.FC = () => {
 
         setActivities(activitiesData);
       } catch (error) {
-        console.error('Failed to load activities:', error);
+        logger.error('Failed to load activities:', {}, error instanceof Error ? error : undefined);
       } finally {
         setIsRefreshing(false);
       }
@@ -195,7 +196,7 @@ const ActivityLogContent: React.FC = () => {
 
     if (window.confirm(confirmMessage)) {
       // TODO: Implement bulk delete via IPC
-      console.log('Delete activities:', Array.from(selectedActivities));
+      logger.info('Delete activities:', Array.from(selectedActivities));
       clearSelection();
     }
   };
@@ -239,7 +240,7 @@ const ActivityLogContent: React.FC = () => {
 
       await refreshActivities();
     } catch (error) {
-      console.error('Failed to create activity:', error);
+      logger.error('Failed to create activity:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   };
@@ -268,7 +269,7 @@ const ActivityLogContent: React.FC = () => {
       await refreshActivities();
       clearSelection();
     } catch (error) {
-      console.error('Failed to bulk update:', error);
+      logger.error('Failed to bulk update:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   };
@@ -287,7 +288,7 @@ const ActivityLogContent: React.FC = () => {
       await refreshActivities();
       clearSelection();
     } catch (error) {
-      console.error('Failed to merge activities:', error);
+      logger.error('Failed to merge activities:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   };
@@ -305,7 +306,7 @@ const ActivityLogContent: React.FC = () => {
 
       await refreshActivities();
     } catch (error) {
-      console.error('Failed to update activity:', error);
+      logger.error('Failed to update activity:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   };
@@ -326,11 +327,11 @@ const ActivityLogContent: React.FC = () => {
             }}
             onActivityDelete={(activity) => {
               // TODO: Implement delete confirmation
-              console.log('Delete activity:', activity);
+              logger.info('Delete activity:', activity);
             }}
             onActivityDuplicate={(activity) => {
               // TODO: Implement duplicate
-              console.log('Duplicate activity:', activity);
+              logger.info('Duplicate activity:', activity);
             }}
           />
         );

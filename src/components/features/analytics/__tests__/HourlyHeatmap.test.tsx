@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { HourlyHeatmap } from '../HourlyHeatmap';
-import type { HourlyPattern } from '../../../../types';
+import type { HourlyPattern } from '@/types';
 
 // Mock i18n
 jest.mock('react-i18next', () => ({

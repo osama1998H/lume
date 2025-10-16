@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Play, Square, Tag as TagIcon, Tags, FileText } from 'lucide-react';
-import { TimeEntry, Category, Tag, Todo } from '../../types';
+import { TimeEntry, Category, Tag, Todo } from '@/types';
 import ActivityListCard from '../ui/ActivityListCard';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import TagSelector from '../ui/TagSelector';
 import { TodoSelectorSuffix } from '../ui/TodoSelectorSuffix';
-import { formatDuration } from '../../utils/format';
-import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { formatDuration } from '@/utils/format';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { logger } from '@/services/logging/RendererLogger';
 
 const TimeTracker: React.FC = () => {
   const { t } = useTranslation();
@@ -90,7 +91,7 @@ const TimeTracker: React.FC = () => {
         setTodos(activeTodos);
       }
     } catch (error) {
-      console.error('Failed to load todos:', error);
+      logger.error('Failed to load todos:', {}, error instanceof Error ? error : undefined);
     }
   };
 
@@ -113,7 +114,7 @@ const TimeTracker: React.FC = () => {
         return categoriesData;
       }
     } catch (error) {
-      console.error('Failed to load categories:', error);
+      logger.error('Failed to load categories:', {}, error instanceof Error ? error : undefined);
     }
     return [];
   };
@@ -123,7 +124,7 @@ const TimeTracker: React.FC = () => {
       if (window.electronAPI) {
         const activeEntry = await window.electronAPI.timeEntries.getActive();
         if (activeEntry && activeEntry.id) {
-          console.log('📋 Restoring active timer:', activeEntry);
+          logger.info('📋 Restoring active timer:', activeEntry);
           setCurrentTask(activeEntry.task);
 
           // Restore category ID if available
@@ -145,7 +146,7 @@ const TimeTracker: React.FC = () => {
           if (!isNaN(parsedStartTime.getTime())) {
             setStartTime(parsedStartTime);
           } else {
-            console.warn('Invalid startTime format for activeEntry:', activeEntry.startTime);
+            logger.warn('Invalid startTime format for activeEntry:', activeEntry.startTime);
             setStartTime(null);
           }
           setIsTracking(true);
@@ -153,7 +154,7 @@ const TimeTracker: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Failed to restore active timer:', error);
+      logger.error('Failed to restore active timer:', {}, error instanceof Error ? error : undefined);
     }
   };
 
@@ -194,7 +195,7 @@ const TimeTracker: React.FC = () => {
         setRecentEntries(entries);
       }
     } catch (error) {
-      console.error('Failed to load recent entries:', error);
+      logger.error('Failed to load recent entries:', {}, error instanceof Error ? error : undefined);
     }
   };
 
@@ -214,7 +215,7 @@ const TimeTracker: React.FC = () => {
     try {
       if (window.electronAPI) {
         const id = await window.electronAPI.timeEntries.add(entry);
-        console.log('⏱️  Started timer with ID:', id);
+        logger.info('⏱️  Started timer with ID', { id });
 
         // Save tags if any selected
         if (selectedTags.length > 0) {
@@ -235,7 +236,7 @@ const TimeTracker: React.FC = () => {
         setElapsedTime(0);
       }
     } catch (error) {
-      console.error('Failed to start timer:', error);
+      logger.error('Failed to start timer:', {}, error instanceof Error ? error : undefined);
     }
   };
 
@@ -253,14 +254,14 @@ const TimeTracker: React.FC = () => {
         });
 
         if (updated) {
-          console.log('✅ Timer stopped and entry updated:', activeEntryId);
+          logger.info('✅ Timer stopped and entry updated', { activeEntryId });
           await loadRecentEntries();
         } else {
-          console.error('Failed to update timer entry');
+          logger.error('Failed to update timer entry');
         }
       }
     } catch (error) {
-      console.error('Failed to save time entry:', error);
+      logger.error('Failed to save time entry:', {}, error instanceof Error ? error : undefined);
     }
 
     setIsTracking(false);

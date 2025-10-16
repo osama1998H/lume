@@ -9,8 +9,9 @@ import {
   Database,
   TrendingUp,
 } from 'lucide-react';
-import { UnifiedActivity } from '../../../types';
-import { formatDuration, formatTime, formatDate } from '../../../utils/format';
+import { UnifiedActivity } from '@/types';
+import { formatDuration, formatTime, formatDate } from '@/utils/format';
+import { logger } from '@/services/logging/RendererLogger';
 
 interface DataCleanupProps {
   startDate: string;
@@ -67,7 +68,7 @@ const DataCleanup: React.FC<DataCleanupProps> = ({ startDate, endDate, onRefresh
       const report = await window.electronAPI.dataQuality.report.get(startDate, endDate);
       setQualityReport(report);
     } catch (err) {
-      console.error('Failed to load quality report:', err);
+      logger.error('Failed to load quality report:', {}, err instanceof Error ? err : undefined);
       setError(t('dataQuality.cleanup.loadError', 'Failed to load quality report'));
     } finally {
       setLoading(false);
@@ -83,7 +84,7 @@ const DataCleanup: React.FC<DataCleanupProps> = ({ startDate, endDate, onRefresh
       const activities = await window.electronAPI.dataQuality.orphaned.find(startDate, endDate);
       setOrphanedActivities(activities);
     } catch (err) {
-      console.error('Failed to load orphaned activities:', err);
+      logger.error('Failed to load orphaned activities:', {}, err instanceof Error ? err : undefined);
       setError(t('dataQuality.cleanup.loadError', 'Failed to load orphaned activities'));
     } finally {
       setLoading(false);
@@ -99,7 +100,7 @@ const DataCleanup: React.FC<DataCleanupProps> = ({ startDate, endDate, onRefresh
       const result = await window.electronAPI.dataQuality.zeroDuration.find(startDate, endDate, false);
       setZeroDurationActivities(result.activities);
     } catch (err) {
-      console.error('Failed to load zero-duration activities:', err);
+      logger.error('Failed to load zero-duration activities:', {}, err instanceof Error ? err : undefined);
       setError(t('dataQuality.cleanup.loadError', 'Failed to load zero-duration activities'));
     } finally {
       setLoading(false);
@@ -115,7 +116,7 @@ const DataCleanup: React.FC<DataCleanupProps> = ({ startDate, endDate, onRefresh
       const results = await window.electronAPI.dataQuality.validation.validateBatch(startDate, endDate);
       setValidationResults(results);
     } catch (err) {
-      console.error('Failed to validate activities:', err);
+      logger.error('Failed to validate activities:', {}, err instanceof Error ? err : undefined);
       setError(t('dataQuality.cleanup.loadError', 'Failed to validate activities'));
     } finally {
       setLoading(false);
@@ -144,7 +145,7 @@ const DataCleanup: React.FC<DataCleanupProps> = ({ startDate, endDate, onRefresh
       setRecalculationResult(result);
       if (onRefresh) onRefresh();
     } catch (err) {
-      console.error('Failed to recalculate durations:', err);
+      logger.error('Failed to recalculate durations:', {}, err instanceof Error ? err : undefined);
       setError(t('dataQuality.cleanup.recalculateError', 'Failed to recalculate durations'));
     } finally {
       setLoading(false);
@@ -171,7 +172,7 @@ const DataCleanup: React.FC<DataCleanupProps> = ({ startDate, endDate, onRefresh
       loadZeroDurationActivities();
       if (onRefresh) onRefresh();
     } catch (err) {
-      console.error('Failed to remove zero-duration activities:', err);
+      logger.error('Failed to remove zero-duration activities:', {}, err instanceof Error ? err : undefined);
       setError(t('dataQuality.cleanup.removeError', 'Failed to remove activities'));
     } finally {
       setLoading(false);

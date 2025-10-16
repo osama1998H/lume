@@ -1,6 +1,7 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
-import type { TimeEntry } from '../../../types';
+import type { TimeEntry } from '@/types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * TimeEntryHandlers - IPC handlers for manual time entry operations
@@ -30,14 +31,14 @@ export class TimeEntryHandlers implements IIPCHandlerGroup {
 
         // Only log in development; redact task description
         if (process.env.NODE_ENV !== 'production') {
-          console.debug('Add time entry:', {
+          logger.debug('Add time entry:', {
             ...entry,
             task: entry.task ? '[redacted]' : undefined,
           });
         }
         return context.dbManager?.addTimeEntry(entry as TimeEntry) || null;
       } catch (error) {
-        console.error('Failed to add time entry:', error);
+        logger.error('Failed to add time entry:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });
@@ -50,14 +51,14 @@ export class TimeEntryHandlers implements IIPCHandlerGroup {
 
         // Only log in development; redact task description
         if (process.env.NODE_ENV !== 'production') {
-          console.debug('Update time entry:', id, {
+          logger.debug('Update time entry', { id,
             ...updates,
             task: updates?.task ? '[redacted]' : undefined,
           });
         }
         return context.dbManager?.updateTimeEntry(id, updates) || false;
       } catch (error) {
-        console.error('Failed to update time entry:', error);
+        logger.error('Failed to update time entry:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -69,7 +70,7 @@ export class TimeEntryHandlers implements IIPCHandlerGroup {
         const activeEntry = context.dbManager?.getActiveTimeEntry() || null;
         return activeEntry;
       } catch (error) {
-        console.error('Failed to get active time entry:', error);
+        logger.error('Failed to get active time entry:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });

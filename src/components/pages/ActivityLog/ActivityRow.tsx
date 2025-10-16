@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Edit2, Trash2, Copy, ChevronDown, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { UnifiedActivity } from '../../../types';
+import type { UnifiedActivity } from '@/types';
 import SourceTypeIcon from './SourceTypeIcon';
 import ConflictBadge from './ConflictBadge';
 import TagDisplay from '../../ui/TagDisplay';
-import { formatDuration } from '../../../utils/format';
+import { formatDuration } from '@/utils/format';
 
 interface ActivityRowProps {
   activity: UnifiedActivity;

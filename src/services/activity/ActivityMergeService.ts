@@ -1,5 +1,6 @@
-import { DatabaseManager } from '../../database/DatabaseManager';
+import { DatabaseManager } from '@/database/DatabaseManager';
 import { ActivityValidationService } from './ActivityValidationService';
+import { logger } from '@/services/logging/Logger';
 import {
   UnifiedActivity,
   ActivityConflict,
@@ -7,7 +8,7 @@ import {
   MergeSuggestion,
   TimeGap,
   Tag,
-} from '../../types';
+} from '@/types';
 
 /**
  * ActivityMergeService
@@ -146,7 +147,11 @@ export class ActivityMergeService {
       .sort((a, b) => a - b);
 
     if (sortedSplits.length === 0) {
-      console.warn('No valid split points within activity time range');
+      logger.warn('No valid split points within activity time range', {
+        activityId: activity.id,
+        activityTitle: activity.title,
+        requestedSplits: splitPoints.length
+      });
       return [activity];
     }
 
@@ -208,7 +213,9 @@ export class ActivityMergeService {
         return this.resolveDuplicateConflict(conflict.activities, resolution);
 
       case 'gap':
-        console.warn('Gap conflicts do not require resolution');
+        logger.warn('Gap conflicts do not require resolution', {
+          activitiesCount: conflict.activities.length
+        });
         return conflict.activities.map(activity => ({
           activity,
           action: 'keep' as const,
@@ -265,7 +272,9 @@ export class ActivityMergeService {
 
       case 'split':
         // Split overlapping activities at overlap points
-        console.warn('Split resolution not implemented for overlaps');
+        logger.warn('Split resolution not implemented for overlaps', {
+          activitiesCount: activities.length
+        });
         for (const activity of activities) {
           resolved.push({ activity, action: 'keep' });
         }

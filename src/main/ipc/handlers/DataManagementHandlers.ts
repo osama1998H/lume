@@ -1,6 +1,7 @@
 import { IpcMain, dialog } from 'electron';
 import * as fsPromises from 'fs/promises';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * DataManagementHandlers - IPC handlers for data import/export and cleanup
@@ -19,19 +20,19 @@ export class DataManagementHandlers implements IIPCHandlerGroup {
     ipcMain.handle('clear-all-data', async () => {
       try {
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return false;
         }
 
         const success = context.dbManager.clearAllData();
 
         if (!success) {
-          console.error('❌ Failed to clear all data');
+          logger.error('❌ Failed to clear all data');
         }
 
         return success;
       } catch (error) {
-        console.error('Failed to clear all data:', error);
+        logger.error('Failed to clear all data:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -41,7 +42,7 @@ export class DataManagementHandlers implements IIPCHandlerGroup {
     ipcMain.handle('export-data', async (_, format: 'json' | 'csv') => {
       try {
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return { success: false, error: 'Database not initialized' };
         }
 
@@ -87,7 +88,7 @@ export class DataManagementHandlers implements IIPCHandlerGroup {
           };
         }
       } catch (error) {
-        console.error('Failed to export data:', error);
+        logger.error('Failed to export data:', {}, error instanceof Error ? error : undefined);
         return {
           success: false,
           error: error instanceof Error ? error.message : 'Unknown error'
@@ -100,7 +101,7 @@ export class DataManagementHandlers implements IIPCHandlerGroup {
     ipcMain.handle('import-data', async (_, format: 'json' | 'csv', options?) => {
       try {
         if (!context.dbManager) {
-          console.error('❌ Database manager not initialized');
+          logger.error('❌ Database manager not initialized');
           return {
             success: false,
             recordsImported: 0,
@@ -159,7 +160,7 @@ export class DataManagementHandlers implements IIPCHandlerGroup {
           };
         }
       } catch (error) {
-        console.error('Failed to import data:', error);
+        logger.error('Failed to import data:', {}, error instanceof Error ? error : undefined);
         return {
           success: false,
           recordsImported: 0,

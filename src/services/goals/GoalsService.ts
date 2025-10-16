@@ -1,5 +1,6 @@
-import { DatabaseManager } from '../../database/DatabaseManager';
+import { DatabaseManager } from '@/database/DatabaseManager';
 import { NotificationService } from '../notifications/NotificationService';
+import { logger } from '@/services/logging/Logger';
 import {
   ProductivityGoal,
   GoalProgress,
@@ -7,7 +8,7 @@ import {
   GoalStats,
   GoalStatus,
   GoalOperator,
-} from '../../types';
+} from '@/types';
 
 export interface GoalNotificationInfo {
   goalId: number;
@@ -42,7 +43,11 @@ export class GoalsService {
       const goalId = await this.db.addGoal(goal);
       return goalId;
     } catch (error) {
-      console.error('Failed to add goal:', error);
+      logger.error('Failed to add goal', {
+        goalName: goal.name,
+        goalType: goal.goalType,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -55,7 +60,11 @@ export class GoalsService {
       const success = await this.db.updateGoal(id, updates);
       return success;
     } catch (error) {
-      console.error('Failed to update goal:', error);
+      logger.error('Failed to update goal', {
+        goalId: id,
+        updates: JSON.stringify(updates),
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -78,7 +87,10 @@ export class GoalsService {
       }
       return success;
     } catch (error) {
-      console.error('Failed to delete goal:', error);
+      logger.error('Failed to delete goal', {
+        goalId: id,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -90,7 +102,10 @@ export class GoalsService {
     try {
       return await this.db.getGoals(activeOnly);
     } catch (error) {
-      console.error('Failed to get goals:', error);
+      logger.error('Failed to get goals', {
+        activeOnly,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -103,7 +118,10 @@ export class GoalsService {
       const goals = await this.db.getGoals();
       return goals.find((g: ProductivityGoal) => g.id === id) || null;
     } catch (error) {
-      console.error('Failed to get goal by id:', error);
+      logger.error('Failed to get goal by id', {
+        goalId: id,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       return null;
     }
   }
@@ -115,7 +133,9 @@ export class GoalsService {
     try {
       return await this.db.getTodayGoalsWithProgress();
     } catch (error) {
-      console.error('Failed to get goals with progress:', error);
+      logger.error('Failed to get goals with progress', {
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -127,7 +147,11 @@ export class GoalsService {
     try {
       return await this.db.getGoalProgress(goalId, date);
     } catch (error) {
-      console.error('Failed to get goal progress:', error);
+      logger.error('Failed to get goal progress', {
+        goalId,
+        date,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -139,7 +163,11 @@ export class GoalsService {
     try {
       return await this.db.getGoalAchievementHistory(goalId, days);
     } catch (error) {
-      console.error('Failed to get achievement history:', error);
+      logger.error('Failed to get achievement history', {
+        goalId,
+        days,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -151,7 +179,9 @@ export class GoalsService {
     try {
       return await this.db.getGoalStats();
     } catch (error) {
-      console.error('Failed to get goal stats:', error);
+      logger.error('Failed to get goal stats', {
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -167,7 +197,12 @@ export class GoalsService {
       // Check if we need to send notifications
       await this.checkAndNotifyGoalProgress(goalId, date, progressMinutes);
     } catch (error) {
-      console.error('Failed to update goal progress:', error);
+      logger.error('Failed to update goal progress', {
+        goalId,
+        date,
+        progressMinutes,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -177,6 +212,7 @@ export class GoalsService {
    * This should be called periodically by ActivityTrackingService
    */
   async recalculateAllGoalProgress(): Promise<void> {
+    let activeGoalCount = 0;
     try {
       const todayValue = new Date().toISOString().split('T')[0];
       if (!todayValue) {
@@ -184,7 +220,7 @@ export class GoalsService {
       }
       const today = todayValue;
       const activeGoals = await this.getGoals(true);
-
+      activeGoalCount = activeGoals.length;
 
       for (const goal of activeGoals) {
         if (!goal.id) continue;
@@ -193,7 +229,10 @@ export class GoalsService {
         await this.updateGoalProgress(goal.id, today, progressMinutes);
       }
     } catch (error) {
-      console.error('Failed to recalculate goal progress:', error);
+      logger.error('Failed to recalculate goal progress', {
+        activeGoalCount,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -228,11 +267,19 @@ export class GoalsService {
         }
 
         default:
-          console.warn(`Unknown goal type: ${goal.goalType}`);
+          logger.warn('Unknown goal type encountered', {
+            goalId: goal.id,
+            goalType: goal.goalType
+          });
           return 0;
       }
     } catch (error) {
-      console.error('Failed to calculate goal progress:', error);
+      logger.error('Failed to calculate goal progress', {
+        goalId: goal.id,
+        goalType: goal.goalType,
+        date,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       return 0;
     }
   }
@@ -244,7 +291,11 @@ export class GoalsService {
     try {
       return this.db.queryTotalActiveTime(startTime, endTime);
     } catch (error) {
-      console.error('Failed to calculate total active time:', error);
+      logger.error('Failed to calculate total active time', {
+        startTime,
+        endTime,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       return 0;
     }
   }
@@ -256,7 +307,12 @@ export class GoalsService {
     try {
       return this.db.queryCategoryTime(category, startTime, endTime);
     } catch (error) {
-      console.error('Failed to calculate category time:', error);
+      logger.error('Failed to calculate category time', {
+        category,
+        startTime,
+        endTime,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       return 0;
     }
   }
@@ -268,7 +324,12 @@ export class GoalsService {
     try {
       return this.db.queryAppTime(appName, startTime, endTime);
     } catch (error) {
-      console.error('Failed to calculate app time:', error);
+      logger.error('Failed to calculate app time', {
+        appName,
+        startTime,
+        endTime,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       return 0;
     }
   }
@@ -332,7 +393,12 @@ export class GoalsService {
         notifiedPercentages.add(150); // Use 150 as a marker for "exceeded" notification
       }
     } catch (error) {
-      console.error('Failed to check and notify goal progress:', error);
+      logger.error('Failed to check and notify goal progress', {
+        goalId,
+        date,
+        progressMinutes,
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
     }
   }
 
@@ -454,7 +520,9 @@ export class GoalsService {
 
       return needsAttention;
     } catch (error) {
-      console.error('Failed to get goals needing attention:', error);
+      logger.error('Failed to get goals needing attention', {
+        error: error instanceof Error ? error.message : String(error)
+      }, error instanceof Error ? error : undefined);
       return [];
     }
   }

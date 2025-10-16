@@ -1,6 +1,7 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
-import type { Category } from '../../../types';
+import type { Category } from '@/types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * Args interfaces for type-safe IPC communication
@@ -38,7 +39,7 @@ export class CategoriesHandlers implements IIPCHandlerGroup {
       try {
         return (await context.categoriesService?.getCategories()) || [];
       } catch (error) {
-        console.error('Failed to get categories:', error);
+        logger.error('Failed to get categories:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -49,7 +50,7 @@ export class CategoriesHandlers implements IIPCHandlerGroup {
       try {
         return (await context.categoriesService?.getCategoryById(id)) || null;
       } catch (error) {
-        console.error('Failed to get category by ID:', error);
+        logger.error('Failed to get category by ID:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });
@@ -61,7 +62,7 @@ export class CategoriesHandlers implements IIPCHandlerGroup {
         const { category } = args;
         return (await context.categoriesService?.addCategory(category)) || null;
       } catch (error) {
-        console.error('Failed to add category:', error);
+        logger.error('Failed to add category:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });
@@ -73,7 +74,7 @@ export class CategoriesHandlers implements IIPCHandlerGroup {
         const { id, updates } = args;
         return (await context.categoriesService?.updateCategory(id, updates)) || false;
       } catch (error) {
-        console.error('Failed to update category:', error);
+        logger.error('Failed to update category:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -85,7 +86,7 @@ export class CategoriesHandlers implements IIPCHandlerGroup {
         const { id } = args;
         return (await context.categoriesService?.deleteCategory(id)) || false;
       } catch (error) {
-        console.error('Failed to delete category:', error);
+        logger.error('Failed to delete category:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });

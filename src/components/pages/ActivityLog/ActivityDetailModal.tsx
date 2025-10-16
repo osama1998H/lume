@@ -1,11 +1,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Edit2, Copy, Trash2, Calendar, Clock, Tag, Folder } from 'lucide-react';
-import type { UnifiedActivity } from '../../../types';
+import type { UnifiedActivity } from '@/types';
 import SourceTypeIcon from './SourceTypeIcon';
 import ConflictBadge from './ConflictBadge';
 import TagDisplay from '../../ui/TagDisplay';
-import { formatDuration } from '../../../utils/format';
+import { formatDuration } from '@/utils/format';
 
 interface ActivityDetailModalProps {
   activity: UnifiedActivity;

@@ -1,6 +1,7 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
-import type { ProductivityGoal } from '../../../types';
+import type { ProductivityGoal } from '@/types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * Args interfaces for type-safe IPC communication
@@ -53,7 +54,7 @@ export class GoalsHandlers implements IIPCHandlerGroup {
         const goalId = await context.goalsService?.addGoal(goal);
         return goalId || null;
       } catch (error) {
-        console.error('Failed to add goal:', error);
+        logger.error('Failed to add goal:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });
@@ -65,7 +66,7 @@ export class GoalsHandlers implements IIPCHandlerGroup {
         const { id, updates } = args;
         return await context.goalsService?.updateGoal(id, updates) || false;
       } catch (error) {
-        console.error('Failed to update goal:', error);
+        logger.error('Failed to update goal:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -77,7 +78,7 @@ export class GoalsHandlers implements IIPCHandlerGroup {
         const { id } = args;
         return await context.goalsService?.deleteGoal(id) || false;
       } catch (error) {
-        console.error('Failed to delete goal:', error);
+        logger.error('Failed to delete goal:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -88,7 +89,7 @@ export class GoalsHandlers implements IIPCHandlerGroup {
       try {
         return await context.goalsService?.getGoals(activeOnly) || [];
       } catch (error) {
-        console.error('Failed to get goals:', error);
+        logger.error('Failed to get goals:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -99,7 +100,7 @@ export class GoalsHandlers implements IIPCHandlerGroup {
       try {
         return await context.goalsService?.getTodayGoalsWithProgress() || [];
       } catch (error) {
-        console.error('Failed to get today goals with progress:', error);
+        logger.error('Failed to get today goals with progress:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -111,7 +112,7 @@ export class GoalsHandlers implements IIPCHandlerGroup {
         const { goalId, date } = args;
         return await context.goalsService?.getGoalProgress(goalId, date) || null;
       } catch (error) {
-        console.error('Failed to get goal progress:', error);
+        logger.error('Failed to get goal progress:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });
@@ -123,7 +124,7 @@ export class GoalsHandlers implements IIPCHandlerGroup {
         const { goalId, days = 30 } = args;
         return await context.goalsService?.getGoalAchievementHistory(goalId, days) || [];
       } catch (error) {
-        console.error('Failed to get goal achievement history:', error);
+        logger.error('Failed to get goal achievement history:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -141,7 +142,7 @@ export class GoalsHandlers implements IIPCHandlerGroup {
           achievementRate: 0,
         };
       } catch (error) {
-        console.error('Failed to get goal stats:', error);
+        logger.error('Failed to get goal stats:', {}, error instanceof Error ? error : undefined);
         return {
           totalGoals: 0,
           activeGoals: 0,

@@ -1,6 +1,7 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
 import { getLastCrashReport, getUploadedReports } from '../../../config/crashReporter';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * CrashReporterHandlers - IPC handlers for crash reporting
@@ -20,7 +21,7 @@ export class CrashReporterHandlers implements IIPCHandlerGroup {
       try {
         return getLastCrashReport();
       } catch (error) {
-        console.error('Failed to get last crash report:', error);
+        logger.error('Failed to get last crash report:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });
@@ -31,7 +32,7 @@ export class CrashReporterHandlers implements IIPCHandlerGroup {
       try {
         return getUploadedReports();
       } catch (error) {
-        console.error('Failed to get uploaded crash reports:', error);
+        logger.error('Failed to get uploaded crash reports:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -44,7 +45,7 @@ export class CrashReporterHandlers implements IIPCHandlerGroup {
         await runAllCrashTests();
         return true;
       } catch (error) {
-        console.error('Failed to run crash tests:', error);
+        logger.error('Failed to run crash tests:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });

@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * StatisticsHandlers - IPC handlers for statistics queries
@@ -18,7 +19,7 @@ export class StatisticsHandlers implements IIPCHandlerGroup {
       try {
         return await context.categoriesService?.getCategoryStats(startDate, endDate) || [];
       } catch (error) {
-        console.error('Failed to get category stats:', error);
+        logger.error('Failed to get category stats:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -29,7 +30,7 @@ export class StatisticsHandlers implements IIPCHandlerGroup {
       try {
         return await context.categoriesService?.getTagStats(startDate, endDate) || [];
       } catch (error) {
-        console.error('Failed to get tag stats:', error);
+        logger.error('Failed to get tag stats:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });

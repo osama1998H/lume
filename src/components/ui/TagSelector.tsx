@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Plus, LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Tag } from '../../types';
+import { Tag } from '@/types';
+import { logger } from '@/services/logging/RendererLogger';
 
 export interface TagSelectorProps {
   selectedTags: Tag[];
@@ -51,7 +52,7 @@ const TagSelector: React.FC<TagSelectorProps> = ({
       }
       return [];
     } catch (error) {
-      console.error('Failed to load tags:', error);
+      logger.error('Failed to load tags:', {}, error instanceof Error ? error : undefined);
       return [];
     }
   };
@@ -104,7 +105,7 @@ const TagSelector: React.FC<TagSelectorProps> = ({
       }
       setSearchQuery('');
     } catch (error) {
-      console.error('Failed to create tag:', error);
+      logger.error('Failed to create tag:', {}, error instanceof Error ? error : undefined);
     }
   };
 

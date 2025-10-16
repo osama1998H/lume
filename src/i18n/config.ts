@@ -3,6 +3,7 @@ import { initReactI18next } from 'react-i18next';
 
 import en from './locales/en.json';
 import ar from './locales/ar.json';
+import { logger } from '../services/logging/RendererLogger';
 
 export const resources = {
   en: {
@@ -23,7 +24,7 @@ const getStoredLanguage = (): string => {
       return localStorage.getItem('i18nextLng') || '';
     }
   } catch (e) {
-    console.warn('Failed to access localStorage:', e);
+    logger.warn('Failed to access localStorage', { error: String(e) });
   }
   return '';
 };
@@ -38,7 +39,7 @@ const getBrowserLanguage = (): string => {
       }
     }
   } catch (e) {
-    console.warn('Failed to detect browser language:', e);
+    logger.warn('Failed to detect browser language', { error: String(e) });
   }
   return 'en';
 };
@@ -67,7 +68,7 @@ i18n.on('languageChanged', (lng) => {
       localStorage.setItem('i18nextLng', lng);
     }
   } catch (e) {
-    console.warn('Failed to save language preference:', e);
+    logger.warn('Failed to save language preference', { error: String(e) });
   }
 });
 

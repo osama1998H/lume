@@ -1,6 +1,6 @@
 import React from 'react';
 import { Timer, Monitor, Coffee } from 'lucide-react';
-import type { ActivitySourceType } from '../../../types';
+import type { ActivitySourceType } from '@/types';
 
 interface SourceTypeIconProps {
   sourceType: ActivitySourceType;

@@ -1,8 +1,8 @@
 import Database from 'better-sqlite3';
 import { BaseRepository } from '../base/BaseRepository';
 import { QueryOptions } from '../base/RepositoryTypes';
-import { AppUsage, Tag } from '../../types';
-import { DatabaseRow } from '../../types/database';
+import { AppUsage, Tag } from '@/types';
+import { DatabaseRow } from '@/types/database';
 
 /**
  * Repository for app_usage table

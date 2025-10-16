@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * TagAssociationsHandlers - IPC handlers for tag associations
@@ -29,7 +30,7 @@ export class TagAssociationsHandlers implements IIPCHandlerGroup {
       try {
         return await context.categoriesService?.getTimeEntryTags(timeEntryId) || [];
       } catch (error) {
-        console.error('Failed to get time entry tags:', error);
+        logger.error('Failed to get time entry tags:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -41,7 +42,7 @@ export class TagAssociationsHandlers implements IIPCHandlerGroup {
         await context.categoriesService?.addTimeEntryTags(timeEntryId, tagIds);
         return true;
       } catch (error) {
-        console.error('Failed to add time entry tags:', error);
+        logger.error('Failed to add time entry tags:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -52,7 +53,7 @@ export class TagAssociationsHandlers implements IIPCHandlerGroup {
       try {
         return await context.categoriesService?.getAppUsageTags(appUsageId) || [];
       } catch (error) {
-        console.error('Failed to get app usage tags:', error);
+        logger.error('Failed to get app usage tags:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -64,7 +65,7 @@ export class TagAssociationsHandlers implements IIPCHandlerGroup {
         await context.categoriesService?.addAppUsageTags(appUsageId, tagIds);
         return true;
       } catch (error) {
-        console.error('Failed to add app usage tags:', error);
+        logger.error('Failed to add app usage tags:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -75,7 +76,7 @@ export class TagAssociationsHandlers implements IIPCHandlerGroup {
       try {
         return context.dbManager?.getPomodoroSessionTags(pomodoroSessionId) || [];
       } catch (error) {
-        console.error('Failed to get pomodoro session tags:', error);
+        logger.error('Failed to get pomodoro session tags:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -87,7 +88,7 @@ export class TagAssociationsHandlers implements IIPCHandlerGroup {
         context.dbManager?.addPomodoroSessionTags(pomodoroSessionId, tagIds);
         return true;
       } catch (error) {
-        console.error('Failed to add pomodoro session tags:', error);
+        logger.error('Failed to add pomodoro session tags:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -99,7 +100,7 @@ export class TagAssociationsHandlers implements IIPCHandlerGroup {
         context.dbManager?.setPomodoroSessionTags(pomodoroSessionId, tagIds);
         return true;
       } catch (error) {
-        console.error('Failed to set pomodoro session tags:', error);
+        logger.error('Failed to set pomodoro session tags:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -110,7 +111,7 @@ export class TagAssociationsHandlers implements IIPCHandlerGroup {
       try {
         return context.dbManager?.getProductivityGoalTags(productivityGoalId) || [];
       } catch (error) {
-        console.error('Failed to get productivity goal tags:', error);
+        logger.error('Failed to get productivity goal tags:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -122,7 +123,7 @@ export class TagAssociationsHandlers implements IIPCHandlerGroup {
         context.dbManager?.addProductivityGoalTags(productivityGoalId, tagIds);
         return true;
       } catch (error) {
-        console.error('Failed to add productivity goal tags:', error);
+        logger.error('Failed to add productivity goal tags:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -134,7 +135,7 @@ export class TagAssociationsHandlers implements IIPCHandlerGroup {
         context.dbManager?.setProductivityGoalTags(productivityGoalId, tagIds);
         return true;
       } catch (error) {
-        console.error('Failed to set productivity goal tags:', error);
+        logger.error('Failed to set productivity goal tags:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -144,7 +145,7 @@ export class TagAssociationsHandlers implements IIPCHandlerGroup {
       try {
         return context.dbManager?.getTodoTags(todoId) || [];
       } catch (error) {
-        console.error('Failed to get todo tags:', error);
+        logger.error('Failed to get todo tags:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -155,7 +156,7 @@ export class TagAssociationsHandlers implements IIPCHandlerGroup {
         context.dbManager?.addTodoTags(todoId, tagIds);
         return true;
       } catch (error) {
-        console.error('Failed to add todo tags:', error);
+        logger.error('Failed to add todo tags:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -166,7 +167,7 @@ export class TagAssociationsHandlers implements IIPCHandlerGroup {
         context.dbManager?.setTodoTags(todoId, tagIds);
         return true;
       } catch (error) {
-        console.error('Failed to set todo tags:', error);
+        logger.error('Failed to set todo tags:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });

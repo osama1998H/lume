@@ -1,6 +1,6 @@
 import { IpcMain } from 'electron';
 import { TodosHandlers } from '../TodosHandlers';
-import { IIPCHandlerContext } from '../../types';
+import { IIPCHandlerContext } from '@/types';
 import { Todo, TodoStats } from '../../../../types';
 
 describe('TodosHandlers', () => {

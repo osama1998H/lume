@@ -2,9 +2,9 @@ import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
-import { useActivityLog } from '../../../contexts/ActivityLogContext';
+import { useActivityLog } from '@/contexts/ActivityLogContext';
 import ActivityRow from './ActivityRow';
-import type { UnifiedActivity } from '../../../types';
+import type { UnifiedActivity } from '@/types';
 
 type SortField = 'startTime' | 'duration' | 'title' | 'categoryName';
 type SortDirection = 'asc' | 'desc';

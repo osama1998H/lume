@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CheckSquare, ListTodo, CheckCircle2, AlertCircle, Calendar, Plus, Filter } from 'lucide-react';
-import { Todo, TodoStatus, TodoPriority, TodoStats, Category } from '../../types';
+import { Todo, TodoStatus, TodoPriority, TodoStats, Category } from '@/types';
 import StatCard from '../ui/StatCard';
 import Button from '../ui/Button';
 import EmptyState from '../ui/EmptyState';
 import Skeleton from '../ui/Skeleton';
-import { showToast } from '../../utils/toast';
+import { showToast } from '@/utils/toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Component imports (to be created)
 import TodoCard from '../features/todos/TodoCard';
 import TodoForm from '../features/todos/TodoForm';
 import TodoFilters from '../features/todos/TodoFilters';
+import { logger } from '@/services/logging/RendererLogger';
 
 const Todos: React.FC = () => {
   const { t } = useTranslation();
@@ -60,7 +61,7 @@ const Todos: React.FC = () => {
         setFilteredTodos(todosWithTags);
       }
     } catch (error) {
-      console.error('Failed to load todos:', error);
+      logger.error('Failed to load todos:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('todos.loadingFailed') || 'Failed to load todos');
     } finally {
       setIsLoading(false);
@@ -75,7 +76,7 @@ const Todos: React.FC = () => {
         setStats(statsData);
       }
     } catch (error) {
-      console.error('Failed to load stats:', error);
+      logger.error('Failed to load stats:', {}, error instanceof Error ? error : undefined);
     }
   }, []);
 
@@ -87,7 +88,7 @@ const Todos: React.FC = () => {
         setCategories(categoriesData);
       }
     } catch (error) {
-      console.error('Failed to load categories:', error);
+      logger.error('Failed to load categories:', {}, error instanceof Error ? error : undefined);
     }
   }, []);
 
@@ -173,7 +174,7 @@ const Todos: React.FC = () => {
         await loadStats();
       }
     } catch (error) {
-      console.error('Failed to save todo:', error);
+      logger.error('Failed to save todo:', {}, error instanceof Error ? error : undefined);
       showToast.error(editingTodo ? t('todos.updateFailed') : t('todos.createFailed'));
     } finally {
       setIsSaving(false);
@@ -192,7 +193,7 @@ const Todos: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Failed to delete todo:', error);
+      logger.error('Failed to delete todo:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('todos.deleteFailed') || 'Failed to delete todo');
     }
   };
@@ -219,7 +220,7 @@ const Todos: React.FC = () => {
         );
       }
     } catch (error) {
-      console.error('Failed to toggle todo status:', error);
+      logger.error('Failed to toggle todo status:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('todos.updateFailed') || 'Failed to update todo');
     }
   };
@@ -240,7 +241,7 @@ const Todos: React.FC = () => {
         await loadStats();
       }
     } catch (error) {
-      console.error('Failed to update todo status:', error);
+      logger.error('Failed to update todo status:', {}, error instanceof Error ? error : undefined);
       showToast.error(t('todos.updateFailed') || 'Failed to update todo');
     }
   };

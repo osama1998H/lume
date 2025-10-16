@@ -8,7 +8,7 @@ import type {
   WeeklySummary,
   ProductivityTrend,
   BehavioralInsight
-} from '../../types';
+} from '@/types';
 import StatCard from '../ui/StatCard';
 import DateRangeFilter from '../ui/DateRangeFilter';
 import { ProductivityLineChart } from '../features/analytics/ProductivityLineChart';
@@ -16,7 +16,8 @@ import { HourlyHeatmap } from '../features/analytics/HourlyHeatmap';
 import { CalendarHeatmap } from '../features/analytics/CalendarHeatmap';
 import { InsightCard } from '../features/analytics/InsightCard';
 import Skeleton from '../ui/Skeleton';
-import { formatDuration } from '../../utils/format';
+import { formatDuration } from '@/utils/format';
+import { logger } from '@/services/logging/RendererLogger';
 
 export const Analytics: React.FC = () => {
   const { t } = useTranslation();
@@ -151,7 +152,7 @@ export const Analytics: React.FC = () => {
       setWeeklySummary(weeklyData);
       setInsights(insightsData);
     } catch (error) {
-      console.error('Failed to load analytics:', error);
+      logger.error('Failed to load analytics:', {}, error instanceof Error ? error : undefined);
     } finally {
       setIsLoading(false);
     }

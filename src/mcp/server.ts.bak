@@ -1,0 +1,125 @@
+#!/usr/bin/env node
+
+/**
+ * Lume MCP Server
+ *
+ * Provides MCP (Model Context Protocol) access to Lume's time tracking,
+ * todo management, and productivity features via stdio transport.
+ *
+ * Usage:
+ *   node dist/mcp/server.js
+ *
+ * Configuration for Claude Desktop:
+ *   Add to ~/.config/Claude/claude_desktop_config.json (or equivalent):
+ *   {
+ *     "mcpServers": {
+ *       "lume": {
+ *         "command": "node",
+ *         "args": ["/path/to/dist/mcp/server.js"]
+ *       }
+ *     }
+ *   }
+ */
+
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { registerAllTools } from './tools/index.js';
+import { registerAllResources } from './resources/index.js';
+import { checkBridgeHealth } from './utils/httpClient.js';
+import { logger } from '../services/logging/Logger';
+
+/**
+ * Wait for HTTP Bridge to be available with retry logic
+ */
+async function waitForBridge(maxRetries: number = 10, retryDelay: number = 2000): Promise<void> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    logger.error(`🔍 Checking HTTP Bridge availability (attempt ${attempt}/${maxRetries})...`);
+
+    const isHealthy = await checkBridgeHealth();
+    if (isHealthy) {
+      logger.error('✅ HTTP Bridge is available');
+      return;
+    }
+
+    if (attempt < maxRetries) {
+      logger.error(`⏳ Bridge not ready yet, waiting ${retryDelay / 1000}s before retry...`);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+    }
+  }
+
+  // All retries exhausted
+  logger.error('❌ HTTP Bridge is not available after multiple attempts.');
+  logger.error('💡 Please ensure:');
+  logger.error('   1. The Lume desktop application is running');
+  logger.error('   2. The HTTP Bridge has started (check Lume logs)');
+  logger.error('   3. The port file exists and is readable');
+  process.exit(1);
+}
+
+/**
+ * Main server initialization and startup
+ */
+async function main() {
+  try {
+    logger.error('🚀 Starting Lume MCP Server...');
+
+    // Wait for HTTP Bridge to be available (with retries)
+    await waitForBridge();
+
+    // Create MCP server instance
+    const server = new McpServer({
+      name: 'lume',
+      version: '3.0.1',
+    });
+
+    logger.error('📋 Lume MCP Server v3.0.1');
+    logger.error('📡 Transport: stdio');
+    logger.error('🌉 Using HTTP Bridge to communicate with Lume app');
+
+    // Register all tools and resources
+    registerAllTools(server);
+    registerAllResources(server);
+
+    // Setup stdio transport
+    const transport = new StdioServerTransport();
+
+    // Connect server to transport
+    await server.connect(transport);
+
+    logger.error('✅ Lume MCP Server started successfully');
+    logger.error('⏳ Waiting for requests...');
+  } catch (error) {
+    logger.error('❌ Fatal error during server startup:', error);
+    process.exit(1);
+  }
+}
+
+/**
+ * Graceful shutdown handler
+ */
+function shutdown(signal: string) {
+  logger.error(`\n📡 Received ${signal}, shutting down gracefully...`);
+  logger.error('👋 Lume MCP Server stopped');
+  process.exit(0);
+}
+
+// Register shutdown handlers
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+// Handle uncaught errors
+process.on('uncaughtException', (error) => {
+  logger.error('❌ Uncaught exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('❌ Unhandled promise rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+// Start the server
+main().catch((error) => {
+  logger.error('❌ Failed to start server:', error);
+  process.exit(1);
+});

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LayoutDashboard, Timer, BarChart3, Target, Coffee, FolderOpen, Settings, TrendingUp, ChevronLeft, ChevronRight, List, CheckSquare, LucideIcon } from 'lucide-react';
-import { useLanguage } from '../../hooks/useLanguage';
-import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { useLanguage } from '@/hooks/useLanguage';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { logger } from '@/services/logging/RendererLogger';
 
 interface SidebarProps {
   currentView: string;
@@ -43,7 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
     try {
       localStorage.setItem('sidebarCollapsed', JSON.stringify(isCollapsed));
     } catch (error) {
-      console.error('Failed to save sidebar state:', error);
+      logger.error('Failed to save sidebar state:', {}, error instanceof Error ? error : undefined);
     }
   }, [isCollapsed]);
 

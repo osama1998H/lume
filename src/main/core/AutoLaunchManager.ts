@@ -1,5 +1,6 @@
 import { App } from 'electron';
 import { SettingsManager } from './SettingsManager';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * AutoLaunchManager - Manages automatic application launch at system startup
@@ -77,7 +78,7 @@ export class AutoLaunchManager {
         });
       }
     } catch (error) {
-      console.error('Failed to apply auto-start setting:', error);
+      logger.error('Failed to apply auto-start setting:', {}, error instanceof Error ? error : undefined);
     }
   }
 
@@ -121,7 +122,7 @@ export class AutoLaunchManager {
 
       return true;
     } catch (error) {
-      console.error('Failed to set auto-start:', error);
+      logger.error('Failed to set auto-start:', {}, error instanceof Error ? error : undefined);
       return false;
     }
   }
@@ -151,7 +152,7 @@ export class AutoLaunchManager {
       const loginItemSettings = this.app.getLoginItemSettings();
       return loginItemSettings.openAtLogin;
     } catch (error) {
-      console.error('Failed to get auto-start status:', error);
+      logger.error('Failed to get auto-start status:', {}, error instanceof Error ? error : undefined);
       return false;
     }
   }

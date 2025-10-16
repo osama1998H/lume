@@ -2,7 +2,7 @@ import React from 'react';
 import { Link2, CheckCircle2, Circle, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DropdownSelector } from './DropdownSelector';
-import type { Todo, TodoPriority, TodoStatus } from '../../types';
+import type { Todo, TodoPriority, TodoStatus } from '@/types';
 import Badge from './Badge';
 
 export interface TodoSelectorSuffixProps {

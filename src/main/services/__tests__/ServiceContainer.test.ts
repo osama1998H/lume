@@ -1,5 +1,5 @@
 import { ServiceContainer } from '../ServiceContainer';
-import { Settings } from '../../../types';
+import { Settings } from '@/types';
 
 // Mock all service dependencies
 jest.mock('../../../database/DatabaseManager');
@@ -11,14 +11,14 @@ jest.mock('../../../services/categories/CategoriesService');
 jest.mock('../../../services/activity/ActivityValidationService');
 jest.mock('../../../services/activity/ActivityMergeService');
 
-import { DatabaseManager } from '../../../database/DatabaseManager';
-import { ActivityTrackingService } from '../../../services/activity/ActivityTrackingService';
-import { PomodoroService } from '../../../services/pomodoro/PomodoroService';
-import { NotificationService } from '../../../services/notifications/NotificationService';
-import { GoalsService } from '../../../services/goals/GoalsService';
-import { CategoriesService } from '../../../services/categories/CategoriesService';
-import { ActivityValidationService } from '../../../services/activity/ActivityValidationService';
-import { ActivityMergeService } from '../../../services/activity/ActivityMergeService';
+import { DatabaseManager } from '@/database/DatabaseManager';
+import { ActivityTrackingService } from '@/services/activity/ActivityTrackingService';
+import { PomodoroService } from '@/services/pomodoro/PomodoroService';
+import { NotificationService } from '@/services/notifications/NotificationService';
+import { GoalsService } from '@/services/goals/GoalsService';
+import { CategoriesService } from '@/services/categories/CategoriesService';
+import { ActivityValidationService } from '@/services/activity/ActivityValidationService';
+import { ActivityMergeService } from '@/services/activity/ActivityMergeService';
 
 describe('ServiceContainer', () => {
   let container: ServiceContainer;

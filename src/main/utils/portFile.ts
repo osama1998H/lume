@@ -8,6 +8,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { app } from 'electron';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * Get the path to the port file
@@ -25,7 +26,7 @@ export function writePortFile(port: number): void {
     const portFilePath = getPortFilePath();
     fs.writeFileSync(portFilePath, port.toString(), 'utf8');
   } catch (error) {
-    console.error('❌ Failed to write port file:', error);
+    logger.error('❌ Failed to write port file:', {}, error instanceof Error ? error : undefined);
   }
 }
 
@@ -39,7 +40,7 @@ export function deletePortFile(): void {
       fs.unlinkSync(portFilePath);
     }
   } catch (error) {
-    console.error('❌ Failed to delete port file:', error);
+    logger.error('❌ Failed to delete port file:', {}, error instanceof Error ? error : undefined);
   }
 }
 
@@ -56,7 +57,7 @@ export function readPortFile(): number | null {
     const port = parseInt(content.trim(), 10);
     return isNaN(port) ? null : port;
   } catch (error) {
-    console.error('❌ Failed to read port file:', error);
+    logger.error('❌ Failed to read port file:', {}, error instanceof Error ? error : undefined);
     return null;
   }
 }

@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * AutoStartHandlers - IPC handlers for auto-start management
@@ -18,7 +19,7 @@ export class AutoStartHandlers implements IIPCHandlerGroup {
       try {
         return context.autoLaunchManager.getStatus();
       } catch (error) {
-        console.error('Failed to get auto-start status:', error);
+        logger.error('Failed to get auto-start status:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -29,7 +30,7 @@ export class AutoStartHandlers implements IIPCHandlerGroup {
       try {
         return context.autoLaunchManager.setAutoStart(enabled);
       } catch (error) {
-        console.error('Failed to set auto-start:', error);
+        logger.error('Failed to set auto-start:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });

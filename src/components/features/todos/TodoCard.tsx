@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Edit2, Trash2, Calendar, CheckCircle2, Circle, PlayCircle, XCircle, Timer } from 'lucide-react';
-import { Todo, TodoStatus, Category } from '../../../types';
+import { Todo, TodoStatus, Category } from '@/types';
 import Badge from '../../ui/Badge';
 import TagDisplay from '../../ui/TagDisplay';
 import { ConfirmModal } from '../../ui/Modal';

@@ -2,8 +2,8 @@ import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, PieChart, TrendingUp, AlertCircle, Activity, Target } from 'lucide-react';
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
-import type { UnifiedActivity, TimeGap } from '../../../types';
-import { formatDuration } from '../../../utils/format';
+import type { UnifiedActivity, TimeGap } from '@/types';
+import { formatDuration } from '@/utils/format';
 
 interface ActivityStatsPanelProps {
   activities: UnifiedActivity[];

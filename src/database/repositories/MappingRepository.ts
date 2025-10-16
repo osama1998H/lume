@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import { AppCategoryMapping, DomainCategoryMapping } from '../../types';
+import { AppCategoryMapping, DomainCategoryMapping } from '@/types';
 
 /**
  * Repository for app_category_mappings and domain_category_mappings tables

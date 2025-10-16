@@ -4,7 +4,8 @@ import { AlertTriangle, Copy, Database, X } from 'lucide-react';
 import GapDetection from './GapDetection';
 import DuplicateDetection from './DuplicateDetection';
 import DataCleanup from './DataCleanup';
-import { TimeGap } from '../../../types';
+import { TimeGap } from '@/types';
+import { logger } from '@/services/logging/RendererLogger';
 
 interface DataQualityPanelProps {
   startDate: string;
@@ -47,7 +48,7 @@ const DataQualityPanel: React.FC<DataQualityPanelProps> = ({
         throw new Error('Failed to merge activities');
       }
     } catch (error) {
-      console.error('Error merging activities:', error);
+      logger.error('Error merging activities:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   };

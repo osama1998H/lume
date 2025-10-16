@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, AlertCircle, TrendingUp, Calendar, Plus } from 'lucide-react';
-import { TimeGap } from '../../../types';
-import { formatDuration, formatTime } from '../../../utils/format';
+import { TimeGap } from '@/types';
+import { formatDuration, formatTime } from '@/utils/format';
+import { logger } from '@/services/logging/RendererLogger';
 
 interface GapDetectionProps {
   startDate: string;
@@ -38,7 +39,7 @@ const GapDetection: React.FC<GapDetectionProps> = ({ startDate, endDate, onCreat
       setGaps(gapsData);
       setStatistics(statsData);
     } catch (err) {
-      console.error('Failed to load gap data:', err);
+      logger.error('Failed to load gap data:', {}, err instanceof Error ? err : undefined);
       setError(t('dataQuality.gaps.loadError', 'Failed to load gap data'));
     } finally {
       setLoading(false);

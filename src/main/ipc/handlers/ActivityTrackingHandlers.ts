@@ -1,5 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * ActivityTrackingHandlers - IPC handlers for activity tracking service
@@ -27,7 +28,7 @@ export class ActivityTrackingHandlers implements IIPCHandlerGroup {
         }
         return false;
       } catch (error) {
-        console.error('Failed to start activity tracking:', error);
+        logger.error('Failed to start activity tracking:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -42,7 +43,7 @@ export class ActivityTrackingHandlers implements IIPCHandlerGroup {
         }
         return false;
       } catch (error) {
-        console.error('Failed to stop activity tracking:', error);
+        logger.error('Failed to stop activity tracking:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -53,7 +54,7 @@ export class ActivityTrackingHandlers implements IIPCHandlerGroup {
       try {
         return context.activityTracker?.isTracking() || false;
       } catch (error) {
-        console.error('Failed to get activity tracking status:', error);
+        logger.error('Failed to get activity tracking status:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -64,7 +65,7 @@ export class ActivityTrackingHandlers implements IIPCHandlerGroup {
       try {
         return context.activityTracker?.getCurrentSession() || null;
       } catch (error) {
-        console.error('Failed to get current activity session:', error);
+        logger.error('Failed to get current activity session:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });
@@ -75,7 +76,7 @@ export class ActivityTrackingHandlers implements IIPCHandlerGroup {
       try {
         return await context.activityTracker?.getRecentSessions(limit) || [];
       } catch (error) {
-        console.error('Failed to get recent activity sessions:', error);
+        logger.error('Failed to get recent activity sessions:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -86,7 +87,7 @@ export class ActivityTrackingHandlers implements IIPCHandlerGroup {
       try {
         return await context.activityTracker?.getTopApplications(limit) || [];
       } catch (error) {
-        console.error('Failed to get top applications:', error);
+        logger.error('Failed to get top applications:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });
@@ -97,7 +98,7 @@ export class ActivityTrackingHandlers implements IIPCHandlerGroup {
       try {
         return await context.activityTracker?.getTopWebsites(limit) || [];
       } catch (error) {
-        console.error('Failed to get top websites:', error);
+        logger.error('Failed to get top websites:', {}, error instanceof Error ? error : undefined);
         return [];
       }
     });

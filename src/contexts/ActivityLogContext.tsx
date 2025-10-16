@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import type { UnifiedActivity, UnifiedActivityFilters, ActivitySourceType } from '../types';
 import { HistoryManager, type HistoryAction } from '../utils/activityHistory';
+import { logger } from '../services/logging/RendererLogger';
 
 // View type for tab switching
 export type ActivityLogView = 'list' | 'timeline' | 'calendar';
@@ -248,7 +249,7 @@ export const ActivityLogProvider: React.FC<ActivityLogProviderProps> = ({ childr
       await history.undo();
       await refreshActivities(); // Refresh to show updated state
     } catch (error) {
-      console.error('Failed to undo action:', error);
+      logger.error('Failed to undo action', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }, [history, refreshActivities]);
@@ -259,7 +260,7 @@ export const ActivityLogProvider: React.FC<ActivityLogProviderProps> = ({ childr
       await history.redo();
       await refreshActivities(); // Refresh to show updated state
     } catch (error) {
-      console.error('Failed to redo action:', error);
+      logger.error('Failed to redo action', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }, [history, refreshActivities]);

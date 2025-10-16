@@ -1,12 +1,13 @@
-import { DatabaseManager } from '../../database/DatabaseManager';
-import { ActivityTrackingService } from '../../services/activity/ActivityTrackingService';
-import { PomodoroService } from '../../services/pomodoro/PomodoroService';
-import { NotificationService } from '../../services/notifications/NotificationService';
-import { GoalsService } from '../../services/goals/GoalsService';
-import { CategoriesService } from '../../services/categories/CategoriesService';
-import { ActivityValidationService } from '../../services/activity/ActivityValidationService';
-import { ActivityMergeService } from '../../services/activity/ActivityMergeService';
+import { DatabaseManager } from '@/database/DatabaseManager';
+import { ActivityTrackingService } from '@/services/activity/ActivityTrackingService';
+import { PomodoroService } from '@/services/pomodoro/PomodoroService';
+import { NotificationService } from '@/services/notifications/NotificationService';
+import { GoalsService } from '@/services/goals/GoalsService';
+import { CategoriesService } from '@/services/categories/CategoriesService';
+import { ActivityValidationService } from '@/services/activity/ActivityValidationService';
+import { ActivityMergeService } from '@/services/activity/ActivityMergeService';
 import { Settings } from '../core/SettingsManager';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * ServiceContainer - Manages service lifecycle and dependency injection
@@ -80,7 +81,7 @@ export class ServiceContainer {
    */
   async initialize(userDataPath: string, settings: Settings): Promise<void> {
     if (this.initialized) {
-      console.warn('⚠️  ServiceContainer already initialized');
+      logger.warn('⚠️  ServiceContainer already initialized');
       return;
     }
 
@@ -115,7 +116,7 @@ export class ServiceContainer {
 
       this.initialized = true;
     } catch (error) {
-      console.error('❌ Failed to initialize ServiceContainer:', error);
+      logger.error('❌ Failed to initialize ServiceContainer:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -132,7 +133,7 @@ export class ServiceContainer {
       this.dbManager = new DatabaseManager();
       this.dbManager.initialize(this.userDataPath);
     } catch (error) {
-      console.error('❌ Failed to initialize database:', error);
+      logger.error('❌ Failed to initialize database:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -152,7 +153,7 @@ export class ServiceContainer {
         pomodoroSettings?.notificationsEnabled !== false
       );
     } catch (error) {
-      console.error('❌ Failed to initialize notification service:', error);
+      logger.error('❌ Failed to initialize notification service:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -171,10 +172,10 @@ export class ServiceContainer {
       // Initialize default categories for first-run users (async, non-blocking)
       this.categoriesService.initializeDefaultCategories().then(() => {
       }).catch((error) => {
-        console.error('⚠️ Failed to initialize default categories:', error);
+        logger.error('⚠️ Failed to initialize default categories:', {}, error instanceof Error ? error : undefined);
       });
     } catch (error) {
-      console.error('❌ Failed to initialize categories service:', error);
+      logger.error('❌ Failed to initialize categories service:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -190,7 +191,7 @@ export class ServiceContainer {
     try {
       this.activityValidationService = new ActivityValidationService(this.dbManager);
     } catch (error) {
-      console.error('❌ Failed to initialize activity validation service:', error);
+      logger.error('❌ Failed to initialize activity validation service:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -209,7 +210,7 @@ export class ServiceContainer {
         this.activityValidationService
       );
     } catch (error) {
-      console.error('❌ Failed to initialize activity merge service:', error);
+      logger.error('❌ Failed to initialize activity merge service:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -225,7 +226,7 @@ export class ServiceContainer {
     try {
       this.goalsService = new GoalsService(this.dbManager, this.notificationService || undefined);
     } catch (error) {
-      console.error('❌ Failed to initialize goals service:', error);
+      logger.error('❌ Failed to initialize goals service:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -244,7 +245,7 @@ export class ServiceContainer {
         this.goalsService || undefined
       );
     } catch (error) {
-      console.error('❌ Failed to initialize activity tracking service:', error);
+      logger.error('❌ Failed to initialize activity tracking service:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -269,7 +270,7 @@ export class ServiceContainer {
         pomodoroSettings
       );
     } catch (error) {
-      console.error('❌ Failed to initialize pomodoro service:', error);
+      logger.error('❌ Failed to initialize pomodoro service:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -324,7 +325,7 @@ export class ServiceContainer {
       this.settings = null;
 
     } catch (error) {
-      console.error('❌ Failed to cleanup ServiceContainer:', error);
+      logger.error('❌ Failed to cleanup ServiceContainer:', {}, error instanceof Error ? error : undefined);
       throw error;
     }
   }

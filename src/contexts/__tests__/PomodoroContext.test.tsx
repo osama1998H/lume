@@ -1,7 +1,7 @@
 import { waitFor, act, renderHook } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { PomodoroProvider, usePomodoro, PomodoroTimerStatus } from '../PomodoroContext';
-import { PomodoroSettings } from '../../types';
+import { PomodoroSettings } from '@/types';
 
 // Mock window.electronAPI
 const mockElectronAPI = {

@@ -1,0 +1,211 @@
+/**
+ * HTTP Client for MCP Server
+ *
+ * Provides a simple interface to call IPC handlers via HTTP Bridge
+ */
+
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import { logger } from '../../services/logging/Logger';
+
+/**
+ * Get the path to the port file based on platform
+ * In development, Electron uses "Electron" as the app name
+ * In production, it uses the actual app name "Lume"
+ */
+function getPortFilePath(): string {
+  const platform = process.platform;
+  const homeDir = os.homedir();
+
+  // Try both Electron (dev) and Lume (production) directories
+  const possiblePaths: string[] = [];
+
+  if (platform === 'darwin') {
+    // macOS: ~/Library/Application Support/{Electron|Lume}/bridge-port.txt
+    possiblePaths.push(
+      path.join(homeDir, 'Library', 'Application Support', 'Electron', 'bridge-port.txt'),
+      path.join(homeDir, 'Library', 'Application Support', 'Lume', 'bridge-port.txt')
+    );
+  } else if (platform === 'win32') {
+    // Windows: %APPDATA%/{Electron|Lume}/bridge-port.txt
+    const appData = process.env.APPDATA || path.join(homeDir, 'AppData', 'Roaming');
+    possiblePaths.push(
+      path.join(appData, 'Electron', 'bridge-port.txt'),
+      path.join(appData, 'Lume', 'bridge-port.txt')
+    );
+  } else {
+    // Linux: ~/.config/{Electron|Lume}/bridge-port.txt
+    const configHome = process.env.XDG_CONFIG_HOME || path.join(homeDir, '.config');
+    possiblePaths.push(
+      path.join(configHome, 'Electron', 'bridge-port.txt'),
+      path.join(configHome, 'Lume', 'bridge-port.txt')
+    );
+  }
+
+  // Return the first path that exists, or the Electron path (most likely in dev)
+  for (const portPath of possiblePaths) {
+    if (fs.existsSync(portPath)) {
+      return portPath;
+    }
+  }
+
+  // Default to Electron path for development
+  return possiblePaths[0]!;
+}
+
+/**
+ * Read the port from the port file
+ */
+function readPortFromFile(): number | null {
+  try {
+    const portFilePath = getPortFilePath();
+    if (!fs.existsSync(portFilePath)) {
+      return null;
+    }
+    const content = fs.readFileSync(portFilePath, 'utf8');
+    const port = parseInt(content.trim(), 10);
+    return isNaN(port) ? null : port;
+  } catch (error) {
+    logger.error('❌ Failed to read port file:', error);
+    return null;
+  }
+}
+
+/**
+ * Get the HTTP Bridge port from file or environment variable
+ */
+function getBridgePort(): number {
+  // Try reading from port file first
+  const portFromFile = readPortFromFile();
+  if (portFromFile !== null) {
+    return portFromFile;
+  }
+
+  // Fall back to environment variable
+  const portFromEnv = process.env.LUME_IPC_BRIDGE_PORT;
+  if (portFromEnv) {
+    return parseInt(portFromEnv, 10);
+  }
+
+  // Neither source available
+  const portFilePath = getPortFilePath();
+  throw new Error(
+    `Could not find HTTP Bridge port.\n` +
+    `  • Port file not found at: ${portFilePath}\n` +
+    `  • Environment variable LUME_IPC_BRIDGE_PORT not set\n\n` +
+    `Make sure the Lume desktop app is running before starting the MCP server.`
+  );
+}
+
+/**
+ * Get the base URL for the HTTP Bridge
+ */
+function getBaseUrl(): string {
+  const port = getBridgePort();
+  return `http://127.0.0.1:${port}`;
+}
+
+/**
+ * Check if the HTTP Bridge is available
+ */
+export async function checkBridgeHealth(): Promise<boolean> {
+  try {
+    const response = await fetch(`${getBaseUrl()}/health`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    return data.success === true;
+  } catch (error) {
+    logger.error('❌ HTTP Bridge health check failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Call an IPC handler via HTTP Bridge
+ *
+ * @param channel - The IPC channel name (e.g., 'add-todo', 'get-todos')
+ * @param args - Arguments to pass to the handler (will be sent as JSON body)
+ * @returns The result from the IPC handler
+ */
+export async function callIPC<T = any>(channel: string, args: Record<string, any> = {}): Promise<T> {
+  try {
+    const url = `${getBaseUrl()}/ipc/${channel}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(args),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error || 'Unknown error from HTTP Bridge');
+    }
+
+    return data.data as T;
+  } catch (error) {
+    if (error instanceof Error) {
+      // Re-throw with more context
+      throw new Error(`IPC call failed for '${channel}': ${error.message}`);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Batch call multiple IPC handlers
+ *
+ * @param calls - Array of {channel, args} objects
+ * @returns Array of results in the same order
+ */
+export async function batchCallIPC(
+  calls: Array<{ channel: string; args?: Record<string, any> }>
+): Promise<any[]> {
+  return Promise.all(
+    calls.map(({ channel, args }) => callIPC(channel, args))
+  );
+}
+
+/**
+ * Format duration helper (same as database util)
+ */
+export function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${secs}s`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${secs}s`;
+  } else {
+    return `${secs}s`;
+  }
+}
+
+/**
+ * Get today's date in ISO format (YYYY-MM-DD)
+ */
+export function getTodayDate(): string {
+  return new Date().toISOString().split('T')[0]!;
+}
+
+/**
+ * Get current timestamp in ISO format
+ */
+export function getCurrentTimestamp(): string {
+  return new Date().toISOString();
+}

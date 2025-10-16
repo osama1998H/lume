@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { app } from 'electron';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * Settings structure for the application
@@ -120,7 +121,7 @@ export class SettingsManager {
         return JSON.parse(data);
       }
     } catch (error) {
-      console.error('Failed to read settings:', error);
+      logger.error('Failed to read settings:', {}, error instanceof Error ? error : undefined);
     }
 
     // Return default settings
@@ -157,7 +158,7 @@ export class SettingsManager {
       fs.writeFileSync(this.settingsPath, JSON.stringify(settings, null, 2));
       return true;
     } catch (error) {
-      console.error('Failed to save settings:', error);
+      logger.error('Failed to save settings:', {}, error instanceof Error ? error : undefined);
       return false;
     }
   }

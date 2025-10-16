@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Clock, X } from 'lucide-react';
-import { useActivityLog } from '../../../contexts/ActivityLogContext';
+import { useActivityLog } from '@/contexts/ActivityLogContext';
 import ActivityCard from './ActivityCard';
-import type { UnifiedActivity } from '../../../types';
-import { formatDuration } from '../../../utils/format';
+import type { UnifiedActivity } from '@/types';
+import { formatDuration } from '@/utils/format';
 
 type ViewMode = 'month' | 'week';
 

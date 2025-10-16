@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, CheckCircle2, Timer, Smartphone } from 'lucide-react';
-import { UnifiedActivity, Category } from '../../types';
+import { UnifiedActivity, Category } from '@/types';
 import StatCard from '../ui/StatCard';
 import ProgressListCard from '../ui/ProgressListCard';
 import DateRangeFilter from '../ui/DateRangeFilter';
-import { formatDuration } from '../../utils/format';
+import { formatDuration } from '@/utils/format';
+import { logger } from '@/services/logging/RendererLogger';
 
 const Reports: React.FC = () => {
   const { t } = useTranslation();
@@ -41,7 +42,7 @@ const Reports: React.FC = () => {
         setCategories(cats);
       }
     } catch (error) {
-      console.error('Failed to load data:', error);
+      logger.error('Failed to load data:', {}, error instanceof Error ? error : undefined);
     } finally {
       setIsLoading(false);
     }

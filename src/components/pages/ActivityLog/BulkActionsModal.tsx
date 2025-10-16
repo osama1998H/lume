@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Save, FolderOpen, Tags, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
-import type { UnifiedActivity, Category, Tag } from '../../../types';
+import type { UnifiedActivity, Category, Tag } from '@/types';
+import { logger } from '@/services/logging/RendererLogger';
 
 interface BulkActionsModalProps {
   selectedActivities: UnifiedActivity[];
@@ -176,7 +177,7 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
       await onBulkUpdate(updates);
       onClose();
     } catch (error) {
-      console.error('Failed to apply bulk changes:', error);
+      logger.error('Failed to apply bulk changes:', {}, error instanceof Error ? error : undefined);
       setErrors({
         apply: t('activityLog.errors.bulkUpdateFailed', 'Failed to apply changes'),
       });

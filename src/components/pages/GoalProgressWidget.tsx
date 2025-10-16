@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GoalWithProgress } from '../../types';
+import { GoalWithProgress } from '@/types';
+import { logger } from '@/services/logging/RendererLogger';
 
 const GoalProgressWidget: React.FC = () => {
   const { t } = useTranslation();
@@ -23,7 +24,7 @@ const GoalProgressWidget: React.FC = () => {
         setGoals(activeGoals);
       }
     } catch (error) {
-      console.error('Failed to load goals:', error);
+      logger.error('Failed to load goals:', {}, error instanceof Error ? error : undefined);
     } finally {
       setIsLoading(false);
     }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { AlertTriangle, Copy, Clock } from 'lucide-react';
-import type { ConflictType } from '../../../types';
+import type { ConflictType } from '@/types';
 
 interface ConflictBadgeProps {
   conflictType: ConflictType;

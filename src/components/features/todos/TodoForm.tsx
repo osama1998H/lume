@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Todo, TodoStatus, TodoPriority, Category, Tag } from '../../../types';
+import { Todo, TodoStatus, TodoPriority, Category, Tag } from '@/types';
 import { FormModal } from '../../ui/Modal';
 import FormField, { SelectField } from '../../ui/FormField';
 import TagSelector from '../../ui/TagSelector';

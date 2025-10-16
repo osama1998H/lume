@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { PomodoroSettings } from '../types';
+import { logger } from '../services/logging/RendererLogger';
 
 export type SessionType = 'focus' | 'shortBreak' | 'longBreak';
 export type TimerState = 'idle' | 'running' | 'paused';
@@ -63,7 +64,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setSettings(pomodoroSettings || defaultSettings);
       }
     } catch (error) {
-      console.error('Failed to load pomodoro settings:', error);
+      logger.error('Failed to load pomodoro settings', {}, error instanceof Error ? error : undefined);
       setSettings(defaultSettings);
     }
   }, []);
@@ -75,7 +76,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setStatus(currentStatus);
       }
     } catch (error) {
-      console.error('Failed to refresh pomodoro status:', error);
+      logger.error('Failed to refresh pomodoro status', {}, error instanceof Error ? error : undefined);
     }
   }, []);
 
@@ -86,7 +87,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setSettings(newSettings);
       }
     } catch (error) {
-      console.error('Failed to save pomodoro settings:', error);
+      logger.error('Failed to save pomodoro settings', {}, error instanceof Error ? error : undefined);
     }
   }, []);
 
@@ -124,7 +125,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         await refreshStatus();
       }
     } catch (error) {
-      console.error('Failed to start pomodoro session:', error);
+      logger.error('Failed to start pomodoro session', {}, error instanceof Error ? error : undefined);
     }
   }, [refreshStatus]);
 
@@ -135,7 +136,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         await refreshStatus();
       }
     } catch (error) {
-      console.error('Failed to pause pomodoro session:', error);
+      logger.error('Failed to pause pomodoro session', {}, error instanceof Error ? error : undefined);
     }
   }, [refreshStatus]);
 
@@ -146,7 +147,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         await refreshStatus();
       }
     } catch (error) {
-      console.error('Failed to resume pomodoro session:', error);
+      logger.error('Failed to resume pomodoro session', {}, error instanceof Error ? error : undefined);
     }
   }, [refreshStatus]);
 
@@ -157,7 +158,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         await refreshStatus();
       }
     } catch (error) {
-      console.error('Failed to stop pomodoro session:', error);
+      logger.error('Failed to stop pomodoro session', {}, error instanceof Error ? error : undefined);
     }
   }, [refreshStatus]);
 
@@ -168,7 +169,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         await refreshStatus();
       }
     } catch (error) {
-      console.error('Failed to skip pomodoro session:', error);
+      logger.error('Failed to skip pomodoro session', {}, error instanceof Error ? error : undefined);
     }
   }, [refreshStatus]);
 

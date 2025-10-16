@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, CheckCircle2, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { UnifiedActivity } from '../../types';
+import { UnifiedActivity } from '@/types';
 import GoalProgressWidget from './GoalProgressWidget';
 import StatCard from '../ui/StatCard';
 import ActivityListCard from '../ui/ActivityListCard';
 import Skeleton from '../ui/Skeleton';
-import { formatDuration } from '../../utils/format';
-import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { formatDuration } from '@/utils/format';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { logger } from '@/services/logging/RendererLogger';
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -51,7 +52,7 @@ const Dashboard: React.FC = () => {
         setActiveEntry(activeTimeEntry);
       }
     } catch (error) {
-      console.error('Failed to load data:', error);
+      logger.error('Failed to load data:', {}, error instanceof Error ? error : undefined);
     } finally {
       setIsLoading(false);
     }

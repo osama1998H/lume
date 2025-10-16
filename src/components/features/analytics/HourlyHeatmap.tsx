@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import type { HourlyPattern } from '../../../types';
+import type { HourlyPattern } from '@/types';
 import { ChartCard } from './ChartCard';
 
 interface HourlyHeatmapProps {

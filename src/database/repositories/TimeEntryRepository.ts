@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import { BaseRepository } from '../base/BaseRepository';
 import { QueryOptions } from '../base/RepositoryTypes';
-import { TimeEntry, Tag } from '../../types';
+import { TimeEntry, Tag } from '@/types';
 
 /**
  * Repository for time_entries table

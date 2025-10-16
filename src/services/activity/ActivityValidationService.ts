@@ -1,10 +1,10 @@
-import { DatabaseManager } from '../../database/DatabaseManager';
+import { DatabaseManager } from '@/database/DatabaseManager';
 import {
   UnifiedActivity,
   ValidationResult,
   OverlapResult,
   DuplicateResult,
-} from '../../types';
+} from '@/types';
 
 /**
  * ActivityValidationService

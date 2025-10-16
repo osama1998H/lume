@@ -1,8 +1,8 @@
 import Database from 'better-sqlite3';
 import { BaseRepository } from '../base/BaseRepository';
 import { QueryOptions } from '../base/RepositoryTypes';
-import { Tag } from '../../types';
-import { QueryParameters } from '../../types/database';
+import { Tag } from '@/types';
+import { QueryParameters } from '@/types/database';
 
 /**
  * Repository for tags table

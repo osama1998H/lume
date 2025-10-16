@@ -1,6 +1,7 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
-import type { PomodoroSession } from '../../../types';
+import type { PomodoroSession } from '@/types';
+import { logger } from '@/services/logging/Logger';
 
 /**
  * PomodoroSessionHandlers - IPC handlers for pomodoro session management
@@ -31,7 +32,7 @@ export class PomodoroSessionHandlers implements IIPCHandlerGroup {
             !(field.key in session) ||
             typeof (session as any)[field.key] !== field.type
           ) {
-            console.error(
+            logger.error(
               `Invalid pomodoro session: missing or invalid field '${field.key}'`
             );
             return null;
@@ -40,7 +41,7 @@ export class PomodoroSessionHandlers implements IIPCHandlerGroup {
 
         return context.dbManager?.addPomodoroSession(session as PomodoroSession) || null;
       } catch (error) {
-        console.error('Failed to add pomodoro session:', error);
+        logger.error('Failed to add pomodoro session:', {}, error instanceof Error ? error : undefined);
         return null;
       }
     });
@@ -51,7 +52,7 @@ export class PomodoroSessionHandlers implements IIPCHandlerGroup {
       try {
         return context.dbManager?.updatePomodoroSession(id, updates) || false;
       } catch (error) {
-        console.error('Failed to update pomodoro session:', error);
+        logger.error('Failed to update pomodoro session:', {}, error instanceof Error ? error : undefined);
         return false;
       }
     });
@@ -69,7 +70,7 @@ export class PomodoroSessionHandlers implements IIPCHandlerGroup {
           currentStreak: 0,
         };
       } catch (error) {
-        console.error('Failed to get pomodoro stats:', error);
+        logger.error('Failed to get pomodoro stats:', {}, error instanceof Error ? error : undefined);
         return {
           totalSessions: 0,
           completedSessions: 0,
