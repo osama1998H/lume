@@ -40,8 +40,8 @@ export class MCPConfigService {
   getMCPServerPath(): string {
     // In production, the app is packaged and we need to find the resources path
     if (app.isPackaged) {
-      // In packaged app, dist folder is in app.asar
-      return path.join(process.resourcesPath, 'app.asar', 'dist', 'mcp', 'server.js');
+      // In packaged app, MCP server is in extraResources (outside app.asar for Node.js accessibility)
+      return path.join(process.resourcesPath, 'mcp', 'server.js');
     } else {
       // In development, use process.cwd() which is the project root directory
       // (app.getAppPath() returns dist/main when running electron dist/main/main.js)

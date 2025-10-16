@@ -72,7 +72,13 @@
     ],
     "directories": {
       "output": "release"
-    }
+    },
+    "extraResources": [
+      {
+        "from": "dist/mcp",
+        "to": "mcp"
+      }
+    ]
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
