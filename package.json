@@ -96,7 +96,8 @@
     "react-hook-form": "^7.65.0",
     "react-hot-toast": "^2.6.0",
     "react-i18next": "^16.0.1",
-    "recharts": "^3.2.1"
+    "recharts": "^3.2.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.0",
@@ -127,7 +128,6 @@
     "ts-jest": "^29.4.5",
     "typescript": "^5.9.3",
     "vite": "^7.1.10",
-    "wait-on": "^8.0.5",
-    "zod": "^3.25.76"
+    "wait-on": "^8.0.5"
   }
 }
