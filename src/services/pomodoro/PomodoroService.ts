@@ -73,7 +73,6 @@ export class PomodoroService extends EventEmitter {
   updateSettings(settings: PomodoroSettings): void {
     this.settings = settings;
     this.notificationService.updateSettings(settings.soundEnabled, settings.notificationsEnabled);
-    console.log('⚙️  Pomodoro settings updated');
   }
 
   /**
@@ -124,7 +123,6 @@ export class PomodoroService extends EventEmitter {
     this.emit('start', this.getStatus());
     this.emit('stateChange', this.getStatus());
 
-    console.log(`▶️  Pomodoro started: ${sessionType} - "${task}" (${this.totalDuration}s)`);
   }
 
   /**
@@ -142,7 +140,6 @@ export class PomodoroService extends EventEmitter {
     this.emit('pause', this.getStatus());
     this.emit('stateChange', this.getStatus());
 
-    console.log('⏸️  Pomodoro paused');
   }
 
   /**
@@ -160,7 +157,6 @@ export class PomodoroService extends EventEmitter {
     this.emit('resume', this.getStatus());
     this.emit('stateChange', this.getStatus());
 
-    console.log('▶️  Pomodoro resumed');
   }
 
   /**
@@ -186,7 +182,6 @@ export class PomodoroService extends EventEmitter {
     this.emit('stop', this.getStatus());
     this.emit('stateChange', this.getStatus());
 
-    console.log('⏹️  Pomodoro stopped');
   }
 
   /**
@@ -216,7 +211,6 @@ export class PomodoroService extends EventEmitter {
       this.emit('stateChange', this.getStatus());
     }
 
-    console.log('⏭️  Pomodoro skipped');
   }
 
   /**
@@ -324,7 +318,6 @@ export class PomodoroService extends EventEmitter {
       this.sessionsCompleted++;
     }
 
-    console.log(`✅ Session completed: ${this.sessionType}`);
   }
 
   /**

@@ -67,7 +67,6 @@ export class TimeEntryHandlers implements IIPCHandlerGroup {
     ipcMain.handle('get-active-time-entry', async () => {
       try {
         const activeEntry = context.dbManager?.getActiveTimeEntry() || null;
-        console.log('Get active time entry:', activeEntry);
         return activeEntry;
       } catch (error) {
         console.error('Failed to get active time entry:', error);

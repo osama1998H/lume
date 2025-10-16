@@ -50,7 +50,6 @@ export class GoalsHandlers implements IIPCHandlerGroup {
     ipcMain.handle('add-goal', async (_, args: AddGoalArgs) => {
       try {
         const { goal } = args;
-        console.log('➕ Adding goal:', goal);
         const goalId = await context.goalsService?.addGoal(goal);
         return goalId || null;
       } catch (error) {
@@ -64,7 +63,6 @@ export class GoalsHandlers implements IIPCHandlerGroup {
     ipcMain.handle('update-goal', async (_, args: UpdateGoalArgs) => {
       try {
         const { id, updates } = args;
-        console.log('📝 Updating goal:', { id, updates });
         return await context.goalsService?.updateGoal(id, updates) || false;
       } catch (error) {
         console.error('Failed to update goal:', error);
@@ -77,7 +75,6 @@ export class GoalsHandlers implements IIPCHandlerGroup {
     ipcMain.handle('delete-goal', async (_, args: DeleteGoalArgs) => {
       try {
         const { id } = args;
-        console.log('🗑️  Deleting goal:', { id });
         return await context.goalsService?.deleteGoal(id) || false;
       } catch (error) {
         console.error('Failed to delete goal:', error);

@@ -44,13 +44,7 @@ export class SettingsHandlers implements IIPCHandlerGroup {
 
         // Update activity tracking settings if present
         if (success && context.activityTracker && settings.activityTracking) {
-          console.log('🔄 Updating activity tracker with new settings');
           context.activityTracker.updateSettings(settings.activityTracking);
-
-          const isTracking = context.activityTracker.isTracking();
-          console.log(
-            `📊 Activity tracking status after settings update: ${isTracking ? 'ACTIVE' : 'STOPPED'}`
-          );
         }
 
         // Update tray when minimizeToTray setting changes

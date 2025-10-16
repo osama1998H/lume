@@ -28,7 +28,6 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
           return [];
         }
 
-        console.log(`🔍 Detecting activity gaps from ${startDate} to ${endDate} (min gap: ${minGapMinutes}min)`);
 
         // Get all activities in the range
         const activities = context.dbManager.getUnifiedActivities(startDate, endDate, undefined);
@@ -40,7 +39,6 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
         const minGapSeconds = minGapMinutes * 60;
         const filteredGaps = allGaps.filter(gap => gap.duration >= minGapSeconds);
 
-        console.log(`✅ Found ${filteredGaps.length} gaps (${allGaps.length} total, filtered by ${minGapMinutes}min minimum)`);
         return filteredGaps;
       } catch (error) {
         console.error('Failed to detect activity gaps:', error);
@@ -74,7 +72,6 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
           longestGapSeconds,
         };
 
-        console.log(`📊 Gap statistics: ${stats.totalGaps} gaps, ${Math.round(totalUntrackedSeconds / 60)}min untracked`);
         return stats;
       } catch (error) {
         console.error('Failed to get gap statistics:', error);
@@ -91,7 +88,6 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
           return [];
         }
 
-        console.log(`🔍 Detecting duplicate activities from ${startDate} to ${endDate} (threshold: ${similarityThreshold}%)`);
 
         const activities = context.dbManager.getUnifiedActivities(startDate, endDate, undefined);
         const duplicateGroups: any[] = [];
@@ -123,7 +119,6 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
           }
         }
 
-        console.log(`✅ Found ${duplicateGroups.length} duplicate groups`);
         return duplicateGroups;
       } catch (error) {
         console.error('Failed to detect duplicate activities:', error);
@@ -140,12 +135,10 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
           return [];
         }
 
-        console.log(`🔍 Finding mergeable activity groups (max gap: ${maxGapSeconds}s)`);
 
         const activities = context.dbManager.getUnifiedActivities(startDate, endDate, undefined);
         const mergeableGroups = await context.activityMergeService.findMergeableGroups(activities, maxGapSeconds);
 
-        console.log(`✅ Found ${mergeableGroups.length} mergeable groups`);
         return mergeableGroups;
       } catch (error) {
         console.error('Failed to find mergeable groups:', error);
@@ -162,7 +155,6 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
           return [];
         }
 
-        console.log(`🔍 Finding orphaned activities from ${startDate} to ${endDate}`);
 
         const activities = context.dbManager.getUnifiedActivities(startDate, endDate, undefined);
         const categories = await context.categoriesService?.getCategories() || [];
@@ -176,7 +168,6 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
           return false;
         });
 
-        console.log(`✅ Found ${orphaned.length} orphaned activities`);
         return orphaned;
       } catch (error) {
         console.error('Failed to find orphaned activities:', error);
@@ -193,7 +184,6 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
           return { valid: [], invalid: [] };
         }
 
-        console.log(`🔍 Validating activities from ${startDate} to ${endDate}`);
 
         const activities = context.dbManager.getUnifiedActivities(startDate, endDate, undefined);
         const validationResults = await context.activityValidationService.validateBatch(activities);
@@ -214,7 +204,6 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
           }
         });
 
-        console.log(`✅ Validation complete: ${valid.length} valid, ${invalid.length} invalid`);
         return { valid, invalid };
       } catch (error) {
         console.error('Failed to validate activities batch:', error);
@@ -231,7 +220,6 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
           return { success: false, recalculated: 0, errors: [] };
         }
 
-        console.log(`🔄 Recalculating activity durations from ${startDate} to ${endDate}`);
 
         const activities = context.dbManager.getUnifiedActivities(startDate, endDate, undefined);
         let recalculated = 0;
@@ -262,7 +250,6 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
           }
         }
 
-        console.log(`✅ Recalculated ${recalculated} activity durations`);
         return { success: true, recalculated, errors };
       } catch (error) {
         console.error('Failed to recalculate activity durations:', error);
@@ -283,13 +270,11 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
           return { activities: [], removed: 0 };
         }
 
-        console.log(`🔍 Finding zero-duration activities from ${startDate} to ${endDate}`);
 
         const activities = context.dbManager.getUnifiedActivities(startDate, endDate, undefined);
         const zeroDuration = activities.filter(a => a.duration === 0 || a.duration < 1);
 
         if (removeIfConfirmed && zeroDuration.length > 0) {
-          console.log(`🗑️  Removing ${zeroDuration.length} zero-duration activities`);
 
           const activityIds = zeroDuration.map(a => ({ id: a.id, sourceType: a.sourceType }));
           const result = context.dbManager.bulkDeleteActivities(activityIds);
@@ -297,7 +282,6 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
           return { activities: zeroDuration, removed: result.deleted };
         }
 
-        console.log(`✅ Found ${zeroDuration.length} zero-duration activities`);
         return { activities: zeroDuration, removed: 0 };
       } catch (error) {
         console.error('Failed to find zero-duration activities:', error);
@@ -324,7 +308,6 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
           };
         }
 
-        console.log(`📊 Generating data quality report from ${startDate} to ${endDate}`);
 
         const activities = context.dbManager.getUnifiedActivities(startDate, endDate, undefined);
         const validationResults = await context.activityValidationService.validateBatch(activities);
@@ -391,7 +374,6 @@ export class DataQualityHandlers implements IIPCHandlerGroup {
           qualityScore,
         };
 
-        console.log(`✅ Data quality report generated - Score: ${report.qualityScore}%`);
         return report;
       } catch (error) {
         console.error('Failed to generate data quality report:', error);

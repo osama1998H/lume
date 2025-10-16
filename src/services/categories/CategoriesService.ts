@@ -47,7 +47,6 @@ export class CategoriesService {
   async addCategory(category: Category): Promise<number> {
     try {
       const id = await this.db.addCategory(category);
-      console.log(`✅ Category created: ${category.name} (ID: ${id})`);
       return id;
     } catch (error) {
       console.error('Failed to add category:', error);
@@ -61,9 +60,6 @@ export class CategoriesService {
   async updateCategory(id: number, updates: Partial<Category>): Promise<boolean> {
     try {
       const success = await this.db.updateCategory(id, updates);
-      if (success) {
-        console.log(`✅ Category updated (ID: ${id})`);
-      }
       return success;
     } catch (error) {
       console.error('Failed to update category:', error);
@@ -77,9 +73,6 @@ export class CategoriesService {
   async deleteCategory(id: number): Promise<boolean> {
     try {
       const success = await this.db.deleteCategory(id);
-      if (success) {
-        console.log(`✅ Category deleted (ID: ${id})`);
-      }
       return success;
     } catch (error) {
       console.error('Failed to delete category:', error);
@@ -107,7 +100,6 @@ export class CategoriesService {
   async addTag(tag: Tag): Promise<number> {
     try {
       const id = await this.db.addTag(tag);
-      console.log(`✅ Tag created: ${tag.name} (ID: ${id})`);
       return id;
     } catch (error) {
       console.error('Failed to add tag:', error);
@@ -121,9 +113,6 @@ export class CategoriesService {
   async updateTag(id: number, updates: Partial<Tag>): Promise<boolean> {
     try {
       const success = await this.db.updateTag(id, updates);
-      if (success) {
-        console.log(`✅ Tag updated (ID: ${id})`);
-      }
       return success;
     } catch (error) {
       console.error('Failed to update tag:', error);
@@ -137,9 +126,6 @@ export class CategoriesService {
   async deleteTag(id: number): Promise<boolean> {
     try {
       const success = await this.db.deleteTag(id);
-      if (success) {
-        console.log(`✅ Tag deleted (ID: ${id})`);
-      }
       return success;
     } catch (error) {
       console.error('Failed to delete tag:', error);
@@ -167,7 +153,6 @@ export class CategoriesService {
   async addAppCategoryMapping(appName: string, categoryId: number): Promise<number> {
     try {
       const id = await this.db.addAppCategoryMapping(appName, categoryId);
-      console.log(`✅ App category mapping created: ${appName} → Category ${categoryId}`);
       return id;
     } catch (error) {
       console.error('Failed to add app category mapping:', error);
@@ -181,9 +166,6 @@ export class CategoriesService {
   async deleteAppCategoryMapping(id: number): Promise<boolean> {
     try {
       const success = await this.db.deleteAppCategoryMapping(id);
-      if (success) {
-        console.log(`✅ App category mapping deleted (ID: ${id})`);
-      }
       return success;
     } catch (error) {
       console.error('Failed to delete app category mapping:', error);
@@ -223,7 +205,6 @@ export class CategoriesService {
   async addDomainCategoryMapping(domain: string, categoryId: number): Promise<number> {
     try {
       const id = await this.db.addDomainCategoryMapping(domain, categoryId);
-      console.log(`✅ Domain category mapping created: ${domain} → Category ${categoryId}`);
       return id;
     } catch (error) {
       console.error('Failed to add domain category mapping:', error);
@@ -237,9 +218,6 @@ export class CategoriesService {
   async deleteDomainCategoryMapping(id: number): Promise<boolean> {
     try {
       const success = await this.db.deleteDomainCategoryMapping(id);
-      if (success) {
-        console.log(`✅ Domain category mapping deleted (ID: ${id})`);
-      }
       return success;
     } catch (error) {
       console.error('Failed to delete domain category mapping:', error);
@@ -267,7 +245,6 @@ export class CategoriesService {
   async addTimeEntryTags(timeEntryId: number, tagIds: number[]): Promise<void> {
     try {
       await this.db.addTimeEntryTags(timeEntryId, tagIds);
-      console.log(`✅ Tags added to time entry ${timeEntryId}: ${tagIds.join(', ')}`);
     } catch (error) {
       console.error('Failed to add tags to time entry:', error);
       throw error;
@@ -292,7 +269,6 @@ export class CategoriesService {
   async addAppUsageTags(appUsageId: number, tagIds: number[]): Promise<void> {
     try {
       await this.db.addAppUsageTags(appUsageId, tagIds);
-      console.log(`✅ Tags added to app usage ${appUsageId}: ${tagIds.join(', ')}`);
     } catch (error) {
       console.error('Failed to add tags to app usage:', error);
       throw error;
@@ -320,9 +296,6 @@ export class CategoriesService {
   async autoCategorizeApp(appName: string): Promise<number | null> {
     try {
       const categoryId = await this.getCategoryIdForApp(appName);
-      if (categoryId) {
-        console.log(`🏷️ Auto-categorized app "${appName}" → Category ${categoryId}`);
-      }
       return categoryId;
     } catch (error) {
       console.error('Failed to auto-categorize app:', error);
@@ -337,9 +310,6 @@ export class CategoriesService {
   async autoCategorizeDomain(domain: string): Promise<number | null> {
     try {
       const categoryId = await this.getCategoryIdForDomain(domain);
-      if (categoryId) {
-        console.log(`🏷️ Auto-categorized domain "${domain}" → Category ${categoryId}`);
-      }
       return categoryId;
     } catch (error) {
       console.error('Failed to auto-categorize domain:', error);
@@ -374,7 +344,6 @@ export class CategoriesService {
     try {
       const existingCategories = await this.getCategories();
       if (existingCategories.length > 0) {
-        console.log('📁 Categories already exist, skipping initialization');
         return;
       }
 
@@ -393,7 +362,6 @@ export class CategoriesService {
         await this.addCategory(category);
       }
 
-      console.log('✅ Default categories initialized');
     } catch (error) {
       console.error('Failed to initialize default categories:', error);
     }

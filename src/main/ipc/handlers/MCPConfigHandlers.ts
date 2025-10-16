@@ -18,7 +18,6 @@ export class MCPConfigHandlers implements IIPCHandlerGroup {
         }
 
         const status = context.mcpConfigService.getHTTPBridgeStatus();
-        console.log('📡 HTTP Bridge status:', status);
         return status;
       } catch (error) {
         console.error('Failed to get bridge status:', error);
@@ -36,7 +35,6 @@ export class MCPConfigHandlers implements IIPCHandlerGroup {
         }
 
         const serverPath = context.mcpConfigService.getMCPServerPath();
-        console.log('📁 MCP server path:', serverPath);
         return serverPath;
       } catch (error) {
         console.error('Failed to get MCP server path:', error);
@@ -56,7 +54,6 @@ export class MCPConfigHandlers implements IIPCHandlerGroup {
         const config = context.mcpConfigService.generateConfigForClient(client);
         const configJson = JSON.stringify(config, null, 2);
 
-        console.log(`📋 Generated config for ${client}:`, configJson);
         return configJson;
       } catch (error) {
         console.error(`Failed to generate config for ${client}:`, error);
@@ -73,12 +70,9 @@ export class MCPConfigHandlers implements IIPCHandlerGroup {
           throw new Error('MCP Config Service not available');
         }
 
-        console.log(`🔧 Auto-configuring ${client}...`);
         const result = await context.mcpConfigService.autoConfigure(client);
 
-        if (result.success) {
-          console.log(`✅ Successfully configured ${client}`);
-        } else {
+        if (!result.success) {
           console.error(`❌ Failed to configure ${client}:`, result.message);
         }
 
@@ -104,7 +98,6 @@ export class MCPConfigHandlers implements IIPCHandlerGroup {
         }
 
         const fileInfo = await context.mcpConfigService.detectConfigFile(client);
-        console.log(`📁 Config file for ${client}:`, fileInfo);
         return fileInfo;
       } catch (error) {
         console.error(`Failed to detect config file for ${client}:`, error);
@@ -118,7 +111,6 @@ export class MCPConfigHandlers implements IIPCHandlerGroup {
     ipcMain.handle('mcp-copy-to-clipboard', async (_event, text: string) => {
       try {
         clipboard.writeText(text);
-        console.log('📋 Copied to clipboard');
         return true;
       } catch (error) {
         console.error('Failed to copy to clipboard:', error);
@@ -142,6 +134,5 @@ export class MCPConfigHandlers implements IIPCHandlerGroup {
       }
     });
 
-    console.log('✅ MCP Config handlers registered');
   }
 }

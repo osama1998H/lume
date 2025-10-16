@@ -155,7 +155,6 @@ export class SettingsManager {
   saveSettings(settings: Settings): boolean {
     try {
       fs.writeFileSync(this.settingsPath, JSON.stringify(settings, null, 2));
-      console.log('Settings saved successfully');
       return true;
     } catch (error) {
       console.error('Failed to save settings:', error);

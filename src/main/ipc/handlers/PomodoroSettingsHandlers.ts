@@ -48,13 +48,11 @@ export class PomodoroSettingsHandlers implements IIPCHandlerGroup {
 
         // Update running services with new settings
         if (success && context.pomodoroService && context.notificationService) {
-          console.log('🔄 Updating pomodoro service with new settings');
           context.pomodoroService.updateSettings(pomodoroSettings);
           context.notificationService.updateSettings(
             pomodoroSettings.soundEnabled,
             pomodoroSettings.notificationsEnabled
           );
-          console.log('✅ Pomodoro settings applied to running services');
         }
 
         return success;

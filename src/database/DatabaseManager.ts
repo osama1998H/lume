@@ -102,15 +102,12 @@ export class DatabaseManager {
         throw new Error('Database path not provided');
       }
 
-      console.log('📁 Database path:', this.dbPath);
 
       this.db = new Database(this.dbPath);
       this.db.pragma('foreign_keys = ON');
 
-      console.log('🔄 Running database migrations...');
       const migrationRunner = new MigrationRunner(this.db);
       migrationRunner.runMigrations();
-      console.log('✅ Database migrations completed');
 
       // Initialize repositories
       this.timeEntryRepo = new TimeEntryRepository(this.db);
@@ -125,7 +122,6 @@ export class DatabaseManager {
       // Initialize services
       this.analyticsService = new AnalyticsService(this.db);
 
-      console.log('✅ Database initialized successfully');
     } catch (error) {
       console.error('❌ Database initialization error:', error);
       throw error;
@@ -139,7 +135,6 @@ export class DatabaseManager {
     if (this.db) {
       this.db.close();
       this.db = null;
-      console.log('Database connection closed');
     }
   }
 
@@ -166,7 +161,6 @@ export class DatabaseManager {
     const doCompact = options.compact !== false; // Default to true
 
     try {
-      console.log('🗑️  Starting database clear operation...');
 
       // Use a transaction to ensure all operations succeed or fail together
       const clearTransaction = this.db.transaction(() => {
@@ -193,28 +187,21 @@ export class DatabaseManager {
         this.db!.prepare('DELETE FROM tags').run();
         this.db!.prepare('DELETE FROM categories').run();
 
-        console.log('✅ All data deleted successfully');
       });
 
       // Execute the transaction
       clearTransaction();
 
       // Reset AUTO_INCREMENT sequences for all tables
-      console.log('🔄 Resetting AUTO_INCREMENT sequences...');
       this.db.prepare("DELETE FROM sqlite_sequence").run();
 
       // Only checkpoint and vacuum if compaction is enabled and not inside another transaction
       if (doCompact) {
         // Checkpoint the Write-Ahead Log to ensure changes are flushed
-        console.log('💾 Flushing Write-Ahead Log...');
         this.db.pragma('wal_checkpoint(TRUNCATE)');
 
         // VACUUM to reclaim space and compact the database file
-        console.log('🗜️  Compacting database (VACUUM)...');
         this.db.prepare('VACUUM').run();
-        console.log('✅ Database cleared and compacted successfully');
-      } else {
-        console.log('✅ Database cleared successfully (compaction skipped)');
       }
 
       return true;
@@ -234,7 +221,6 @@ export class DatabaseManager {
     }
 
     try {
-      console.log('📦 Starting database export...');
 
       const exportData: ExportData = {
         version: '2.5.4', // App version from package.json
@@ -257,13 +243,6 @@ export class DatabaseManager {
         },
       };
 
-      console.log('✅ Database export completed successfully');
-      console.log(`📊 Exported ${exportData.tables.timeEntries.length} time entries`);
-      console.log(`📊 Exported ${exportData.tables.appUsage.length} app usage records`);
-      console.log(`📊 Exported ${exportData.tables.categories.length} categories`);
-      console.log(`📊 Exported ${exportData.tables.tags.length} tags`);
-      console.log(`📊 Exported ${exportData.tables.pomodoroSessions.length} pomodoro sessions`);
-      console.log(`📊 Exported ${exportData.tables.productivityGoals.length} productivity goals`);
 
       return exportData;
     } catch (error) {
@@ -293,8 +272,6 @@ export class DatabaseManager {
     };
 
     try {
-      console.log('📥 Starting database import...');
-      console.log(`📋 Import strategy: ${options.strategy}`);
 
       // Validate data structure
       if (!this.validateExportData(data)) {
@@ -322,7 +299,6 @@ export class DatabaseManager {
       const importTransaction = this.db.transaction(() => {
         // If replace strategy, clear all data first (skip compaction to avoid VACUUM in transaction)
         if (options.strategy === 'replace') {
-          console.log('🗑️  Clearing existing data (replace mode)...');
           if (!this.clearAllData({ compact: false })) {
             throw new Error('Failed to clear existing data');
           }
@@ -356,7 +332,6 @@ export class DatabaseManager {
         // Import tag relations
         result.recordsImported += this.importTagRelations(data.tables, options.strategy);
 
-        console.log('✅ Database import completed successfully');
       });
 
       // Execute the transaction
@@ -364,16 +339,11 @@ export class DatabaseManager {
 
       // Compact database after transaction if replace strategy was used
       if (options.strategy === 'replace') {
-        console.log('💾 Compacting database after replace...');
         this.db.pragma('wal_checkpoint(TRUNCATE)');
         this.db.prepare('VACUUM').run();
-        console.log('✅ Database compacted successfully');
       }
 
       result.success = true;
-      console.log(`📊 Imported ${result.recordsImported} records`);
-      console.log(`⏭️  Skipped ${result.recordsSkipped} records`);
-      console.log(`🔄 Updated ${result.recordsUpdated} records`);
 
       return result;
     } catch (error) {
@@ -1850,7 +1820,7 @@ export class DatabaseManager {
       byCategory: [],
       editableCount: activities.filter(a => a.isEditable).length,
       conflictsCount: this.getActivityConflicts(startDate, endDate).length,
-      gapsDetected: 0, // TODO: Implement gap detection
+      gapsDetected: 0,
     };
 
     // Calculate category breakdown

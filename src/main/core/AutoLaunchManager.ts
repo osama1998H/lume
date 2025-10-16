@@ -75,7 +75,6 @@ export class AutoLaunchManager {
           openAtLogin: settings.autoStartOnLogin,
           openAsHidden: false,
         });
-        console.log(`✅ Auto-start setting applied: ${settings.autoStartOnLogin}`);
       }
     } catch (error) {
       console.error('Failed to apply auto-start setting:', error);
@@ -120,7 +119,6 @@ export class AutoLaunchManager {
       settings.autoStartOnLogin = enabled;
       this.settingsManager.saveSettings(settings);
 
-      console.log(`✅ Auto-start ${enabled ? 'enabled' : 'disabled'}`);
       return true;
     } catch (error) {
       console.error('Failed to set auto-start:', error);

@@ -21,7 +21,6 @@ export class TimelineHandlers implements IIPCHandlerGroup {
           return [];
         }
         const activities = context.dbManager.getTimelineActivities(startDate, endDate);
-        console.log(`📊 Retrieved ${activities.length} timeline activities`);
         return activities;
       } catch (error) {
         console.error('Failed to get timeline activities:', error);

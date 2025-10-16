@@ -24,7 +24,6 @@ export class PomodoroTimerHandlers implements IIPCHandlerGroup {
         try {
           if (context.pomodoroService) {
             context.pomodoroService.start(task, sessionType, todoId);
-            console.log(`🍅 Started pomodoro session: ${sessionType} - "${task}"${todoId ? ` (Todo #${todoId})` : ''}`);
           }
         } catch (error) {
           console.error('Failed to start pomodoro session:', error);
@@ -38,7 +37,6 @@ export class PomodoroTimerHandlers implements IIPCHandlerGroup {
       try {
         if (context.pomodoroService) {
           context.pomodoroService.pause();
-          console.log('⏸️  Paused pomodoro session');
         }
       } catch (error) {
         console.error('Failed to pause pomodoro session:', error);
@@ -51,7 +49,6 @@ export class PomodoroTimerHandlers implements IIPCHandlerGroup {
       try {
         if (context.pomodoroService) {
           context.pomodoroService.resume();
-          console.log('▶️  Resumed pomodoro session');
         }
       } catch (error) {
         console.error('Failed to resume pomodoro session:', error);
@@ -64,7 +61,6 @@ export class PomodoroTimerHandlers implements IIPCHandlerGroup {
       try {
         if (context.pomodoroService) {
           context.pomodoroService.stop();
-          console.log('⏹️  Stopped pomodoro session');
         }
       } catch (error) {
         console.error('Failed to stop pomodoro session:', error);
@@ -77,7 +73,6 @@ export class PomodoroTimerHandlers implements IIPCHandlerGroup {
       try {
         if (context.pomodoroService) {
           context.pomodoroService.skip();
-          console.log('⏭️  Skipped pomodoro session');
         }
       } catch (error) {
         console.error('Failed to skip pomodoro session:', error);

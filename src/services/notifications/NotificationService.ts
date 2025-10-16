@@ -22,7 +22,6 @@ export class NotificationService {
    */
   showNotification(_type: NotificationType, config: NotificationConfig): void {
     if (!this.notificationsEnabled) {
-      console.log('🔕 Notifications disabled');
       return;
     }
 
@@ -35,8 +34,6 @@ export class NotificationService {
       });
 
       notification.show();
-
-      console.log(`🔔 Notification shown: ${config.title}`);
     } catch (error) {
       console.error('❌ Failed to show notification:', error);
     }
@@ -78,7 +75,6 @@ export class NotificationService {
   updateSettings(soundEnabled: boolean, notificationsEnabled: boolean): void {
     this.soundEnabled = soundEnabled;
     this.notificationsEnabled = notificationsEnabled;
-    console.log(`🔧 Notification settings updated: sound=${soundEnabled}, notifications=${notificationsEnabled}`);
   }
 
   /**

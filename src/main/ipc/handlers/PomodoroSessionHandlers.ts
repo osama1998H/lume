@@ -38,7 +38,6 @@ export class PomodoroSessionHandlers implements IIPCHandlerGroup {
           }
         }
 
-        console.log('Add pomodoro session:', session);
         return context.dbManager?.addPomodoroSession(session as PomodoroSession) || null;
       } catch (error) {
         console.error('Failed to add pomodoro session:', error);
@@ -50,7 +49,6 @@ export class PomodoroSessionHandlers implements IIPCHandlerGroup {
     // Extracted from main.ts:411-419
     ipcMain.handle('update-pomodoro-session', async (_, id: number, updates: Partial<PomodoroSession>) => {
       try {
-        console.log('Update pomodoro session:', id, updates);
         return context.dbManager?.updatePomodoroSession(id, updates) || false;
       } catch (error) {
         console.error('Failed to update pomodoro session:', error);

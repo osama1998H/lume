@@ -40,7 +40,6 @@ export class GoalsService {
   async addGoal(goal: ProductivityGoal): Promise<number> {
     try {
       const goalId = await this.db.addGoal(goal);
-      console.log(`✅ Goal created: ${goal.name} (ID: ${goalId})`);
       return goalId;
     } catch (error) {
       console.error('Failed to add goal:', error);
@@ -54,9 +53,6 @@ export class GoalsService {
   async updateGoal(id: number, updates: Partial<ProductivityGoal>): Promise<boolean> {
     try {
       const success = await this.db.updateGoal(id, updates);
-      if (success) {
-        console.log(`✅ Goal updated (ID: ${id})`);
-      }
       return success;
     } catch (error) {
       console.error('Failed to update goal:', error);
@@ -71,7 +67,6 @@ export class GoalsService {
     try {
       const success = await this.db.deleteGoal(id);
       if (success) {
-        console.log(`✅ Goal deleted (ID: ${id})`);
         // Clear notification history for this goal
         const keysToDelete: string[] = [];
         this.notificationHistory.forEach((_, key) => {
@@ -168,7 +163,6 @@ export class GoalsService {
   async updateGoalProgress(goalId: number, date: string, progressMinutes: number): Promise<void> {
     try {
       await this.db.updateGoalProgress(goalId, date, progressMinutes);
-      console.log(`📊 Progress updated for goal ${goalId}: ${progressMinutes} minutes`);
 
       // Check if we need to send notifications
       await this.checkAndNotifyGoalProgress(goalId, date, progressMinutes);
@@ -191,7 +185,6 @@ export class GoalsService {
       const today = todayValue;
       const activeGoals = await this.getGoals(true);
 
-      console.log(`🔄 Recalculating progress for ${activeGoals.length} active goals...`);
 
       for (const goal of activeGoals) {
         if (!goal.id) continue;
@@ -383,7 +376,6 @@ export class GoalsService {
     }
 
     this.notificationService.showNotification('sessionComplete', { title, body });
-    console.log(`🔔 Goal notification sent: ${title}`);
   }
 
   /**
@@ -408,7 +400,6 @@ export class GoalsService {
       });
     }
 
-    console.log(`🎉 Goal achievement notification sent: ${goal.name}`);
   }
 
   /**
@@ -424,7 +415,6 @@ export class GoalsService {
       body: `You've exceeded your limit by ${excess} minutes. Time to switch activities!`,
     });
 
-    console.log(`🚨 Goal exceeded notification sent: ${goal.name}`);
   }
 
   /**
@@ -432,7 +422,6 @@ export class GoalsService {
    */
   clearNotificationHistory(): void {
     this.notificationHistory.clear();
-    console.log('🗑️ Notification history cleared');
   }
 
   /**

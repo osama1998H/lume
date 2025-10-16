@@ -23,12 +23,9 @@ export class DataManagementHandlers implements IIPCHandlerGroup {
           return false;
         }
 
-        console.log('🗑️  Clear all data requested');
         const success = context.dbManager.clearAllData();
 
-        if (success) {
-          console.log('✅ All data cleared successfully');
-        } else {
+        if (!success) {
           console.error('❌ Failed to clear all data');
         }
 
@@ -48,7 +45,6 @@ export class DataManagementHandlers implements IIPCHandlerGroup {
           return { success: false, error: 'Database not initialized' };
         }
 
-        console.log(`📦 Export data requested (format: ${format})`);
 
         // Show save dialog
         const defaultFileName = `lume-data-export-${new Date().toISOString().split('T')[0]}-${Date.now()}`;
@@ -65,7 +61,6 @@ export class DataManagementHandlers implements IIPCHandlerGroup {
         });
 
         if (result.canceled || !result.filePath) {
-          console.log('📦 Export canceled by user');
           return { success: false, error: 'Export canceled' };
         }
 
@@ -81,7 +76,6 @@ export class DataManagementHandlers implements IIPCHandlerGroup {
             JSON.stringify(exportData, null, 2),
             'utf8'
           );
-          console.log(`✅ Data exported successfully to: ${filePath}`);
           return { success: true, filePath };
         } else {
           // CSV format: Create multiple CSV files and zip them
@@ -117,7 +111,6 @@ export class DataManagementHandlers implements IIPCHandlerGroup {
           };
         }
 
-        console.log(`📥 Import data requested (format: ${format})`);
 
         // Show open dialog
         const result = await dialog.showOpenDialog(context.windowManager.getWindow()!, {
@@ -131,7 +124,6 @@ export class DataManagementHandlers implements IIPCHandlerGroup {
         });
 
         if (result.canceled || result.filePaths.length === 0) {
-          console.log('📥 Import canceled by user');
           return {
             success: false,
             recordsImported: 0,
@@ -153,8 +145,6 @@ export class DataManagementHandlers implements IIPCHandlerGroup {
           const importOptions = options || { strategy: 'merge' };
           const importResult = context.dbManager.importAllData(importData, importOptions);
 
-          console.log(`✅ Data imported successfully from: ${filePath}`);
-          console.log(`📊 ${importResult.recordsImported} records imported`);
 
           return importResult;
         } else {

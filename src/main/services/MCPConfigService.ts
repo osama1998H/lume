@@ -174,7 +174,6 @@ export class MCPConfigService {
 
     try {
       await fs.copyFile(filePath, backupPath);
-      console.log(`✅ Created config backup: ${backupPath}`);
       return backupPath;
     } catch (error) {
       console.error('Failed to create config backup:', error);
@@ -222,7 +221,6 @@ export class MCPConfigService {
    */
   async autoConfigure(client: MCPClient): Promise<MCPConfigResult> {
     try {
-      console.log(`🔧 Starting auto-configuration for ${client}...`);
 
       // Check if MCP server exists
       const serverPath = this.getMCPServerPath();
@@ -237,14 +235,12 @@ export class MCPConfigService {
 
       // Get config file path
       const configPath = await this.detectConfigFilePath(client);
-      console.log(`📁 Config file path: ${configPath}`);
 
       // Check if config file exists and backup if it does
       let backupPath: string | undefined;
       const configExists = await this.fileExists(configPath);
 
       if (configExists) {
-        console.log('📋 Existing config found, creating backup...');
         backupPath = await this.backupConfigFile(configPath);
       }
 
@@ -260,7 +256,6 @@ export class MCPConfigService {
       // Write config file
       await this.writeConfigFile(configPath, finalConfig);
 
-      console.log(`✅ Successfully configured ${client}`);
 
       return {
         success: true,

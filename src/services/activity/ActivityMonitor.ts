@@ -16,7 +16,6 @@ export class ActivityMonitor implements ActivityTracker {
 
   start(): void {
     if (this.isActive) {
-      console.log('⚠️  Activity monitor already running');
       return;
     }
 
@@ -27,12 +26,10 @@ export class ActivityMonitor implements ActivityTracker {
 
     // Capture initial activity
     this.captureCurrentActivity();
-    console.log(`👁️  Activity monitor started (interval: ${this.intervalMs}ms)`);
   }
 
   stop(): void {
     if (!this.isActive) {
-      console.log('⚠️  Activity monitor already stopped');
       return;
     }
 
@@ -41,7 +38,6 @@ export class ActivityMonitor implements ActivityTracker {
       clearInterval(this.intervalId);
       this.intervalId = null;
     }
-    console.log('👁️  Activity monitor stopped');
   }
 
   isTracking(): boolean {
@@ -195,9 +191,6 @@ export class ActivityMonitor implements ActivityTracker {
       const activity = await this.detectActiveWindow();
       if (activity) {
         this.currentActivity = activity;
-        console.log(`🔍 Captured activity: ${activity.app_name}${activity.domain ? ` (${activity.domain})` : ''}`);
-      } else {
-        console.log('⚠️  No activity detected');
       }
     } catch (error) {
       console.error('❌ Failed to capture activity:', error);
@@ -242,7 +235,6 @@ export class ActivityMonitor implements ActivityTracker {
       const [appName, windowTitle] = stdout.trim().split('|||');
 
       if (!appName) {
-        console.log('⚠️  macOS: No active app detected');
         return null;
       }
 
@@ -260,16 +252,12 @@ export class ActivityMonitor implements ActivityTracker {
         if (browserInfo) {
           activity.domain = browserInfo.domain;
           activity.url = browserInfo.url;
-          console.log(`🌐 Browser detected: ${browserInfo.domain} (via direct URL)`);
         } else {
           // Fallback to window title parsing
           const fallbackInfo = await this.extractBrowserInfo(appName, windowTitle || '');
           if (fallbackInfo) {
             activity.domain = fallbackInfo.domain;
             activity.url = fallbackInfo.url;
-            console.log(`🌐 Browser detected: ${fallbackInfo.domain} (via window title)`);
-          } else {
-            console.log('⚠️  Browser detected but no URL/domain extracted');
           }
         }
       }
@@ -321,7 +309,6 @@ export class ActivityMonitor implements ActivityTracker {
           url.startsWith('chrome-extension://') ||
           url.startsWith('safari-resource://') ||
           url.startsWith('favorites://')) {
-        console.log(`⏭️  Skipping internal browser page: ${url}`);
         return null;
       }
 
