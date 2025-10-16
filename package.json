@@ -13,10 +13,10 @@
     "build": "npm run build:react && npm run build:electron && npm run build:mcp",
     "build:react": "vite build",
     "build:electron": "tsc -p tsconfig.electron.json && tsc-alias -p tsconfig.electron.json",
-    "build:mcp": "tsc -p tsconfig.mcp.json && tsc-alias -p tsconfig.mcp.json && cp src/mcp/package.json dist/mcp/package.json && node scripts/make-executable.js dist/mcp/server.js",
+    "build:mcp": "tsc -p tsconfig.mcp.json && tsc-alias -p tsconfig.mcp.json && cp src/mcp/package.json dist/mcp/mcp/package.json && node scripts/make-executable.js dist/mcp/mcp/server.js",
     "watch:electron": "concurrently \"tsc -p tsconfig.electron.json --watch\" \"tsc-alias -p tsconfig.electron.json --watch\"",
     "watch:mcp": "tsc -p tsconfig.mcp.json --watch",
-    "dev:mcp": "npm run build:mcp && node dist/mcp/server.js",
+    "dev:mcp": "npm run build:mcp && node dist/mcp/mcp/server.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:e2e": "playwright test",
@@ -75,7 +75,7 @@
     },
     "extraResources": [
       {
-        "from": "dist/mcp",
+        "from": "dist/mcp/mcp",
         "to": "mcp"
       }
     ]

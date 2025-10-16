@@ -29,11 +29,13 @@ export class MCPConfigService {
     // In production, the app is packaged and we need to find the resources path
     if (app.isPackaged) {
       // In packaged app, MCP server is in extraResources (outside app.asar for Node.js accessibility)
+      // electron-builder flattens dist/mcp/mcp/* to resources/mcp/*
       return path.join(process.resourcesPath, 'mcp', 'server.js');
     } else {
       // In development, use process.cwd() which is the project root directory
       // (app.getAppPath() returns dist/main when running electron dist/main/main.js)
-      return path.join(process.cwd(), 'dist', 'mcp', 'server.js');
+      // TypeScript compiles to dist/mcp/mcp/ due to rootDir: ./src preserving mcp/ path
+      return path.join(process.cwd(), 'dist', 'mcp', 'mcp', 'server.js');
     }
   }
 
