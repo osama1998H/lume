@@ -10,10 +10,13 @@
     "dev": "concurrently \"npm run dev:react\" \"npm run dev:electron\"",
     "dev:react": "vite",
     "dev:electron": "wait-on http://localhost:5173 && electron dist/main/main.js",
-    "build": "npm run build:react && npm run build:electron",
+    "build": "npm run build:react && npm run build:electron && npm run build:mcp",
     "build:react": "vite build",
     "build:electron": "tsc -p tsconfig.electron.json",
+    "build:mcp": "tsc -p tsconfig.mcp.json && chmod +x dist/mcp/server.js",
     "watch:electron": "tsc -p tsconfig.electron.json --watch",
+    "watch:mcp": "tsc -p tsconfig.mcp.json --watch",
+    "dev:mcp": "npm run build:mcp && node dist/mcp/server.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:e2e": "playwright test",
@@ -73,6 +76,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@modelcontextprotocol/sdk": "^1.20.0",
     "@sentry/electron": "^7.2.0",
     "@tanstack/react-virtual": "^3.13.12",
     "better-sqlite3": "^12.4.1",
@@ -86,8 +90,7 @@
     "react-hook-form": "^7.65.0",
     "react-hot-toast": "^2.6.0",
     "react-i18next": "^16.0.1",
-    "recharts": "^3.2.1",
-    "zod": "^4.1.12"
+    "recharts": "^3.2.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.0",
@@ -118,6 +121,7 @@
     "ts-jest": "^29.4.5",
     "typescript": "^5.9.3",
     "vite": "^7.1.10",
-    "wait-on": "^8.0.5"
+    "wait-on": "^8.0.5",
+    "zod": "^3.25.76"
   }
 }
