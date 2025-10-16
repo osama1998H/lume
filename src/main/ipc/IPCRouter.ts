@@ -55,10 +55,10 @@ export class IPCRouter {
           originalHandle(channel, listener);
 
           // Also register with HTTP Bridge
-          // The listener signature is (event, ...args) but we only need the args for HTTP
+          // The listener signature is (event, ...args) but we pass args as object for HTTP
           const httpHandler = async (args: any) => {
-            // Call the original listener, but pass null as event since HTTP doesn't have it
-            return await listener(null, ...Object.values(args));
+            // Call the original listener, passing args as a single object parameter
+            return await listener(null, args);
           };
 
           this.httpHandlers.set(channel, httpHandler);

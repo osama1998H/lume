@@ -31,11 +31,9 @@ export function registerTimeTrackingTools(server: McpServer) {
         }
 
         const entryId = await callIPC<number>('add-time-entry', {
-          entry: {
-            task,
-            categoryId: categoryId || null,
-            start_time: new Date().toISOString(),
-          }
+          task,
+          categoryId: categoryId || null,
+          startTime: new Date().toISOString(),
         });
 
         if (!entryId) {
@@ -88,7 +86,7 @@ export function registerTimeTrackingTools(server: McpServer) {
         const success = await callIPC<boolean>('update-time-entry', {
           id: active.id,
           updates: {
-            end_time: now,
+            endTime: now,
           }
         });
 
