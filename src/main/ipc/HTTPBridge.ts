@@ -102,7 +102,7 @@ export class HTTPBridge {
     // Security: Only accept requests from localhost
     const remoteAddress = req.socket.remoteAddress;
     if (remoteAddress !== '127.0.0.1' && remoteAddress !== '::1' && remoteAddress !== '::ffff:127.0.0.1') {
-      console.warn(`⚠️  Rejected request from non-localhost address: ${remoteAddress}`);
+      console.warn('⚠️  Rejected request from non-localhost address: %s', remoteAddress);
       this.sendError(res, 403, 'Forbidden');
       return;
     }
@@ -127,7 +127,9 @@ export class HTTPBridge {
     const handler = this.handlers.get(channel);
 
     if (!handler) {
-      this.sendError(res, 404, `IPC handler not found: ${channel}`);
+      // Sanitize channel name before including in error message
+      const sanitizedChannel = String(channel).replace(/%/g, '%%');
+      this.sendError(res, 404, `IPC handler not found: ${sanitizedChannel}`);
       return;
     }
 
@@ -148,7 +150,7 @@ export class HTTPBridge {
         // Send response
         this.sendSuccess(res, result);
       } catch (error) {
-        console.error(`❌ Error handling IPC request for ${channel}:`, error);
+        console.error('❌ Error handling IPC request for %s:', channel, error);
         this.sendError(res, 500, error instanceof Error ? error.message : 'Internal Server Error');
       }
     });
