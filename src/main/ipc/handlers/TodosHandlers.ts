@@ -1,6 +1,6 @@
 import { IpcMain } from 'electron';
 import { IIPCHandlerContext, IIPCHandlerGroup } from '../types';
-import type { Todo, TodoStatus, TodoPriority } from '../../../types';
+import type { TodoStatus, TodoPriority } from '../../../types';
 
 /**
  * TodosHandlers - IPC handlers for todo/task management
