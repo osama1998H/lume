@@ -11,6 +11,8 @@ import { WindowManager } from '../core/WindowManager';
 import { TrayManager } from '../core/TrayManager';
 import { SettingsManager } from '../core/SettingsManager';
 import { AutoLaunchManager } from '../core/AutoLaunchManager';
+import { MCPConfigService } from '../services/MCPConfigService';
+import { HTTPBridge } from './HTTPBridge';
 
 /**
  * Context containing all services and managers available to IPC handlers
@@ -32,6 +34,10 @@ export interface IIPCHandlerContext {
   categoriesService: CategoriesService | null;
   activityValidationService: ActivityValidationService | null;
   activityMergeService: ActivityMergeService | null;
+
+  // MCP Integration
+  httpBridge: HTTPBridge | null;
+  mcpConfigService: MCPConfigService | null;
 }
 
 /**

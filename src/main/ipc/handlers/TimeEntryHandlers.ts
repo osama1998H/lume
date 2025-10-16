@@ -16,8 +16,18 @@ export class TimeEntryHandlers implements IIPCHandlerGroup {
   register(ipcMain: IpcMain, context: IIPCHandlerContext): void {
     // Add time entry
     // Extracted from main.ts:217-228
-    ipcMain.handle('add-time-entry', async (_, entry: Partial<TimeEntry>) => {
+    ipcMain.handle('add-time-entry', async (_, args: Record<string, any>) => {
       try {
+        // Extract parameters from args object
+        const { task, categoryId, startTime, endTime, todoId } = args;
+
+        // Build entry object, excluding undefined and null values
+        const entry: Partial<TimeEntry> = { task };
+        if (categoryId !== undefined && categoryId !== null) entry.categoryId = categoryId;
+        if (startTime !== undefined && startTime !== null) entry.startTime = startTime;
+        if (endTime !== undefined && endTime !== null) entry.endTime = endTime;
+        if (todoId !== undefined && todoId !== null) entry.todoId = todoId;
+
         // Only log in development; redact task description
         if (process.env.NODE_ENV !== 'production') {
           console.debug('Add time entry:', {
@@ -34,13 +44,15 @@ export class TimeEntryHandlers implements IIPCHandlerGroup {
 
     // Update time entry
     // Extracted from main.ts:230-241
-    ipcMain.handle('update-time-entry', async (_, id: number, updates: Partial<TimeEntry>) => {
+    ipcMain.handle('update-time-entry', async (_, args: Record<string, any>) => {
       try {
+        const { id, updates } = args;
+
         // Only log in development; redact task description
         if (process.env.NODE_ENV !== 'production') {
           console.debug('Update time entry:', id, {
             ...updates,
-            task: updates.task ? '[redacted]' : undefined,
+            task: updates?.task ? '[redacted]' : undefined,
           });
         }
         return context.dbManager?.updateTimeEntry(id, updates) || false;

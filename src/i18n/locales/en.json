@@ -211,9 +211,62 @@
       "general": "General",
       "tracking": "Activity Tracking",
       "data": "Data & Privacy",
+      "mcp": "MCP Integration",
       "about": "About"
     },
     "tabsLabel": "Settings sections"
+  },
+  "mcp": {
+    "title": "MCP Integration",
+    "description": "Configure Model Context Protocol (MCP) integration for AI assistants like Claude Desktop, Claude Code, and Cursor",
+    "bridgeStatus": {
+      "title": "HTTP Bridge Status",
+      "running": "Running on port",
+      "port": "{{port}}",
+      "notRunning": "Not Running"
+    },
+    "refresh": "Refresh",
+    "warnings": {
+      "bridgeNotRunning": "HTTP Bridge Not Running",
+      "bridgeNotRunningDescription": "The HTTP Bridge must be running for MCP integration to work. Please restart the application if this persists."
+    },
+    "autoConfig": {
+      "title": "Auto-Configuration",
+      "description": "Automatically configure your MCP clients with one click. This will detect and update your configuration files safely."
+    },
+    "clients": {
+      "claudeDesktop": {
+        "description": "Official Claude desktop application by Anthropic"
+      },
+      "claudeCode": {
+        "description": "Claude for VS Code and command-line interface"
+      },
+      "cursor": {
+        "description": "AI-powered code editor with Claude integration"
+      }
+    },
+    "autoConfigure": "Auto-Configure",
+    "configuring": "Configuring...",
+    "backupCreated": "Backup created at",
+    "manualConfig": {
+      "title": "Manual Configuration",
+      "description": "If auto-configuration doesn't work, copy and paste this configuration manually into your client's config file.",
+      "selectClient": "Select Client",
+      "needHelp": "Need help with manual configuration?",
+      "readDocs": "Read the complete setup guide in the MCP Integration documentation."
+    },
+    "copyConfig": "Copy Config",
+    "success": {
+      "configured": "Successfully configured {{client}}",
+      "copiedToClipboard": "Configuration copied to clipboard"
+    },
+    "errors": {
+      "bridgeStatusFailed": "Failed to load HTTP Bridge status",
+      "configGenerationFailed": "Failed to generate configuration",
+      "configurationFailed": "Failed to configure {{error}}",
+      "unknownError": "Unknown error",
+      "copyFailed": "Failed to copy to clipboard"
+    }
   },
   "common": {
     "save": "Save",

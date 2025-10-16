@@ -75,8 +75,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check types
+      - name: Build Electron (generate type declarations)
+        run: npm run build:electron
+
+      - name: Check React types
         run: npx tsc --noEmit
+
+      - name: Check Electron types
+        run: npx tsc -p tsconfig.electron.json --noEmit
+
+      - name: Check MCP types
+        run: npx tsc -p tsconfig.mcp.json --noEmit
 
   test:
     name: Run Tests

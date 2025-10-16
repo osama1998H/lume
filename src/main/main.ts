@@ -2,6 +2,7 @@ import { app, ipcMain, BrowserWindow } from 'electron';
 import * as dotenv from 'dotenv';
 import { initializeSentry } from '../config/sentry';
 import { initializeCrashReporter } from '../config/crashReporter';
+import { writePortFile, deletePortFile } from './utils/portFile';
 
 // Import core managers
 import { WindowManager } from './core/WindowManager';
@@ -13,8 +14,9 @@ import { AutoLaunchManager } from './core/AutoLaunchManager';
 // Import service container (Phase 3 refactoring)
 import { ServiceContainer } from './services/ServiceContainer';
 
-// Import IPC router and handlers
+// Import IPC router, HTTP bridge, and handlers
 import { IPCRouter } from './ipc/IPCRouter';
+import { HTTPBridge } from './ipc/HTTPBridge';
 import { IIPCHandlerContext } from './ipc/types';
 import { PomodoroTimerHandlers } from './ipc/handlers/PomodoroTimerHandlers';
 import { TimeEntryHandlers } from './ipc/handlers/TimeEntryHandlers';
@@ -37,6 +39,8 @@ import { CrashReporterHandlers } from './ipc/handlers/CrashReporterHandlers';
 import { DataManagementHandlers } from './ipc/handlers/DataManagementHandlers';
 import { UnifiedActivityHandlers } from './ipc/handlers/UnifiedActivityHandlers';
 import { DataQualityHandlers } from './ipc/handlers/DataQualityHandlers';
+import { MCPConfigHandlers } from './ipc/handlers/MCPConfigHandlers';
+import { MCPConfigService } from './services/MCPConfigService';
 
 // Load environment variables
 dotenv.config();
@@ -72,6 +76,10 @@ class LumeApp {
   // Service container (Phase 3 refactoring)
   private serviceContainer: ServiceContainer | null = null;
 
+  // HTTP Bridge for MCP server integration
+  private httpBridge: HTTPBridge | null = null;
+  private mcpConfigService: MCPConfigService | null = null;
+
   constructor() {
     // Initialize managers
     this.settingsManager = new SettingsManager();
@@ -85,13 +93,20 @@ class LumeApp {
   private setupApp(): void {
     // Setup app lifecycle using AppLifecycleManager
     this.lifecycleManager.setup({
-      onBeforeQuit: () => {
+      onBeforeQuit: async () => {
         this.windowManager.setQuitting(true);
+
+        // Stop HTTP Bridge and clean up port file
+        if (this.httpBridge) {
+          await this.httpBridge.stop();
+          deletePortFile();
+          console.log('🌉 HTTP Bridge stopped');
+        }
       },
       onReady: async () => {
         this.windowManager.createWindow();
         await this.setupServices();
-        this.setupIPC();
+        await this.setupIPC();
 
         // Apply auto-start setting
         this.autoLaunchManager.apply();
@@ -160,8 +175,8 @@ class LumeApp {
     }
   }
 
-  private setupIPC(): void {
-    // Create context for IPC handlers
+  private async setupIPC(): Promise<void> {
+    // Create context for IPC handlers (will be updated with httpBridge and mcpConfigService)
     const context: IIPCHandlerContext = {
       windowManager: this.windowManager,
       trayManager: this.trayManager,
@@ -176,10 +191,46 @@ class LumeApp {
       categoriesService: this.serviceContainer?.getCategoriesService() ?? null,
       activityValidationService: this.serviceContainer?.getActivityValidationService() ?? null,
       activityMergeService: this.serviceContainer?.getActivityMergeService() ?? null,
+      // MCP Integration (initialized below)
+      httpBridge: null,
+      mcpConfigService: null,
     };
 
-    // Initialize IPC router
-    const router = new IPCRouter(ipcMain, context);
+    // Initialize HTTP Bridge for MCP server integration
+    this.httpBridge = new HTTPBridge(context);
+    try {
+      console.log('🔄 Initializing HTTP Bridge for MCP integration...');
+      const port = await this.httpBridge.start(0); // Use port 0 for random available port
+      console.log(`🌉 HTTP Bridge started on port ${port} for MCP integration`);
+
+      // Store port in environment for MCP server to access
+      process.env.LUME_IPC_BRIDGE_PORT = port.toString();
+
+      // Write port to file for external processes (like MCP server)
+      writePortFile(port);
+      console.log(`📝 Port file written to user data directory`);
+
+      // Initialize MCP Config Service now that HTTP Bridge is running
+      this.mcpConfigService = new MCPConfigService(this.httpBridge);
+      console.log('🔧 MCP Config Service initialized');
+
+      // Update context with MCP services
+      context.httpBridge = this.httpBridge;
+      context.mcpConfigService = this.mcpConfigService;
+      console.log('✅ MCP integration setup complete');
+    } catch (error) {
+      console.error('❌ Failed to start HTTP Bridge - MCP integration unavailable');
+      console.error('Error details:', error instanceof Error ? error.message : String(error));
+      if (error instanceof Error && error.stack) {
+        console.error('Stack trace:', error.stack);
+      }
+      console.error('⚠️  Lume will continue without MCP support');
+      this.httpBridge = null;
+      this.mcpConfigService = null;
+    }
+
+    // Initialize IPC router with HTTP Bridge
+    const router = new IPCRouter(ipcMain, context, this.httpBridge ?? undefined);
 
     // Register handler groups (Phase 2 refactoring)
     router.registerAll([
@@ -209,6 +260,8 @@ class LumeApp {
       new DataManagementHandlers(),
       new UnifiedActivityHandlers(),
       new DataQualityHandlers(),
+      // Batch 5: MCP Integration
+      new MCPConfigHandlers(),
     ]);
   }
 }

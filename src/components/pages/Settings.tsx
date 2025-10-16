@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Download, Upload, Trash2, Settings as SettingsIcon, Activity, Database, Info } from 'lucide-react';
+import { Download, Upload, Trash2, Settings as SettingsIcon, Activity, Database, Info, Wifi } from 'lucide-react';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useTheme, Theme } from '../../contexts/ThemeContext';
 import Button from '../ui/Button';
 import Skeleton from '../ui/Skeleton';
 import { ConfirmModal } from '../ui/Modal';
 import { showToast } from '../../utils/toast';
+import MCPIntegration from './MCPIntegration';
 import type { Category } from '../../types';
 
-type SettingsTab = 'general' | 'tracking' | 'data' | 'about';
+type SettingsTab = 'general' | 'tracking' | 'data' | 'mcp' | 'about';
 
 const Settings: React.FC = () => {
   const { t } = useTranslation();
@@ -45,6 +46,7 @@ const Settings: React.FC = () => {
     { id: 'general' as const, label: t('settings.tabs.general', 'General'), icon: SettingsIcon },
     { id: 'tracking' as const, label: t('settings.tabs.tracking', 'Activity Tracking'), icon: Activity },
     { id: 'data' as const, label: t('settings.tabs.data', 'Data & Privacy'), icon: Database },
+    { id: 'mcp' as const, label: t('settings.tabs.mcp', 'MCP Integration'), icon: Wifi },
     { id: 'about' as const, label: t('settings.tabs.about', 'About'), icon: Info },
   ];
 
@@ -603,6 +605,13 @@ const Settings: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* MCP Integration Tab */}
+          {activeTab === 'mcp' && (
+            <div id="mcp-tab-panel" role="tabpanel" aria-labelledby="mcp-tab" className="space-y-4 sm:space-y-6">
+              <MCPIntegration />
             </div>
           )}
 

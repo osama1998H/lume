@@ -80,6 +80,17 @@ export class DatabaseManager {
   private analyticsService!: AnalyticsService;
 
   /**
+   * Check if repositories are initialized
+   */
+  private ensureInitialized(): void {
+    if (!this.db || !this.timeEntryRepo || !this.appUsageRepo || !this.categoryRepo ||
+        !this.tagRepo || !this.pomodoroRepo || !this.goalRepo || !this.mappingRepo ||
+        !this.todoRepo || !this.analyticsService) {
+      throw new Error('DatabaseManager not initialized. Call initialize() first.');
+    }
+  }
+
+  /**
    * Initialize the database and all repositories/services
    */
   initialize(userDataPath?: string): void {
@@ -87,9 +98,6 @@ export class DatabaseManager {
       // Handle both new async style and old sync style for backward compatibility
       if (userDataPath) {
         this.dbPath = path.join(userDataPath, 'lume.db');
-      } else if (this.dbPath) {
-        // Already initialized
-        return;
       } else {
         throw new Error('Database path not provided');
       }
@@ -669,42 +677,52 @@ export class DatabaseManager {
   // ==================== TIME ENTRIES ====================
 
   addTimeEntry(entry: TimeEntry): number {
+    this.ensureInitialized();
     return this.timeEntryRepo.insert(entry);
   }
 
   updateTimeEntry(id: number, updates: Partial<TimeEntry>): boolean {
+    this.ensureInitialized();
     return this.timeEntryRepo.update(id, updates);
   }
 
   deleteTimeEntry(id: number): boolean {
+    this.ensureInitialized();
     return this.timeEntryRepo.delete(id);
   }
 
   getTimeEntries(limit?: number): TimeEntry[] {
+    this.ensureInitialized();
     return this.timeEntryRepo.getAll({ limit });
   }
 
   getTimeEntry(id: number): TimeEntry | null {
+    this.ensureInitialized();
     return this.timeEntryRepo.getById(id);
   }
 
   getActiveTimeEntry(): TimeEntry | null {
+    this.ensureInitialized();
     return this.timeEntryRepo.getActive();
   }
 
   getTimeEntriesByDateRange(startDate: string, endDate: string): TimeEntry[] {
+    this.ensureInitialized();
     return this.timeEntryRepo.getByDateRange(startDate, endDate);
   }
 
   addTimeEntryTags(timeEntryId: number, tagIds: number[]): void {
+    this.ensureInitialized();
     this.timeEntryRepo.addTags(timeEntryId, tagIds);
   }
 
   setTimeEntryTags(timeEntryId: number, tagIds: number[]): void {
+    this.ensureInitialized();
     this.timeEntryRepo.setTags(timeEntryId, tagIds);
   }
 
   getTimeEntryTags(timeEntryId: number): Tag[] {
+    this.ensureInitialized();
     return this.timeEntryRepo.getTags(timeEntryId);
   }
 
@@ -901,58 +919,72 @@ export class DatabaseManager {
   // ==================== TODOS ====================
 
   addTodo(todo: Partial<Todo>): number {
+    this.ensureInitialized();
     return this.todoRepo.insert(todo);
   }
 
   updateTodo(id: number, updates: Partial<Todo>): boolean {
+    this.ensureInitialized();
     return this.todoRepo.update(id, updates);
   }
 
   deleteTodo(id: number): boolean {
+    this.ensureInitialized();
     return this.todoRepo.delete(id);
   }
 
   getTodos(options?: { status?: TodoStatus; priority?: TodoPriority }): Todo[] {
+    this.ensureInitialized();
     return this.todoRepo.getAll(options);
   }
 
   getTodo(id: number): Todo | null {
+    this.ensureInitialized();
     return this.todoRepo.getById(id);
   }
 
   getTodoStats(): TodoStats {
+    this.ensureInitialized();
     return this.todoRepo.getStats();
   }
 
   getTodosWithCategory(): TodoWithCategory[] {
+    this.ensureInitialized();
     return this.todoRepo.getAllWithCategory();
   }
 
   getOverdueTodos(): Todo[] {
+    this.ensureInitialized();
     return this.todoRepo.getOverdue();
   }
 
   linkTodoToTimeEntry(todoId: number, timeEntryId: number): boolean {
+    this.ensureInitialized();
     return this.todoRepo.linkTimeEntry(todoId, timeEntryId);
   }
 
   incrementTodoPomodoro(todoId: number): boolean {
+    this.ensureInitialized();
     return this.todoRepo.incrementPomodoroCount(todoId);
   }
 
   addTodoTags(todoId: number, tagIds: number[]): void {
+    this.ensureInitialized();
     this.todoRepo.addTags(todoId, tagIds);
   }
 
   setTodoTags(todoId: number, tagIds: number[]): void {
+    this.ensureInitialized();
     this.todoRepo.setTags(todoId, tagIds);
   }
 
   getTodoTags(todoId: number): Tag[] {
+    this.ensureInitialized();
     return this.todoRepo.getTags(todoId);
   }
 
   getTodosWithTags(options?: { status?: TodoStatus; priority?: TodoPriority }): (Todo & { tags: Tag[] })[] {
+    this.ensureInitialized();
     return this.todoRepo.getAllWithTags(options);
   }
 
@@ -993,42 +1025,52 @@ export class DatabaseManager {
   // ==================== ANALYTICS ====================
 
   queryTotalActiveTime(startTime: string, endTime: string): number {
+    this.ensureInitialized();
     return this.analyticsService.queryTotalActiveTime(startTime, endTime);
   }
 
   queryCategoryTime(category: string, startTime: string, endTime: string): number {
+    this.ensureInitialized();
     return this.analyticsService.queryCategoryTime(category, startTime, endTime);
   }
 
   queryAppTime(appName: string, startTime: string, endTime: string): number {
+    this.ensureInitialized();
     return this.analyticsService.queryAppTime(appName, startTime, endTime);
   }
 
   getDailyProductivityStats(startDate: string, endDate: string): DailyStats[] {
+    this.ensureInitialized();
     return this.analyticsService.getDailyProductivityStats(startDate, endDate);
   }
 
   getHourlyPatterns(days: number): HourlyPattern[] {
+    this.ensureInitialized();
     return this.analyticsService.getHourlyPatterns(days);
   }
 
   getHeatmapData(year: number): HeatmapDay[] {
+    this.ensureInitialized();
     return this.analyticsService.getHeatmapData(year);
   }
 
   getWeeklySummary(weekOffset: number = 0): WeeklySummary {
+    this.ensureInitialized();
     return this.analyticsService.getWeeklySummary(weekOffset);
   }
 
   getProductivityTrends(startDate: string, endDate: string, groupBy: 'day' | 'week' | 'month'): ProductivityTrend[] {
+    this.ensureInitialized();
     return this.analyticsService.getProductivityTrends(startDate, endDate, groupBy);
   }
 
   getBehavioralInsights(): BehavioralInsight[] {
+    this.ensureInitialized();
     return this.analyticsService.getBehavioralInsights();
   }
 
   getAnalyticsSummary(): AnalyticsSummary {
+    this.ensureInitialized();
     return this.analyticsService.getAnalyticsSummary();
   }
 
@@ -2040,6 +2082,3 @@ export class DatabaseManager {
     return Array.from(tagMap.values());
   }
 }
-
-// Export singleton instance
-export default new DatabaseManager();

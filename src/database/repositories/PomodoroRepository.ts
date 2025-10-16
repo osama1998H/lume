@@ -78,19 +78,19 @@ export class PomodoroRepository extends BaseRepository<PomodoroSession> {
    * Update a Pomodoro session
    */
   update(id: number, updates: Partial<PomodoroSession>): boolean {
-    const allowedUpdates: Partial<PomodoroSession> = {};
+    const allowedUpdates: Record<string, string | number | null | undefined> = {};
 
     if (updates.task !== undefined) allowedUpdates.task = updates.task;
     if (updates.endTime !== undefined) allowedUpdates.endTime = updates.endTime;
-    if (updates.completed !== undefined) allowedUpdates.completed = updates.completed;
-    if (updates.interrupted !== undefined) allowedUpdates.interrupted = updates.interrupted;
+    if (updates.completed !== undefined) allowedUpdates.completed = updates.completed ? 1 : 0;
+    if (updates.interrupted !== undefined) allowedUpdates.interrupted = updates.interrupted ? 1 : 0;
     if (updates.todoId !== undefined) allowedUpdates.todoId = updates.todoId;
 
     if (Object.keys(allowedUpdates).length === 0) {
       return false;
     }
 
-    return super.update(id, allowedUpdates);
+    return super.update(id, allowedUpdates as Partial<PomodoroSession>);
   }
 
   /**
