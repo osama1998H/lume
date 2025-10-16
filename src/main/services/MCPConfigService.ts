@@ -3,25 +3,12 @@ import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';
 import type { HTTPBridge } from '../ipc/HTTPBridge';
-
-export type MCPClient = 'claude-desktop' | 'claude-code' | 'cursor';
-
-export interface MCPBridgeStatus {
-  running: boolean;
-  port: number | null;
-}
-
-export interface MCPConfigResult {
-  success: boolean;
-  message: string;
-  configPath?: string;
-  backupPath?: string;
-}
-
-export interface MCPConfigFileInfo {
-  exists: boolean;
-  path: string;
-}
+import type {
+  MCPClient,
+  MCPBridgeStatus,
+  MCPConfigResult,
+  MCPConfigFileInfo,
+} from '../../types';
 
 /**
  * Service for managing MCP client configurations

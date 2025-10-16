@@ -17,7 +17,8 @@ export function registerAnalyticsTools(server: McpServer) {
       try {
         const today = getTodayDate();
         const stats = await callIPC<any>('get-daily-productivity-stats', {
-          date: today,
+          startDate: today,
+          endDate: today,
         });
 
         return {
@@ -57,7 +58,9 @@ export function registerAnalyticsTools(server: McpServer) {
     },
     async () => {
       try {
-        const stats = await callIPC<any>('get-weekly-summary', {});
+        const stats = await callIPC<any>('get-weekly-summary', {
+          weekOffset: 0,
+        });
 
         if (!stats || !stats.dailyStats || stats.dailyStats.length === 0) {
           return {
@@ -103,16 +106,13 @@ export function registerAnalyticsTools(server: McpServer) {
       try {
         const numDays = days || 7;
 
-        // Calculate date range
+        // Calculate date range (inclusive)
         const endDate = getTodayDate();
         const startDate = new Date();
-        startDate.setDate(startDate.getDate() - numDays);
+        startDate.setDate(startDate.getDate() - numDays + 1);
         const startDateStr = startDate.toISOString().split('T')[0];
 
-        const stats = await callIPC<any>('get-analytics-summary', {
-          startDate: startDateStr,
-          endDate: endDate,
-        });
+        const stats = await callIPC<any>('get-analytics-summary', {});
 
         if (!stats || !stats.categoryBreakdown || stats.categoryBreakdown.length === 0) {
           return {

@@ -81,21 +81,15 @@ export class HTTPBridge {
    * Handle incoming HTTP requests
    */
   private async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
-    // Set CORS headers (localhost only)
-    res.setHeader('Access-Control-Allow-Origin', 'http://127.0.0.1:*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    // Set CORS headers (localhost only) - use wildcard for simplicity since we validate origin via IP
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, HEAD, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
       res.writeHead(204);
       res.end();
-      return;
-    }
-
-    // Only accept POST requests
-    if (req.method !== 'POST') {
-      this.sendError(res, 405, 'Method Not Allowed');
       return;
     }
 
@@ -110,9 +104,15 @@ export class HTTPBridge {
     // Parse URL to get channel name
     const url = req.url || '';
 
-    // Health check endpoint
+    // Health check endpoint (allow GET/HEAD/POST)
     if (url === '/health') {
       this.sendSuccess(res, { status: 'ok', port: this.port });
+      return;
+    }
+
+    // Only accept POST requests for IPC endpoints
+    if (req.method !== 'POST') {
+      this.sendError(res, 405, 'Method Not Allowed');
       return;
     }
 

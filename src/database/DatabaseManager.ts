@@ -707,18 +707,22 @@ export class DatabaseManager {
   }
 
   getTimeEntriesByDateRange(startDate: string, endDate: string): TimeEntry[] {
+    this.ensureInitialized();
     return this.timeEntryRepo.getByDateRange(startDate, endDate);
   }
 
   addTimeEntryTags(timeEntryId: number, tagIds: number[]): void {
+    this.ensureInitialized();
     this.timeEntryRepo.addTags(timeEntryId, tagIds);
   }
 
   setTimeEntryTags(timeEntryId: number, tagIds: number[]): void {
+    this.ensureInitialized();
     this.timeEntryRepo.setTags(timeEntryId, tagIds);
   }
 
   getTimeEntryTags(timeEntryId: number): Tag[] {
+    this.ensureInitialized();
     return this.timeEntryRepo.getTags(timeEntryId);
   }
 
@@ -945,34 +949,42 @@ export class DatabaseManager {
   }
 
   getTodosWithCategory(): TodoWithCategory[] {
+    this.ensureInitialized();
     return this.todoRepo.getAllWithCategory();
   }
 
   getOverdueTodos(): Todo[] {
+    this.ensureInitialized();
     return this.todoRepo.getOverdue();
   }
 
   linkTodoToTimeEntry(todoId: number, timeEntryId: number): boolean {
+    this.ensureInitialized();
     return this.todoRepo.linkTimeEntry(todoId, timeEntryId);
   }
 
   incrementTodoPomodoro(todoId: number): boolean {
+    this.ensureInitialized();
     return this.todoRepo.incrementPomodoroCount(todoId);
   }
 
   addTodoTags(todoId: number, tagIds: number[]): void {
+    this.ensureInitialized();
     this.todoRepo.addTags(todoId, tagIds);
   }
 
   setTodoTags(todoId: number, tagIds: number[]): void {
+    this.ensureInitialized();
     this.todoRepo.setTags(todoId, tagIds);
   }
 
   getTodoTags(todoId: number): Tag[] {
+    this.ensureInitialized();
     return this.todoRepo.getTags(todoId);
   }
 
   getTodosWithTags(options?: { status?: TodoStatus; priority?: TodoPriority }): (Todo & { tags: Tag[] })[] {
+    this.ensureInitialized();
     return this.todoRepo.getAllWithTags(options);
   }
 

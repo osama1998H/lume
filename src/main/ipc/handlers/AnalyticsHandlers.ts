@@ -20,8 +20,9 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
   register(ipcMain: IpcMain, context: IIPCHandlerContext): void {
     // Get daily productivity stats
     // Extracted from main.ts:517-530
-    ipcMain.handle('get-daily-productivity-stats', async (_, startDate: string, endDate: string) => {
+    ipcMain.handle('get-daily-productivity-stats', async (_, args: Record<string, any>) => {
       try {
+        const { startDate, endDate } = args;
         if (!context.dbManager) {
           console.error('❌ Database manager not initialized');
           return [];
@@ -37,8 +38,9 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
 
     // Get hourly patterns
     // Extracted from main.ts:532-545
-    ipcMain.handle('get-hourly-patterns', async (_, days: number) => {
+    ipcMain.handle('get-hourly-patterns', async (_, args: Record<string, any>) => {
       try {
+        const { days } = args;
         if (!context.dbManager) {
           console.error('❌ Database manager not initialized');
           return [];
@@ -54,8 +56,9 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
 
     // Get heatmap data
     // Extracted from main.ts:547-560
-    ipcMain.handle('get-heatmap-data', async (_, year: number) => {
+    ipcMain.handle('get-heatmap-data', async (_, args: Record<string, any>) => {
       try {
+        const { year } = args;
         if (!context.dbManager) {
           console.error('❌ Database manager not initialized');
           return [];
@@ -71,8 +74,9 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
 
     // Get weekly summary
     // Extracted from main.ts:562-597
-    ipcMain.handle('get-weekly-summary', async (_, weekOffset: number) => {
+    ipcMain.handle('get-weekly-summary', async (_, args: Record<string, any>) => {
       try {
+        const { weekOffset } = args;
         if (!context.dbManager) {
           console.error('❌ Database manager not initialized');
           return {
@@ -110,8 +114,9 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
 
     // Get productivity trends
     // Extracted from main.ts:599-612
-    ipcMain.handle('get-productivity-trends', async (_, startDate: string, endDate: string, groupBy: 'day' | 'week' | 'month') => {
+    ipcMain.handle('get-productivity-trends', async (_, args: Record<string, any>) => {
       try {
+        const { startDate, endDate, groupBy } = args;
         if (!context.dbManager) {
           console.error('❌ Database manager not initialized');
           return [];
@@ -175,8 +180,9 @@ export class AnalyticsHandlers implements IIPCHandlerGroup {
 
     // Get distraction analysis
     // Extracted from main.ts:658-671
-    ipcMain.handle('get-distraction-analysis', async (_, days: number) => {
+    ipcMain.handle('get-distraction-analysis', async (_, args: Record<string, any>) => {
       try {
+        const { days } = args;
         if (!context.dbManager) {
           console.error('❌ Database manager not initialized');
           return [];

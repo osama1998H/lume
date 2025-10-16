@@ -1,6 +1,6 @@
 import { IpcMain, clipboard } from 'electron';
 import { IIPCHandlerGroup, IIPCHandlerContext } from '../types';
-import type { MCPClient } from '../../services/MCPConfigService';
+import type { MCPClient } from '../../../types';
 
 /**
  * IPC Handlers for MCP Configuration

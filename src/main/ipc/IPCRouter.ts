@@ -69,16 +69,18 @@ export class IPCRouter {
         }) as any;
       }
 
-      // Register the handler group (which will call ipcMain.handle)
-      handlerGroup.register(this.ipcMain, this.context);
+      try {
+        // Register the handler group (which will call ipcMain.handle)
+        handlerGroup.register(this.ipcMain, this.context);
 
-      // Restore original handle function
-      if (this.httpBridge) {
-        this.ipcMain.handle = originalHandle;
+        this.registeredGroups.push(groupName);
+        console.log(`✅ Registered IPC handler group: ${groupName}`);
+      } finally {
+        // Always restore original handle function, even if registration throws
+        if (this.httpBridge) {
+          this.ipcMain.handle = originalHandle;
+        }
       }
-
-      this.registeredGroups.push(groupName);
-      console.log(`✅ Registered IPC handler group: ${groupName}`);
     } catch (error) {
       console.error(`❌ Failed to register IPC handler group '${groupName}':`, error);
       throw error;
