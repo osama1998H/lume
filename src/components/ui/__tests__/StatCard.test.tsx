@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'bun:test';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Clock, CheckCircle2, Target, Smartphone } from 'lucide-react';

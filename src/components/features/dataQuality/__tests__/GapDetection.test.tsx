@@ -1,10 +1,9 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import GapDetection from '../GapDetection';
-import type { TimeGap } from '@/types';
 
 // Mock i18n
-jest.mock('react-i18next', () => ({
+mock.module('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: string) => {
       const translations: Record<string, string> = {
@@ -26,7 +25,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 // Mock format utils
-jest.mock('../../../../utils/format', () => ({
+mock.module('../../../../utils/format', () => ({
   formatDuration: (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -37,7 +36,7 @@ jest.mock('../../../../utils/format', () => ({
 }));
 
 // Mock lucide-react icons
-jest.mock('lucide-react', () => ({
+mock.module('lucide-react', () => ({
   Clock: () => <div data-testid="clock-icon" />,
   AlertCircle: () => <div data-testid="alert-icon" />,
   TrendingUp: () => <div data-testid="trending-icon" />,
@@ -45,12 +44,17 @@ jest.mock('lucide-react', () => ({
   Plus: () => <div data-testid="plus-icon" />,
 }));
 
+import GapDetection from '../GapDetection';
+import type { TimeGap } from '@/types';
+
 // Mock window.electronAPI
+let mockDetect = mock(() => Promise.resolve([]));
+let mockGetStatistics = mock(() => Promise.resolve({}));
 const mockElectronAPI = {
   dataQuality: {
     gaps: {
-      detect: jest.fn(),
-      getStatistics: jest.fn(),
+      detect: mockDetect,
+      getStatistics: mockGetStatistics,
     },
   },
 };
@@ -61,7 +65,7 @@ const mockElectronAPI = {
 describe('GapDetection', () => {
   const mockStartDate = '2025-01-01T00:00:00Z';
   const mockEndDate = '2025-01-31T23:59:59Z';
-  const mockOnCreateActivity = jest.fn();
+  let mockOnCreateActivity = mock(() => {});
 
   const mockGaps: TimeGap[] = [
     {
@@ -108,14 +112,16 @@ describe('GapDetection', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockElectronAPI.dataQuality.gaps.detect.mockResolvedValue(mockGaps);
-    mockElectronAPI.dataQuality.gaps.getStatistics.mockResolvedValue(mockStatistics);
+    mockOnCreateActivity = mock(() => {});
+    mockDetect = mock(() => Promise.resolve(mockGaps));
+    mockGetStatistics = mock(() => Promise.resolve(mockStatistics));
+    mockElectronAPI.dataQuality.gaps.detect = mockDetect;
+    mockElectronAPI.dataQuality.gaps.getStatistics = mockGetStatistics;
   });
 
   describe('Loading State', () => {
     it('shows loading spinner initially', () => {
-      mockElectronAPI.dataQuality.gaps.detect.mockImplementation(() => new Promise(() => {}));
+      mockElectronAPI.dataQuality.gaps.detect = mock(() => new Promise(() => {}));
 
       render(
         <GapDetection
@@ -145,7 +151,7 @@ describe('GapDetection', () => {
 
   describe('Error State', () => {
     it('shows error message when loading fails', async () => {
-      mockElectronAPI.dataQuality.gaps.detect.mockRejectedValueOnce(new Error('Failed to load'));
+      mockElectronAPI.dataQuality.gaps.detect = mock(() => Promise.reject(new Error('Failed to load')));
 
       render(
         <GapDetection
@@ -160,7 +166,7 @@ describe('GapDetection', () => {
     });
 
     it('shows alert icon in error state', async () => {
-      mockElectronAPI.dataQuality.gaps.detect.mockRejectedValueOnce(new Error('Failed'));
+      mockElectronAPI.dataQuality.gaps.detect = mock(() => Promise.reject(new Error('Failed')));
 
       render(
         <GapDetection
@@ -372,7 +378,7 @@ describe('GapDetection', () => {
     });
 
     it('shows empty state when no gaps', async () => {
-      mockElectronAPI.dataQuality.gaps.detect.mockResolvedValueOnce([]);
+      mockElectronAPI.dataQuality.gaps.detect = mock(() => Promise.resolve([]));
 
       render(
         <GapDetection
@@ -452,7 +458,7 @@ describe('GapDetection', () => {
         duration: 600, // 10 minutes
       };
 
-      mockElectronAPI.dataQuality.gaps.detect.mockResolvedValueOnce([shortGap]);
+      mockElectronAPI.dataQuality.gaps.detect = mock(() => Promise.resolve([shortGap]));
 
       const { container } = render(
         <GapDetection
@@ -474,7 +480,7 @@ describe('GapDetection', () => {
         duration: 1800, // 30 minutes
       };
 
-      mockElectronAPI.dataQuality.gaps.detect.mockResolvedValueOnce([mediumGap]);
+      mockElectronAPI.dataQuality.gaps.detect = mock(() => Promise.resolve([mediumGap]));
 
       const { container } = render(
         <GapDetection
@@ -496,7 +502,7 @@ describe('GapDetection', () => {
         duration: 7200, // 2 hours
       };
 
-      mockElectronAPI.dataQuality.gaps.detect.mockResolvedValueOnce([longGap]);
+      mockElectronAPI.dataQuality.gaps.detect = mock(() => Promise.resolve([longGap]));
 
       const { container } = render(
         <GapDetection

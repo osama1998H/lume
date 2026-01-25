@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, mock, spyOn } from 'bun:test';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
@@ -8,24 +9,33 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: mock((query: string) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
+    addListener: mock(() => {}),
+    removeListener: mock(() => {}),
+    addEventListener: mock(() => {}),
+    removeEventListener: mock(() => {}),
+    dispatchEvent: mock(() => {}),
   })),
 });
 
 // Mock window.electron API
 const mockElectronAPI = {
-  getSettings: jest.fn(),
-  saveSettings: jest.fn(),
-  exportData: jest.fn(),
-  clearData: jest.fn(),
+  getSettings: mock(() => Promise.resolve({
+    autoTrackApps: true,
+    showNotifications: true,
+    minimizeToTray: false,
+    autoStartTracking: false,
+    defaultCategory: '',
+    trackingInterval: 60,
+    crashReporting: true,
+    dataLocation: '/path/to/data',
+  })),
+  saveSettings: mock(() => Promise.resolve(true)),
+  exportData: mock(() => {}),
+  clearData: mock(() => {}),
 };
 
 (global as any).window = {
@@ -44,8 +54,7 @@ const renderWithI18n = (component: React.ReactElement, language = 'en') => {
 
 describe('Settings i18n Integration', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockElectronAPI.getSettings.mockResolvedValue({
+    mockElectronAPI.getSettings = mock(() => Promise.resolve({
       autoTrackApps: true,
       showNotifications: true,
       minimizeToTray: false,
@@ -54,14 +63,14 @@ describe('Settings i18n Integration', () => {
       trackingInterval: 60,
       crashReporting: true,
       dataLocation: '/path/to/data',
-    });
-    mockElectronAPI.saveSettings.mockResolvedValue(true);
+    }));
+    mockElectronAPI.saveSettings = mock(() => Promise.resolve(true));
   });
 
   describe('Language selector', () => {
     it('should render language selector in English', async () => {
       renderWithI18n(<Settings />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Language')).toBeInTheDocument();
         expect(screen.getByText('Select Language')).toBeInTheDocument();
@@ -70,7 +79,7 @@ describe('Settings i18n Integration', () => {
 
     it('should render language selector in Arabic', async () => {
       renderWithI18n(<Settings />, 'ar');
-      
+
       await waitFor(() => {
         expect(screen.getByText('اللغة')).toBeInTheDocument();
         expect(screen.getByText('اختر اللغة')).toBeInTheDocument();
@@ -79,7 +88,7 @@ describe('Settings i18n Integration', () => {
 
     it('should display language options in English', async () => {
       renderWithI18n(<Settings />);
-      
+
       await waitFor(() => {
         const select = screen.getByRole('combobox');
         expect(select).toBeInTheDocument();
@@ -92,7 +101,7 @@ describe('Settings i18n Integration', () => {
 
     it('should display language options in Arabic', async () => {
       renderWithI18n(<Settings />, 'ar');
-      
+
       await waitFor(() => {
         const select = screen.getByRole('combobox');
         expect(select).toBeInTheDocument();
@@ -106,7 +115,7 @@ describe('Settings i18n Integration', () => {
     it('should have correct selected value for English', async () => {
       await i18n.changeLanguage('en');
       renderWithI18n(<Settings />);
-      
+
       await waitFor(() => {
         const select = screen.getByRole('combobox') as HTMLSelectElement;
         expect(select.value).toBe('en');
@@ -116,7 +125,7 @@ describe('Settings i18n Integration', () => {
     it('should have correct selected value for Arabic', async () => {
       await i18n.changeLanguage('ar');
       renderWithI18n(<Settings />, 'ar');
-      
+
       await waitFor(() => {
         const select = screen.getByRole('combobox') as HTMLSelectElement;
         expect(select.value).toBe('ar');
@@ -127,7 +136,7 @@ describe('Settings i18n Integration', () => {
   describe('Language switching via UI', () => {
     it('should change language when selecting Arabic', async () => {
       renderWithI18n(<Settings />, 'en');
-      
+
       await waitFor(() => {
         expect(screen.getByText('General Settings')).toBeInTheDocument();
       });
@@ -142,7 +151,7 @@ describe('Settings i18n Integration', () => {
 
     it('should change language when selecting English', async () => {
       renderWithI18n(<Settings />, 'ar');
-      
+
       await waitFor(() => {
         expect(screen.getByText('الإعدادات العامة')).toBeInTheDocument();
       });
@@ -157,7 +166,7 @@ describe('Settings i18n Integration', () => {
 
     it('should update UI when language changes through selector', async () => {
       const { rerender } = renderWithI18n(<Settings />, 'en');
-      
+
       await waitFor(() => {
         expect(screen.getByText('General Settings')).toBeInTheDocument();
       });
@@ -181,7 +190,7 @@ describe('Settings i18n Integration', () => {
   describe('Settings sections in different languages', () => {
     it('should render all section headers in English', async () => {
       renderWithI18n(<Settings />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('General Settings')).toBeInTheDocument();
       });
@@ -189,7 +198,7 @@ describe('Settings i18n Integration', () => {
 
     it('should render all section headers in Arabic', async () => {
       renderWithI18n(<Settings />, 'ar');
-      
+
       await waitFor(() => {
         expect(screen.getByText('الإعدادات العامة')).toBeInTheDocument();
       });
@@ -199,7 +208,7 @@ describe('Settings i18n Integration', () => {
   describe('useLanguage hook integration', () => {
     it('should use useLanguage hook for language management', async () => {
       renderWithI18n(<Settings />);
-      
+
       await waitFor(() => {
         const select = screen.getByRole('combobox') as HTMLSelectElement;
         expect(select).toBeInTheDocument();
@@ -211,10 +220,10 @@ describe('Settings i18n Integration', () => {
     });
 
     it('should call changeLanguage from useLanguage hook', async () => {
-      const languageChangeSpy = jest.spyOn(i18n, 'changeLanguage');
-      
+      const languageChangeSpy = spyOn(i18n, 'changeLanguage');
+
       renderWithI18n(<Settings />);
-      
+
       await waitFor(() => {
         const select = screen.getByRole('combobox');
         expect(select).toBeInTheDocument();
@@ -234,7 +243,7 @@ describe('Settings i18n Integration', () => {
   describe('RTL support through settings', () => {
     it('should reflect RTL when Arabic is selected', async () => {
       renderWithI18n(<Settings />, 'en');
-      
+
       await waitFor(() => {
         const select = screen.getByRole('combobox');
         expect(select).toBeInTheDocument();
@@ -250,7 +259,7 @@ describe('Settings i18n Integration', () => {
 
     it('should reflect LTR when English is selected', async () => {
       renderWithI18n(<Settings />, 'ar');
-      
+
       await waitFor(() => {
         const select = screen.getByRole('combobox');
         expect(select).toBeInTheDocument();
@@ -268,7 +277,7 @@ describe('Settings i18n Integration', () => {
   describe('Persistence across re-renders', () => {
     it('should maintain selected language after re-render', async () => {
       const { rerender } = renderWithI18n(<Settings />, 'ar');
-      
+
       await waitFor(() => {
         const select = screen.getByRole('combobox') as HTMLSelectElement;
         expect(select.value).toBe('ar');
@@ -286,14 +295,14 @@ describe('Settings i18n Integration', () => {
   describe('Edge cases', () => {
     it('should handle rapid language changes', async () => {
       renderWithI18n(<Settings />);
-      
+
       await waitFor(() => {
         const select = screen.getByRole('combobox');
         expect(select).toBeInTheDocument();
       });
 
       const select = screen.getByRole('combobox') as HTMLSelectElement;
-      
+
       fireEvent.change(select, { target: { value: 'ar' } });
       fireEvent.change(select, { target: { value: 'en' } });
       fireEvent.change(select, { target: { value: 'ar' } });
@@ -304,10 +313,10 @@ describe('Settings i18n Integration', () => {
     });
 
     it('should not break when settings fail to load', async () => {
-      mockElectronAPI.getSettings.mockRejectedValue(new Error('Failed to load'));
-      
+      mockElectronAPI.getSettings = mock(() => Promise.reject(new Error('Failed to load')));
+
       renderWithI18n(<Settings />);
-      
+
       await waitFor(() => {
         // Should still render language selector
         expect(screen.getByRole('combobox')).toBeInTheDocument();

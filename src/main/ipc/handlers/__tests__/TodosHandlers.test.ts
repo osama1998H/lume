@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { IpcMain } from 'electron';
 import { TodosHandlers } from '../TodosHandlers';
 import { IIPCHandlerContext } from '@/types';
@@ -5,44 +6,43 @@ import { Todo, TodoStats } from '../../../../types';
 
 describe('TodosHandlers', () => {
   let handlers: TodosHandlers;
-  let mockIpcMain: jest.Mocked<IpcMain>;
+  let mockIpcMain: any;
   let mockContext: IIPCHandlerContext;
-  let consoleLog: jest.SpyInstance;
-  let consoleError: jest.SpyInstance;
+  let consoleLog: ReturnType<typeof spyOn>;
+  let consoleError: ReturnType<typeof spyOn>;
   let handlerCallbacks: Map<string, (event: any, ...args: any[]) => Promise<any>>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
     handlerCallbacks = new Map();
 
     // Mock IpcMain
     mockIpcMain = {
-      handle: jest.fn((channel: string, listener: any) => {
+      handle: mock((channel: string, listener: any) => {
         handlerCallbacks.set(channel, listener);
       }),
-      removeHandler: jest.fn(),
+      removeHandler: mock(() => {}),
     } as any;
 
     // Mock DatabaseManager methods
     mockContext = {
       dbManager: {
-        addTodo: jest.fn(),
-        updateTodo: jest.fn(),
-        deleteTodo: jest.fn(),
-        getTodos: jest.fn(),
-        getTodo: jest.fn(),
-        getTodoStats: jest.fn(),
-        getTodosWithCategory: jest.fn(),
-        linkTodoToTimeEntry: jest.fn(),
-        incrementTodoPomodoro: jest.fn(),
+        addTodo: mock(() => {}),
+        updateTodo: mock(() => {}),
+        deleteTodo: mock(() => {}),
+        getTodos: mock(() => {}),
+        getTodo: mock(() => {}),
+        getTodoStats: mock(() => {}),
+        getTodosWithCategory: mock(() => {}),
+        linkTodoToTimeEntry: mock(() => {}),
+        incrementTodoPomodoro: mock(() => {}),
       } as any,
     } as unknown as IIPCHandlerContext;
 
     handlers = new TodosHandlers();
 
     // Spy on console methods
-    consoleLog = jest.spyOn(console, 'log').mockImplementation();
-    consoleError = jest.spyOn(console, 'error').mockImplementation();
+    consoleLog = spyOn(console, 'log').mockImplementation(() => {});
+    consoleError = spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -80,7 +80,7 @@ describe('TodosHandlers', () => {
         priority: 'high',
       };
 
-      (mockContext.dbManager?.addTodo as jest.Mock).mockReturnValue(1);
+      (mockContext.dbManager as any).addTodo = mock(() => 1);
 
       const handler = handlerCallbacks.get('add-todo');
       const result = await handler!(null, mockTodo);
@@ -101,7 +101,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should handle errors and return null', async () => {
-      (mockContext.dbManager?.addTodo as jest.Mock).mockImplementation(() => {
+      (mockContext.dbManager as any).addTodo = mock(() => {
         throw new Error('Database error');
       });
 
@@ -124,7 +124,7 @@ describe('TodosHandlers', () => {
         status: 'completed',
       };
 
-      (mockContext.dbManager?.updateTodo as jest.Mock).mockReturnValue(true);
+      (mockContext.dbManager as any).updateTodo = mock(() => true);
 
       const handler = handlerCallbacks.get('update-todo');
       const result = await handler!(null, 1, updates);
@@ -135,7 +135,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should return false when todo not found', async () => {
-      (mockContext.dbManager?.updateTodo as jest.Mock).mockReturnValue(false);
+      (mockContext.dbManager as any).updateTodo = mock(() => false);
 
       const handler = handlerCallbacks.get('update-todo');
       const result = await handler!(null, 999, { title: 'Test' });
@@ -154,7 +154,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should handle errors and return false', async () => {
-      (mockContext.dbManager?.updateTodo as jest.Mock).mockImplementation(() => {
+      (mockContext.dbManager as any).updateTodo = mock(() => {
         throw new Error('Update error');
       });
 
@@ -172,7 +172,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should delete a todo successfully', async () => {
-      (mockContext.dbManager?.deleteTodo as jest.Mock).mockReturnValue(true);
+      (mockContext.dbManager as any).deleteTodo = mock(() => true);
 
       const handler = handlerCallbacks.get('delete-todo');
       const result = await handler!(null, 1);
@@ -183,7 +183,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should return false when todo not found', async () => {
-      (mockContext.dbManager?.deleteTodo as jest.Mock).mockReturnValue(false);
+      (mockContext.dbManager as any).deleteTodo = mock(() => false);
 
       const handler = handlerCallbacks.get('delete-todo');
       const result = await handler!(null, 999);
@@ -202,7 +202,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should handle errors and return false', async () => {
-      (mockContext.dbManager?.deleteTodo as jest.Mock).mockImplementation(() => {
+      (mockContext.dbManager as any).deleteTodo = mock(() => {
         throw new Error('Delete error');
       });
 
@@ -241,7 +241,7 @@ describe('TodosHandlers', () => {
         },
       ];
 
-      (mockContext.dbManager?.getTodos as jest.Mock).mockReturnValue(mockTodos);
+      (mockContext.dbManager as any).getTodos = mock(() => mockTodos);
 
       const handler = handlerCallbacks.get('get-todos');
       const result = await handler!(null);
@@ -263,7 +263,7 @@ describe('TodosHandlers', () => {
         },
       ];
 
-      (mockContext.dbManager?.getTodos as jest.Mock).mockReturnValue(mockTodos);
+      (mockContext.dbManager as any).getTodos = mock(() => mockTodos);
 
       const handler = handlerCallbacks.get('get-todos');
       const result = await handler!(null, { status: 'todo' });
@@ -285,7 +285,7 @@ describe('TodosHandlers', () => {
         },
       ];
 
-      (mockContext.dbManager?.getTodos as jest.Mock).mockReturnValue(mockTodos);
+      (mockContext.dbManager as any).getTodos = mock(() => mockTodos);
 
       const handler = handlerCallbacks.get('get-todos');
       const result = await handler!(null, { priority: 'urgent' });
@@ -305,7 +305,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should handle errors and return empty array', async () => {
-      (mockContext.dbManager?.getTodos as jest.Mock).mockImplementation(() => {
+      (mockContext.dbManager as any).getTodos = mock(() => {
         throw new Error('Query error');
       });
 
@@ -333,7 +333,7 @@ describe('TodosHandlers', () => {
         updatedAt: '2024-01-01T00:00:00Z',
       };
 
-      (mockContext.dbManager?.getTodo as jest.Mock).mockReturnValue(mockTodo);
+      (mockContext.dbManager as any).getTodo = mock(() => mockTodo);
 
       const handler = handlerCallbacks.get('get-todo-by-id');
       const result = await handler!(null, 1);
@@ -343,7 +343,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should return null when todo not found', async () => {
-      (mockContext.dbManager?.getTodo as jest.Mock).mockReturnValue(null);
+      (mockContext.dbManager as any).getTodo = mock(() => null);
 
       const handler = handlerCallbacks.get('get-todo-by-id');
       const result = await handler!(null, 999);
@@ -362,7 +362,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should handle errors and return null', async () => {
-      (mockContext.dbManager?.getTodo as jest.Mock).mockImplementation(() => {
+      (mockContext.dbManager as any).getTodo = mock(() => {
         throw new Error('Query error');
       });
 
@@ -389,7 +389,7 @@ describe('TodosHandlers', () => {
         avgCompletionTime: 120,
       };
 
-      (mockContext.dbManager?.getTodoStats as jest.Mock).mockReturnValue(mockStats);
+      (mockContext.dbManager as any).getTodoStats = mock(() => mockStats);
 
       const handler = handlerCallbacks.get('get-todo-stats');
       const result = await handler!(null);
@@ -416,7 +416,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should handle errors and return default stats', async () => {
-      (mockContext.dbManager?.getTodoStats as jest.Mock).mockImplementation(() => {
+      (mockContext.dbManager as any).getTodoStats = mock(() => {
         throw new Error('Stats error');
       });
 
@@ -455,7 +455,7 @@ describe('TodosHandlers', () => {
         },
       ];
 
-      (mockContext.dbManager?.getTodosWithCategory as jest.Mock).mockReturnValue(mockTodosWithCategory);
+      (mockContext.dbManager as any).getTodosWithCategory = mock(() => mockTodosWithCategory);
 
       const handler = handlerCallbacks.get('get-todos-with-category');
       const result = await handler!(null);
@@ -475,7 +475,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should handle errors and return empty array', async () => {
-      (mockContext.dbManager?.getTodosWithCategory as jest.Mock).mockImplementation(() => {
+      (mockContext.dbManager as any).getTodosWithCategory = mock(() => {
         throw new Error('Query error');
       });
 
@@ -493,7 +493,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should link todo to time entry successfully', async () => {
-      (mockContext.dbManager?.linkTodoToTimeEntry as jest.Mock).mockReturnValue(true);
+      (mockContext.dbManager as any).linkTodoToTimeEntry = mock(() => true);
 
       const handler = handlerCallbacks.get('link-todo-time-entry');
       const result = await handler!(null, 1, 100);
@@ -504,7 +504,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should return false when linking fails', async () => {
-      (mockContext.dbManager?.linkTodoToTimeEntry as jest.Mock).mockReturnValue(false);
+      (mockContext.dbManager as any).linkTodoToTimeEntry = mock(() => false);
 
       const handler = handlerCallbacks.get('link-todo-time-entry');
       const result = await handler!(null, 999, 100);
@@ -523,7 +523,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should handle errors and return false', async () => {
-      (mockContext.dbManager?.linkTodoToTimeEntry as jest.Mock).mockImplementation(() => {
+      (mockContext.dbManager as any).linkTodoToTimeEntry = mock(() => {
         throw new Error('Link error');
       });
 
@@ -541,7 +541,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should increment pomodoro count successfully', async () => {
-      (mockContext.dbManager?.incrementTodoPomodoro as jest.Mock).mockReturnValue(true);
+      (mockContext.dbManager as any).incrementTodoPomodoro = mock(() => true);
 
       const handler = handlerCallbacks.get('increment-todo-pomodoro');
       const result = await handler!(null, 1);
@@ -552,7 +552,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should return false when increment fails', async () => {
-      (mockContext.dbManager?.incrementTodoPomodoro as jest.Mock).mockReturnValue(false);
+      (mockContext.dbManager as any).incrementTodoPomodoro = mock(() => false);
 
       const handler = handlerCallbacks.get('increment-todo-pomodoro');
       const result = await handler!(null, 999);
@@ -571,7 +571,7 @@ describe('TodosHandlers', () => {
     });
 
     it('should handle errors and return false', async () => {
-      (mockContext.dbManager?.incrementTodoPomodoro as jest.Mock).mockImplementation(() => {
+      (mockContext.dbManager as any).incrementTodoPomodoro = mock(() => {
         throw new Error('Increment error');
       });
 

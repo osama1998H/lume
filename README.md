@@ -79,8 +79,7 @@ Lume helps you understand your productivity patterns by automatically tracking t
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+
-- npm or yarn
+- Bun 1.0+ (recommended) or Node.js 18+
 
 ### Installation
 
@@ -90,14 +89,14 @@ git clone https://github.com/yourusername/lume.git
 cd lume
 
 # Install dependencies
-npm install
+bun install
 
 # Start development server
-npm run dev
+bun run dev
 
 # Build for production
-npm run build
-npm run package
+bun run build
+bun run pack
 ```
 
 ### Configuration (Optional)
@@ -110,10 +109,10 @@ cp .env.example .env
 
 ### Tech Stack
 - **Frontend**: React 19, TypeScript, Tailwind CSS v4
-- **Backend**: Electron, Node.js
+- **Runtime**: Bun, Electron
 - **Database**: SQLite with better-sqlite3 (Repository pattern)
-- **Build**: Vite, electron-builder
-- **Testing**: Jest, React Testing Library
+- **Build**: Vite, Bun bundler, electron-builder
+- **Testing**: Bun test, React Testing Library
 - **i18n**: react-i18next
 - **Monitoring**: Sentry (optional)
 
@@ -132,11 +131,11 @@ lume/
 ```
 
 ### Available Scripts
-- `npm run dev` - Start development environment
-- `npm run build` - Build for production
-- `npm run test` - Run tests
-- `npm run lint` - Lint code
-- `npm run package` - Package for distribution
+- `bun run dev` - Start development environment
+- `bun run build` - Build for production
+- `bun test` - Run tests
+- `bun run lint` - Lint code
+- `bun run pack` - Package for distribution
 
 ### Platform Support
 

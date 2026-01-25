@@ -1,4 +1,5 @@
 import React from 'react';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { render, screen, waitFor } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '../../i18n/config';
@@ -8,23 +9,23 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: mock((query: string) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
+    addListener: mock(() => {}),
+    removeListener: mock(() => {}),
+    addEventListener: mock(() => {}),
+    removeEventListener: mock(() => {}),
+    dispatchEvent: mock(() => true),
   })),
 });
 
 // Mock window.electron API
 const mockElectronAPI = {
-  getTimeEntries: jest.fn(),
-  getAppUsage: jest.fn(),
-  getStats: jest.fn(),
+  getTimeEntries: mock(() => Promise.resolve([])),
+  getAppUsage: mock(() => Promise.resolve([])),
+  getStats: mock(() => Promise.resolve({})),
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,14 +45,13 @@ const renderWithI18n = (component: React.ReactElement, language = 'en') => {
 
 describe('Dashboard i18n Integration', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockElectronAPI.getTimeEntries.mockResolvedValue([]);
-    mockElectronAPI.getAppUsage.mockResolvedValue([]);
-    mockElectronAPI.getStats.mockResolvedValue({
+    mockElectronAPI.getTimeEntries = mock(() => Promise.resolve([]));
+    mockElectronAPI.getAppUsage = mock(() => Promise.resolve([]));
+    mockElectronAPI.getStats = mock(() => Promise.resolve({
       totalTime: 0,
       tasksCompleted: 0,
       activeTask: null,
-    });
+    }));
   });
 
   describe('English translations', () => {
@@ -78,11 +78,11 @@ describe('Dashboard i18n Integration', () => {
     });
 
     it('should render stat cards in English', async () => {
-      mockElectronAPI.getStats.mockResolvedValue({
+      mockElectronAPI.getStats = mock(() => Promise.resolve({
         totalTime: 3600,
         tasksCompleted: 5,
         activeTask: 'Test Task',
-      });
+      }));
 
       renderWithI18n(<Dashboard />);
       
@@ -94,11 +94,11 @@ describe('Dashboard i18n Integration', () => {
     });
 
     it('should render "No active task" in English', async () => {
-      mockElectronAPI.getStats.mockResolvedValue({
+      mockElectronAPI.getStats = mock(() => Promise.resolve({
         totalTime: 3600,
         tasksCompleted: 5,
         activeTask: null,
-      });
+      }));
 
       renderWithI18n(<Dashboard />);
       
@@ -150,11 +150,11 @@ describe('Dashboard i18n Integration', () => {
     });
 
     it('should render stat cards in Arabic', async () => {
-      mockElectronAPI.getStats.mockResolvedValue({
+      mockElectronAPI.getStats = mock(() => Promise.resolve({
         totalTime: 3600,
         tasksCompleted: 5,
         activeTask: 'Test Task',
-      });
+      }));
 
       renderWithI18n(<Dashboard />, 'ar');
       
@@ -166,11 +166,11 @@ describe('Dashboard i18n Integration', () => {
     });
 
     it('should render "No active task" in Arabic', async () => {
-      mockElectronAPI.getStats.mockResolvedValue({
+      mockElectronAPI.getStats = mock(() => Promise.resolve({
         totalTime: 3600,
         tasksCompleted: 5,
         activeTask: null,
-      });
+      }));
 
       renderWithI18n(<Dashboard />, 'ar');
       
@@ -234,7 +234,7 @@ describe('Dashboard i18n Integration', () => {
 
   describe('Data rendering with translations', () => {
     it('should render time entries with "Active" status in English', async () => {
-      mockElectronAPI.getTimeEntries.mockResolvedValue([
+      mockElectronAPI.getTimeEntries = mock(() => Promise.resolve([
         {
           id: 1,
           taskName: 'Task 1',
@@ -243,7 +243,7 @@ describe('Dashboard i18n Integration', () => {
           endTime: null,
           duration: null,
         },
-      ]);
+      ]));
 
       renderWithI18n(<Dashboard />);
       
@@ -253,7 +253,7 @@ describe('Dashboard i18n Integration', () => {
     });
 
     it('should render time entries with "Active" status in Arabic', async () => {
-      mockElectronAPI.getTimeEntries.mockResolvedValue([
+      mockElectronAPI.getTimeEntries = mock(() => Promise.resolve([
         {
           id: 1,
           taskName: 'Task 1',
@@ -262,7 +262,7 @@ describe('Dashboard i18n Integration', () => {
           endTime: null,
           duration: null,
         },
-      ]);
+      ]));
 
       renderWithI18n(<Dashboard />, 'ar');
       
@@ -272,13 +272,13 @@ describe('Dashboard i18n Integration', () => {
     });
 
     it('should render app usage with "Active" status in English', async () => {
-      mockElectronAPI.getAppUsage.mockResolvedValue([
+      mockElectronAPI.getAppUsage = mock(() => Promise.resolve([
         {
           id: 1,
           appName: 'Chrome',
           duration: null,
         },
-      ]);
+      ]));
 
       renderWithI18n(<Dashboard />);
       
@@ -288,13 +288,13 @@ describe('Dashboard i18n Integration', () => {
     });
 
     it('should render app usage with "Active" status in Arabic', async () => {
-      mockElectronAPI.getAppUsage.mockResolvedValue([
+      mockElectronAPI.getAppUsage = mock(() => Promise.resolve([
         {
           id: 1,
           appName: 'Chrome',
           duration: null,
         },
-      ]);
+      ]));
 
       renderWithI18n(<Dashboard />, 'ar');
       

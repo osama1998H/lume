@@ -1,52 +1,56 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { CurrentActivity, ActivitySession } from '../../../types/activity';
+
+// Create mock for ActivityMonitor
+let mockMonitor: any;
+
+// Mock ActivityMonitor
+mock.module('../ActivityMonitor', () => ({
+  ActivityMonitor: mock(() => mockMonitor),
+}));
+
+// Mock DatabaseManager
+mock.module('../../../database/DatabaseManager', () => ({
+  DatabaseManager: mock(() => ({})),
+}));
+
 import { ActivityTrackingService } from '../ActivityTrackingService';
 import { ActivityMonitor } from '../ActivityMonitor';
 import { DatabaseManager } from '../../../database/DatabaseManager';
-import { CurrentActivity, ActivitySession } from '../../../types/activity';
-
-// Mock ActivityMonitor
-jest.mock('../ActivityMonitor');
-
-// Mock DatabaseManager
-jest.mock('../../../database/DatabaseManager');
 
 describe('ActivityTrackingService', () => {
   let service: ActivityTrackingService;
-  let mockDbManager: jest.Mocked<DatabaseManager>;
-  let mockMonitor: jest.Mocked<ActivityMonitor>;
-  let consoleLog: jest.SpyInstance;
-  let consoleError: jest.SpyInstance;
+  let mockDbManager: any;
+  let consoleLog: ReturnType<typeof spyOn>;
+  let consoleError: ReturnType<typeof spyOn>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
-    
-    consoleLog = jest.spyOn(console, 'log').mockImplementation();
-    consoleError = jest.spyOn(console, 'error').mockImplementation();
+    consoleLog = spyOn(console, 'log').mockImplementation(() => {});
+    consoleError = spyOn(console, 'error').mockImplementation(() => {});
 
     // Create mock database manager
     mockDbManager = {
-      addActivitySession: jest.fn().mockReturnValue(123),
-      getActivitySessions: jest.fn().mockResolvedValue([]),
-      getTopApplications: jest.fn().mockResolvedValue([]),
-      getTopWebsites: jest.fn().mockResolvedValue([]),
-    } as any;
+      addActivitySession: mock(() => 123),
+      getActivitySessions: mock(() => Promise.resolve([])),
+      getTopApplications: mock(() => Promise.resolve([])),
+      getTopWebsites: mock(() => Promise.resolve([])),
+    };
 
     // Create mock monitor
     mockMonitor = {
-      start: jest.fn(),
-      stop: jest.fn(),
-      isTracking: jest.fn().mockReturnValue(false),
-      getCurrentActivity: jest.fn().mockResolvedValue(null),
-      setInterval: jest.fn(),
-    } as any;
+      start: mock(() => {}),
+      stop: mock(() => {}),
+      isTracking: mock(() => false),
+      getCurrentActivity: mock(() => Promise.resolve(null)),
+      setInterval: mock(() => {}),
+    };
 
-    (ActivityMonitor as jest.Mock).mockImplementation(() => mockMonitor);
+    (ActivityMonitor as any) = mock(() => mockMonitor);
 
     service = new ActivityTrackingService(mockDbManager);
   });
 
   afterEach(() => {
-    jest.useRealTimers();
     consoleLog.mockRestore();
     consoleError.mockRestore();
   });
@@ -86,7 +90,7 @@ describe('ActivityTrackingService', () => {
     });
 
     it('should stop tracking if enabled is set to false when currently tracking', () => {
-      mockMonitor.isTracking.mockReturnValue(true);
+      mockMonitor.isTracking = mock(() => true);
       
       service.updateSettings({ enabled: false });
       
@@ -94,7 +98,7 @@ describe('ActivityTrackingService', () => {
     });
 
     it('should update monitor interval if tracking is active', () => {
-      mockMonitor.isTracking.mockReturnValue(true);
+      mockMonitor.isTracking = mock(() => true);
       
       service.updateSettings({ trackingInterval: 45 });
       
@@ -367,7 +371,7 @@ describe('ActivityTrackingService', () => {
     });
 
     it('should handle database errors gracefully', async () => {
-      mockDbManager.addActivitySession.mockImplementation(() => {
+      mockDbManager.addActivitySession = mock(() => {
         throw new Error('Database error');
       });
       
@@ -562,7 +566,7 @@ describe('ActivityTrackingService', () => {
     });
 
     it('isTracking should return monitor tracking status', () => {
-      mockMonitor.isTracking.mockReturnValue(true);
+      mockMonitor.isTracking = mock(() => true);
       
       expect(service.isTracking()).toBe(true);
       expect(mockMonitor.isTracking).toHaveBeenCalled();

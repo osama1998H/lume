@@ -1,9 +1,9 @@
+import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import Sidebar from '../Sidebar';
 
 // Mock i18n
-jest.mock('react-i18next', () => ({
+mock.module('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => {
       const translations: Record<string, string> = {
@@ -28,22 +28,22 @@ jest.mock('react-i18next', () => ({
 }));
 
 // Mock useLanguage hook
-jest.mock('../../../hooks/useLanguage', () => ({
+mock.module('../../../hooks/useLanguage', () => ({
   useLanguage: () => ({
     isRTL: false,
   }),
 }));
 
 // Mock useKeyboardShortcuts hook
-const mockUseKeyboardShortcuts = jest.fn();
-jest.mock('../../../hooks/useKeyboardShortcuts', () => ({
+let mockUseKeyboardShortcuts = mock(() => {});
+mock.module('../../../hooks/useKeyboardShortcuts', () => ({
   useKeyboardShortcuts: (shortcuts: any) => {
     mockUseKeyboardShortcuts(shortcuts);
   },
 }));
 
 // Mock lucide-react icons
-jest.mock('lucide-react', () => ({
+mock.module('lucide-react', () => ({
   LayoutDashboard: () => <div data-testid="dashboard-icon" />,
   Timer: () => <div data-testid="timer-icon" />,
   BarChart3: () => <div data-testid="barchart-icon" />,
@@ -56,6 +56,8 @@ jest.mock('lucide-react', () => ({
   ChevronRight: () => <div data-testid="chevron-right-icon" />,
   List: () => <div data-testid="list-icon" />,
 }));
+
+import Sidebar from '../Sidebar';
 
 // Mock localStorage
 const mockLocalStorage = (() => {
@@ -82,12 +84,12 @@ Object.defineProperty(navigator, 'platform', {
 });
 
 describe('Sidebar', () => {
-  const mockOnViewChange = jest.fn();
+  let mockOnViewChange = mock(() => {});
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockOnViewChange = mock(() => {});
+    mockUseKeyboardShortcuts = mock(() => {});
     mockLocalStorage.clear();
-    mockUseKeyboardShortcuts.mockClear();
   });
 
   describe('Rendering', () => {
@@ -286,10 +288,11 @@ describe('Sidebar', () => {
     });
 
     it('handles localStorage errors gracefully', () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleErrorSpy = spyOn(console, 'error').mockImplementation(() => {});
 
       // Mock localStorage to throw error
-      jest.spyOn(window.localStorage, 'setItem').mockImplementationOnce(() => {
+      const setItemSpy = spyOn(window.localStorage, 'setItem');
+      setItemSpy.mockImplementation(() => {
         throw new Error('Storage error');
       });
 
@@ -300,6 +303,7 @@ describe('Sidebar', () => {
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       consoleErrorSpy.mockRestore();
+      setItemSpy.mockRestore();
     });
   });
 

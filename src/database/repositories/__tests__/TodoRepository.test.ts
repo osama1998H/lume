@@ -1,40 +1,37 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { TodoRepository } from '../TodoRepository';
 import { Todo } from '../../../types';
-
-// Mock better-sqlite3
-jest.mock('better-sqlite3');
 
 describe('TodoRepository', () => {
   let repository: TodoRepository;
   let mockDb: any;
-  let mockPrepare: jest.Mock;
-  let mockRun: jest.Mock;
-  let mockGet: jest.Mock;
-  let mockAll: jest.Mock;
+  let mockPrepare: ReturnType<typeof mock>;
+  let mockRun: ReturnType<typeof mock>;
+  let mockGet: ReturnType<typeof mock>;
+  let mockAll: ReturnType<typeof mock>;
 
   beforeEach(() => {
     // Setup mock database methods
-    mockRun = jest.fn().mockReturnValue({ changes: 1, lastInsertRowid: 1 });
-    mockGet = jest.fn();
-    mockAll = jest.fn().mockReturnValue([]);
+    mockRun = mock(() => ({ changes: 1, lastInsertRowid: 1 }));
+    mockGet = mock(() => undefined);
+    mockAll = mock(() => []);
 
-    mockPrepare = jest.fn().mockReturnValue({
+    mockPrepare = mock(() => ({
       run: mockRun,
       get: mockGet,
       all: mockAll,
-    });
+    }));
 
     mockDb = {
       prepare: mockPrepare,
-      exec: jest.fn(),
-      transaction: jest.fn((fn) => () => fn()),
+      exec: mock(() => {}),
+      transaction: mock((fn: any) => () => fn()),
     };
 
     repository = new TodoRepository(mockDb);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
   });
 
   describe('insert', () => {
@@ -117,7 +114,9 @@ describe('TodoRepository', () => {
 
   describe('delete', () => {
     it('should delete a todo by id', () => {
-      mockRun.mockReturnValue({ changes: 1 });
+      mockRun = mock(() => ({ changes: 1 }));
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.delete(1);
 
@@ -127,7 +126,9 @@ describe('TodoRepository', () => {
     });
 
     it('should return false when todo not found', () => {
-      mockRun.mockReturnValue({ changes: 0 });
+      mockRun = mock(() => ({ changes: 0 }));
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.delete(999);
 
@@ -155,7 +156,9 @@ describe('TodoRepository', () => {
         updated_at: '2024-01-01T00:00:00Z',
       };
 
-      mockGet.mockReturnValue(mockTodo);
+      mockGet = mock(() => mockTodo);
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.getById(1);
 
@@ -167,7 +170,9 @@ describe('TodoRepository', () => {
     });
 
     it('should return null when todo not found', () => {
-      mockGet.mockReturnValue(null);
+      mockGet = mock(() => null);
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.getById(999);
 
@@ -194,7 +199,9 @@ describe('TodoRepository', () => {
         },
       ];
 
-      mockAll.mockReturnValue(mockTodos);
+      mockAll = mock(() => mockTodos);
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.getAll();
 
@@ -203,7 +210,9 @@ describe('TodoRepository', () => {
     });
 
     it('should return empty array when no todos', () => {
-      mockAll.mockReturnValue([]);
+      mockAll = mock(() => []);
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.getAll();
 
@@ -222,7 +231,9 @@ describe('TodoRepository', () => {
         },
       ];
 
-      mockAll.mockReturnValue(mockTodos);
+      mockAll = mock(() => mockTodos);
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.getAll({ status: 'todo' });
 
@@ -231,7 +242,9 @@ describe('TodoRepository', () => {
     });
 
     it('should return empty array when no todos match status', () => {
-      mockAll.mockReturnValue([]);
+      mockAll = mock(() => []);
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.getAll({ status: 'completed' });
 
@@ -250,7 +263,9 @@ describe('TodoRepository', () => {
         },
       ];
 
-      mockAll.mockReturnValue(mockTodos);
+      mockAll = mock(() => mockTodos);
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.getAll({ priority: 'urgent' });
 
@@ -270,7 +285,9 @@ describe('TodoRepository', () => {
         },
       ];
 
-      mockAll.mockReturnValue(mockTodos);
+      mockAll = mock(() => mockTodos);
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       repository.getOverdue();
 
@@ -281,9 +298,15 @@ describe('TodoRepository', () => {
 
   describe('getStats', () => {
     it('should return todo statistics', () => {
-      mockGet.mockReturnValueOnce({ total: 10, completed: 5, inProgress: 2 });
-      mockGet.mockReturnValueOnce({ overdue: 1 });
-      mockGet.mockReturnValueOnce({ avgMinutes: 120 });
+      let callCount = 0;
+      mockGet = mock(() => {
+        callCount++;
+        if (callCount === 1) return { total: 10, completed: 5, inProgress: 2 };
+        if (callCount === 2) return { overdue: 1 };
+        return { avgMinutes: 120 };
+      });
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.getStats();
 
@@ -296,9 +319,15 @@ describe('TodoRepository', () => {
     });
 
     it('should handle zero division in completion rate', () => {
-      mockGet.mockReturnValueOnce({ total: 0, completed: 0, inProgress: 0 });
-      mockGet.mockReturnValueOnce({ overdue: 0 });
-      mockGet.mockReturnValueOnce({ avgMinutes: null });
+      let callCount = 0;
+      mockGet = mock(() => {
+        callCount++;
+        if (callCount === 1) return { total: 0, completed: 0, inProgress: 0 };
+        if (callCount === 2) return { overdue: 0 };
+        return { avgMinutes: null };
+      });
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.getStats();
 
@@ -308,7 +337,9 @@ describe('TodoRepository', () => {
 
   describe('linkTimeEntry', () => {
     it('should link a time entry to a todo', () => {
-      mockRun.mockReturnValue({ changes: 1 });
+      mockRun = mock(() => ({ changes: 1 }));
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.linkTimeEntry(1, 100);
 
@@ -318,7 +349,9 @@ describe('TodoRepository', () => {
     });
 
     it('should return false when todo not found', () => {
-      mockRun.mockReturnValue({ changes: 0 });
+      mockRun = mock(() => ({ changes: 0 }));
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.linkTimeEntry(999, 100);
 
@@ -328,7 +361,9 @@ describe('TodoRepository', () => {
 
   describe('incrementPomodoroCount', () => {
     it('should increment pomodoro count', () => {
-      mockRun.mockReturnValue({ changes: 1 });
+      mockRun = mock(() => ({ changes: 1 }));
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.incrementPomodoroCount(1);
 
@@ -338,7 +373,9 @@ describe('TodoRepository', () => {
     });
 
     it('should return false when todo not found', () => {
-      mockRun.mockReturnValue({ changes: 0 });
+      mockRun = mock(() => ({ changes: 0 }));
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.incrementPomodoroCount(999);
 
@@ -353,7 +390,9 @@ describe('TodoRepository', () => {
         { id: 2, name: 'urgent', color: '#00FF00', createdAt: '2024-01-01T00:00:00Z' },
       ];
 
-      mockAll.mockReturnValue(mockTags);
+      mockAll = mock(() => mockTags);
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.getTags(1);
 
@@ -363,7 +402,9 @@ describe('TodoRepository', () => {
     });
 
     it('should return empty array when todo has no tags', () => {
-      mockAll.mockReturnValue([]);
+      mockAll = mock(() => []);
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.getTags(1);
 
@@ -417,7 +458,14 @@ describe('TodoRepository', () => {
         { id: 1, name: 'work', color: '#FF0000', createdAt: '2024-01-01T00:00:00Z' },
       ];
 
-      mockAll.mockReturnValueOnce(mockTodos).mockReturnValueOnce(mockTags);
+      let callCount = 0;
+      mockAll = mock(() => {
+        callCount++;
+        if (callCount === 1) return mockTodos;
+        return mockTags;
+      });
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.getAllWithTags();
 
@@ -441,7 +489,9 @@ describe('TodoRepository', () => {
         },
       ];
 
-      mockAll.mockReturnValue(mockTodos);
+      mockAll = mock(() => mockTodos);
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.getAllWithCategory();
 
@@ -462,7 +512,9 @@ describe('TodoRepository', () => {
         },
       ];
 
-      mockAll.mockReturnValue(mockTodos);
+      mockAll = mock(() => mockTodos);
+      mockPrepare = mock(() => ({ run: mockRun, get: mockGet, all: mockAll }));
+      mockDb.prepare = mockPrepare;
 
       const result = repository.getAllWithCategory();
 

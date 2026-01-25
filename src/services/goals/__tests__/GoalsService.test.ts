@@ -1,37 +1,33 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { GoalsService } from '../GoalsService';
 import { ProductivityGoal, GoalWithProgress } from '../../../types';
-
-// Mock DatabaseManager
-jest.mock('../../../database/DatabaseManager');
-jest.mock('../../notifications/NotificationService');
 
 describe('GoalsService', () => {
   let service: GoalsService;
   let mockDb: any;
   let mockNotificationService: any;
-  let consoleLog: jest.SpyInstance;
+  let consoleLog: ReturnType<typeof spyOn>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    consoleLog = jest.spyOn(console, 'log').mockImplementation();
+    consoleLog = spyOn(console, 'log').mockImplementation(() => {});
 
     mockDb = {
-      addGoal: jest.fn(),
-      updateGoal: jest.fn(),
-      deleteGoal: jest.fn(),
-      getGoals: jest.fn(),
-      updateGoalProgress: jest.fn(),
-      getTodayGoalsWithProgress: jest.fn(),
-      getGoalProgress: jest.fn(),
-      getGoalAchievementHistory: jest.fn(),
-      getGoalStats: jest.fn(),
-      queryTotalActiveTime: jest.fn(),
-      queryCategoryTime: jest.fn(),
-      queryAppTime: jest.fn(),
+      addGoal: mock(() => {}),
+      updateGoal: mock(() => {}),
+      deleteGoal: mock(() => {}),
+      getGoals: mock(() => {}),
+      updateGoalProgress: mock(() => {}),
+      getTodayGoalsWithProgress: mock(() => {}),
+      getGoalProgress: mock(() => {}),
+      getGoalAchievementHistory: mock(() => {}),
+      getGoalStats: mock(() => {}),
+      queryTotalActiveTime: mock(() => {}),
+      queryCategoryTime: mock(() => {}),
+      queryAppTime: mock(() => {}),
     };
 
     mockNotificationService = {
-      showNotification: jest.fn(),
+      showNotification: mock(() => {}),
     };
 
     service = new GoalsService(mockDb, mockNotificationService);
@@ -73,7 +69,7 @@ describe('GoalsService', () => {
           notifyAtPercentage: 100,
         };
 
-        mockDb.addGoal.mockResolvedValue(1);
+        mockDb.addGoal = mock(() => Promise.resolve(1));
 
         const goalId = await service.addGoal(goal);
 
@@ -96,8 +92,8 @@ describe('GoalsService', () => {
           notifyAtPercentage: 100,
         };
 
-        mockDb.addGoal.mockRejectedValue(new Error('Database error'));
-        const consoleError = jest.spyOn(console, 'error').mockImplementation();
+        mockDb.addGoal = mock(() => Promise.reject(new Error('Database error')));
+        const consoleError = spyOn(console, 'error').mockImplementation(() => {});
 
         await expect(service.addGoal(goal)).rejects.toThrow('Database error');
         expect(consoleError).toHaveBeenCalledWith('Failed to add goal:', expect.any(Error));
@@ -108,7 +104,7 @@ describe('GoalsService', () => {
 
     describe('updateGoal', () => {
       it('should update an existing goal', async () => {
-        mockDb.updateGoal.mockResolvedValue(true);
+        mockDb.updateGoal = mock(() => Promise.resolve(true));
 
         const success = await service.updateGoal(1, { targetMinutes: 300 });
 
@@ -117,7 +113,7 @@ describe('GoalsService', () => {
       });
 
       it('should handle update failure', async () => {
-        mockDb.updateGoal.mockResolvedValue(false);
+        mockDb.updateGoal = mock(() => Promise.resolve(false));
 
         const success = await service.updateGoal(999, { targetMinutes: 300 });
 
@@ -127,7 +123,7 @@ describe('GoalsService', () => {
 
     describe('deleteGoal', () => {
       it('should delete a goal and clear notification history', async () => {
-        mockDb.deleteGoal.mockResolvedValue(true);
+        mockDb.deleteGoal = mock(() => Promise.resolve(true));
 
         const success = await service.deleteGoal(1);
 
@@ -136,7 +132,7 @@ describe('GoalsService', () => {
       });
 
       it('should handle deletion failure', async () => {
-        mockDb.deleteGoal.mockResolvedValue(false);
+        mockDb.deleteGoal = mock(() => Promise.resolve(false));
 
         const success = await service.deleteGoal(999);
 
@@ -160,7 +156,7 @@ describe('GoalsService', () => {
           },
         ];
 
-        mockDb.getGoals.mockResolvedValue(mockGoals);
+        mockDb.getGoals = mock(() => Promise.resolve(mockGoals));
 
         const goals = await service.getGoals();
 
@@ -183,7 +179,7 @@ describe('GoalsService', () => {
           },
         ];
 
-        mockDb.getGoals.mockResolvedValue(mockGoals);
+        mockDb.getGoals = mock(() => Promise.resolve(mockGoals));
 
         const goals = await service.getGoals(true);
 
@@ -220,7 +216,7 @@ describe('GoalsService', () => {
           },
         ];
 
-        mockDb.getTodayGoalsWithProgress.mockResolvedValue(mockGoalsWithProgress);
+        mockDb.getTodayGoalsWithProgress = mock(() => Promise.resolve(mockGoalsWithProgress));
 
         const goals = await service.getTodayGoalsWithProgress();
 
@@ -230,7 +226,7 @@ describe('GoalsService', () => {
 
     describe('updateGoalProgress', () => {
       it('should update progress for a goal', async () => {
-        mockDb.updateGoalProgress.mockResolvedValue(undefined);
+        mockDb.updateGoalProgress = mock(() => Promise.resolve(undefined));
         mockDb.getGoals.mockResolvedValue([
           {
             id: 1,
@@ -271,11 +267,11 @@ describe('GoalsService', () => {
           },
         ];
 
-        mockDb.getGoals.mockResolvedValue(mockGoals);
-        mockDb.updateGoalProgress.mockResolvedValue(undefined);
+        mockDb.getGoals = mock(() => Promise.resolve(mockGoals));
+        mockDb.updateGoalProgress = mock(() => Promise.resolve(undefined));
 
         // Mock the database query for calculateTotalActiveTime
-        mockDb.queryTotalActiveTime.mockReturnValue(120); // 2 hours = 120 minutes
+        mockDb.queryTotalActiveTime = mock(() => 120); // 2 hours = 120 minutes
 
         await service.recalculateAllGoalProgress();
 
@@ -297,7 +293,7 @@ describe('GoalsService', () => {
           },
         ];
 
-        mockDb.getGoals.mockResolvedValue(mockGoals);
+        mockDb.getGoals = mock(() => Promise.resolve(mockGoals));
 
         await service.recalculateAllGoalProgress();
 
@@ -309,9 +305,9 @@ describe('GoalsService', () => {
   describe('Progress Calculation', () => {
     beforeEach(() => {
       // Mock database query methods
-      mockDb.queryTotalActiveTime.mockReturnValue(60); // 1 hour = 60 minutes
-      mockDb.queryCategoryTime.mockReturnValue(60);
-      mockDb.queryAppTime.mockReturnValue(60);
+      mockDb.queryTotalActiveTime = mock(() => 60); // 1 hour = 60 minutes
+      mockDb.queryCategoryTime = mock(() => 60);
+      mockDb.queryAppTime = mock(() => 60);
     });
 
     it('should calculate progress for daily_time goal', async () => {
@@ -327,8 +323,8 @@ describe('GoalsService', () => {
         notifyAtPercentage: 100,
       };
 
-      mockDb.getGoals.mockResolvedValue([goal]);
-      mockDb.updateGoalProgress.mockResolvedValue(undefined);
+      mockDb.getGoals = mock(() => Promise.resolve([goal]));
+      mockDb.updateGoalProgress = mock(() => Promise.resolve(undefined));
 
       await service.recalculateAllGoalProgress();
 
@@ -353,8 +349,8 @@ describe('GoalsService', () => {
         notifyAtPercentage: 100,
       };
 
-      mockDb.getGoals.mockResolvedValue([goal]);
-      mockDb.updateGoalProgress.mockResolvedValue(undefined);
+      mockDb.getGoals = mock(() => Promise.resolve([goal]));
+      mockDb.updateGoalProgress = mock(() => Promise.resolve(undefined));
 
       await service.recalculateAllGoalProgress();
 
@@ -375,8 +371,8 @@ describe('GoalsService', () => {
         notifyAtPercentage: 100,
       };
 
-      mockDb.getGoals.mockResolvedValue([goal]);
-      mockDb.updateGoalProgress.mockResolvedValue(undefined);
+      mockDb.getGoals = mock(() => Promise.resolve([goal]));
+      mockDb.updateGoalProgress = mock(() => Promise.resolve(undefined));
 
       await service.recalculateAllGoalProgress();
 
@@ -398,8 +394,8 @@ describe('GoalsService', () => {
         notifyAtPercentage: 50,
       };
 
-      mockDb.getGoals.mockResolvedValue([goal]);
-      mockDb.updateGoalProgress.mockResolvedValue(undefined);
+      mockDb.getGoals = mock(() => Promise.resolve([goal]));
+      mockDb.updateGoalProgress = mock(() => Promise.resolve(undefined));
 
       await service.updateGoalProgress(1, '2025-01-01', 50); // 50% progress
 
@@ -419,8 +415,8 @@ describe('GoalsService', () => {
         notifyAtPercentage: 50,
       };
 
-      mockDb.getGoals.mockResolvedValue([goal]);
-      mockDb.updateGoalProgress.mockResolvedValue(undefined);
+      mockDb.getGoals = mock(() => Promise.resolve([goal]));
+      mockDb.updateGoalProgress = mock(() => Promise.resolve(undefined));
 
       // First update - should notify
       await service.updateGoalProgress(1, '2025-01-01', 50);
@@ -444,8 +440,8 @@ describe('GoalsService', () => {
         notifyAtPercentage: 50,
       };
 
-      mockDb.getGoals.mockResolvedValue([goal]);
-      mockDb.updateGoalProgress.mockResolvedValue(undefined);
+      mockDb.getGoals = mock(() => Promise.resolve([goal]));
+      mockDb.updateGoalProgress = mock(() => Promise.resolve(undefined));
 
       await service.updateGoalProgress(1, '2025-01-01', 50);
 
@@ -465,8 +461,8 @@ describe('GoalsService', () => {
         notifyAtPercentage: 100,
       };
 
-      mockDb.getGoals.mockResolvedValue([goal]);
-      mockDb.updateGoalProgress.mockResolvedValue(undefined);
+      mockDb.getGoals = mock(() => Promise.resolve([goal]));
+      mockDb.updateGoalProgress = mock(() => Promise.resolve(undefined));
 
       await service.updateGoalProgress(1, '2025-01-01', 100);
 
@@ -487,8 +483,8 @@ describe('GoalsService', () => {
         notifyAtPercentage: 100,
       };
 
-      mockDb.getGoals.mockResolvedValue([goal]);
-      mockDb.updateGoalProgress.mockResolvedValue(undefined);
+      mockDb.getGoals = mock(() => Promise.resolve([goal]));
+      mockDb.updateGoalProgress = mock(() => Promise.resolve(undefined));
 
       await service.updateGoalProgress(1, '2025-01-01', 40); // Exceeded limit
 
@@ -601,8 +597,8 @@ describe('GoalsService', () => {
 
   describe('Error Handling', () => {
     it('should handle database errors gracefully', async () => {
-      mockDb.getGoals.mockRejectedValue(new Error('Database connection failed'));
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+      mockDb.getGoals = mock(() => Promise.reject(new Error('Database connection failed')));
+      const consoleError = spyOn(console, 'error').mockImplementation(() => {});
 
       await expect(service.getGoals()).rejects.toThrow('Database connection failed');
       expect(consoleError).toHaveBeenCalled();
@@ -623,12 +619,12 @@ describe('GoalsService', () => {
         notifyAtPercentage: 100,
       };
 
-      mockDb.getGoals.mockResolvedValue([goal]);
-      mockDb.queryTotalActiveTime.mockImplementation(() => {
+      mockDb.getGoals = mock(() => Promise.resolve([goal]));
+      mockDb.queryTotalActiveTime = mock(() => {
         throw new Error('Query failed');
       });
 
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+      const consoleError = spyOn(console, 'error').mockImplementation(() => {});
 
       await service.recalculateAllGoalProgress();
 

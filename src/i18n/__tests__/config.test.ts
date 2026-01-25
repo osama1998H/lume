@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from 'bun:test';
 import i18n, { getDirection, isRTL, resources } from '../config';
 
 describe('i18n configuration', () => {

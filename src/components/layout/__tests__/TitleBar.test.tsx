@@ -1,9 +1,9 @@
+import { describe, it, expect, mock } from 'bun:test';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import TitleBar from '../TitleBar';
 
 // Mock i18n
-jest.mock('react-i18next', () => ({
+mock.module('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => {
       if (key === 'app.name') return 'Lume';
@@ -12,6 +12,8 @@ jest.mock('react-i18next', () => ({
     },
   }),
 }));
+
+import TitleBar from '../TitleBar';
 
 describe('TitleBar', () => {
   describe('Rendering', () => {

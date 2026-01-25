@@ -6,6 +6,7 @@
  * and contain valid values according to npm package.json specifications.
  */
 
+import { describe, it, expect, beforeAll } from 'bun:test';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -63,36 +64,20 @@ describe('package.json validation', () => {
   describe('author field', () => {
     it('should have an author field', () => {
       expect(packageJson.author).toBeDefined();
-      expect(typeof packageJson.author).toBe('string');
+      expect(typeof packageJson.author).toBe('object');
     });
 
     it('should contain team name "Lume Team"', () => {
-      expect(packageJson.author).toContain('Lume Team');
-    });
-
-    it('should include email address in proper format', () => {
-      expect(packageJson.author).toMatch(/\<.+@.+\..+\>/);
+      expect(packageJson.author.name).toBe('Lume Team');
     });
 
     it('should have the correct email address', () => {
-      expect(packageJson.author).toContain('team@lume.app');
-    });
-
-    it('should follow npm author format: Name <email>', () => {
-      expect(packageJson.author).toMatch(/^[^<>]+\s*<[^<>]+>$/);
-    });
-
-    it('should not have leading or trailing whitespace', () => {
-      expect(packageJson.author).toBe(packageJson.author.trim());
+      expect(packageJson.author.email).toBe('team@lume.app');
     });
 
     it('should have valid email domain', () => {
-      const emailMatch = packageJson.author.match(/<(.+@.+\..+)>/);
-      expect(emailMatch).not.toBeNull();
-      if (emailMatch) {
-        const email = emailMatch[1];
-        expect(email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
-      }
+      const email = packageJson.author.email;
+      expect(email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
     });
   });
 
@@ -167,14 +152,14 @@ describe('package.json validation', () => {
     });
 
     it('should have valid test commands', () => {
-      expect(packageJson.scripts.test).toBe('jest');
-      expect(packageJson.scripts['test:watch']).toContain('jest');
+      expect(packageJson.scripts.test).toBe('bun test');
+      expect(packageJson.scripts['test:watch']).toContain('bun');
       expect(packageJson.scripts['test:watch']).toContain('watch');
     });
 
     it('should have valid lint commands', () => {
-      expect(packageJson.scripts.lint).toContain('eslint');
-      expect(packageJson.scripts['lint:fix']).toContain('eslint');
+      expect(packageJson.scripts.lint).toMatch(/eslint/);
+      expect(packageJson.scripts['lint:fix']).toMatch(/eslint/);
       expect(packageJson.scripts['lint:fix']).toContain('--fix');
     });
 
@@ -205,7 +190,6 @@ describe('package.json validation', () => {
 
     it('should have database dependencies', () => {
       expect(packageJson.dependencies['better-sqlite3']).toBeDefined();
-      expect(packageJson.dependencies.sqlite3).toBeDefined();
     });
 
     it('should have i18n dependencies', () => {
@@ -244,8 +228,8 @@ describe('package.json validation', () => {
     });
 
     it('should have testing framework and utilities', () => {
-      expect(packageJson.devDependencies.jest).toBeDefined();
-      expect(packageJson.devDependencies['jest-environment-jsdom']).toBeDefined();
+      expect(packageJson.devDependencies['@types/bun']).toBeDefined();
+      expect(packageJson.devDependencies['@happy-dom/global-registrator']).toBeDefined();
       expect(packageJson.devDependencies['@testing-library/jest-dom']).toBeDefined();
       expect(packageJson.devDependencies['@testing-library/react']).toBeDefined();
       expect(packageJson.devDependencies['@testing-library/user-event']).toBeDefined();
@@ -463,9 +447,9 @@ describe('package.json validation', () => {
   });
 
   describe('testing infrastructure', () => {
-    it('should have Jest as the test runner', () => {
-      expect(packageJson.devDependencies.jest).toBeDefined();
-      expect(packageJson.scripts.test).toContain('jest');
+    it('should have Bun as the test runner', () => {
+      expect(packageJson.devDependencies['@types/bun']).toBeDefined();
+      expect(packageJson.scripts.test).toContain('bun');
     });
 
     it('should have React Testing Library', () => {
@@ -474,12 +458,12 @@ describe('package.json validation', () => {
       expect(packageJson.devDependencies['@testing-library/user-event']).toBeDefined();
     });
 
-    it('should have Jest type definitions', () => {
-      expect(packageJson.devDependencies['@types/jest']).toBeDefined();
+    it('should have Bun type definitions', () => {
+      expect(packageJson.devDependencies['@types/bun']).toBeDefined();
     });
 
-    it('should have jsdom environment for React testing', () => {
-      expect(packageJson.devDependencies['jest-environment-jsdom']).toBeDefined();
+    it('should have happy-dom for DOM testing', () => {
+      expect(packageJson.devDependencies['@happy-dom/global-registrator']).toBeDefined();
     });
   });
 
@@ -526,8 +510,9 @@ describe('package.json validation', () => {
     });
 
     it('should handle author field variations gracefully', () => {
-      expect(typeof packageJson.author).toBe('string');
-      expect(packageJson.author.length).toBeGreaterThan(0);
+      expect(packageJson.author).toBeDefined();
+      expect(packageJson.author.name).toBeDefined();
+      expect(packageJson.author.email).toBeDefined();
     });
 
     it('should have valid semver ranges for all dependencies', () => {

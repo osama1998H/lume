@@ -1,21 +1,23 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import TodoCard from '../TodoCard';
-import { Todo, Category } from '@/types';
 
 // Mock framer-motion
-jest.mock('framer-motion', () => ({
+mock.module('framer-motion', () => ({
   motion: {
     div: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div>,
   },
 }));
 
 // Mock translation
-jest.mock('react-i18next', () => ({
+mock.module('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
 }));
+
+import TodoCard from '../TodoCard';
+import { Todo, Category } from '@/types';
 
 describe('TodoCard', () => {
   const mockTodo: Todo = {
@@ -40,15 +42,20 @@ describe('TodoCard', () => {
     },
   ];
 
-  const mockCallbacks = {
-    onEdit: jest.fn(),
-    onDelete: jest.fn(),
-    onToggleStatus: jest.fn(),
-    onQuickStatusChange: jest.fn(),
+  let mockCallbacks = {
+    onEdit: mock(() => {}),
+    onDelete: mock(() => {}),
+    onToggleStatus: mock(() => {}),
+    onQuickStatusChange: mock(() => {}),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockCallbacks = {
+      onEdit: mock(() => {}),
+      onDelete: mock(() => {}),
+      onToggleStatus: mock(() => {}),
+      onQuickStatusChange: mock(() => {}),
+    };
   });
 
   it('renders todo title and description', () => {

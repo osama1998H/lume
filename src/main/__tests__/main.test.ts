@@ -1,6 +1,8 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+
 /**
  * Tests for main.ts
- * 
+ *
  * Note: These tests focus on the autoStartTracking method and settings management
  * as added in the diff. Full integration testing of Electron app lifecycle
  * is outside the scope of unit tests.
@@ -9,23 +11,23 @@
 describe('Main Process - Auto Start Tracking', () => {
   let _mockDbManager: any;
   let mockActivityTracker: any;
-  let consoleLog: jest.SpyInstance;
-  let consoleError: jest.SpyInstance;
+  let consoleLog: ReturnType<typeof spyOn>;
+  let consoleError: ReturnType<typeof spyOn>;
 
   beforeEach(() => {
-    consoleLog = jest.spyOn(console, 'log').mockImplementation();
-    consoleError = jest.spyOn(console, 'error').mockImplementation();
+    consoleLog = spyOn(console, 'log').mockImplementation(() => {});
+    consoleError = spyOn(console, 'error').mockImplementation(() => {});
 
     mockActivityTracker = {
-      updateSettings: jest.fn(),
-      start: jest.fn(),
-      stop: jest.fn(),
-      isTracking: jest.fn().mockReturnValue(false),
+      updateSettings: mock(() => {}),
+      start: mock(() => {}),
+      stop: mock(() => {}),
+      isTracking: mock(() => false),
     };
 
     _mockDbManager = {
-      initialize: jest.fn(),
-      addActivitySession: jest.fn(),
+      initialize: mock(() => {}),
+      addActivitySession: mock(() => {}),
     };
   });
 
@@ -145,7 +147,7 @@ describe('Main Process - Auto Start Tracking', () => {
     });
 
     it('should log activity tracking status after update', () => {
-      mockActivityTracker.isTracking.mockReturnValue(true);
+      mockActivityTracker.isTracking = mock(() => true);
 
       const isTracking = mockActivityTracker.isTracking();
       consoleLog(`📊 Activity tracking status after settings update: ${isTracking ? 'ACTIVE' : 'STOPPED'}`);
@@ -154,7 +156,7 @@ describe('Main Process - Auto Start Tracking', () => {
     });
 
     it('should log stopped status when not tracking', () => {
-      mockActivityTracker.isTracking.mockReturnValue(false);
+      mockActivityTracker.isTracking = mock(() => false);
 
       const isTracking = mockActivityTracker.isTracking();
       consoleLog(`📊 Activity tracking status after settings update: ${isTracking ? 'ACTIVE' : 'STOPPED'}`);

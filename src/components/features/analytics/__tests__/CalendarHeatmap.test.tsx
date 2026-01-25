@@ -1,10 +1,9 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { CalendarHeatmap } from '../CalendarHeatmap';
-import type { HeatmapDay } from '@/types';
 
 // Mock i18n
-jest.mock('react-i18next', () => ({
+mock.module('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => {
       // Handle month translations
@@ -24,7 +23,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 // Mock ChartCard
-jest.mock('../ChartCard', () => ({
+mock.module('../ChartCard', () => ({
   ChartCard: ({ title, description, isLoading, isEmpty, children }: any) => (
     <div data-testid="chart-card">
       {isLoading && <div>Loading...</div>}
@@ -39,6 +38,9 @@ jest.mock('../ChartCard', () => ({
     </div>
   ),
 }));
+
+import { CalendarHeatmap } from '../CalendarHeatmap';
+import type { HeatmapDay } from '@/types';
 
 describe('CalendarHeatmap', () => {
   const mockData: HeatmapDay[] = [

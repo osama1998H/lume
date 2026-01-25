@@ -1,10 +1,9 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { HourlyHeatmap } from '../HourlyHeatmap';
-import type { HourlyPattern } from '@/types';
 
 // Mock i18n
-jest.mock('react-i18next', () => ({
+mock.module('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => {
       if (key === 'analytics.avgHours') return 'Avg Hours';
@@ -18,7 +17,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 // Mock ChartCard
-jest.mock('../ChartCard', () => ({
+mock.module('../ChartCard', () => ({
   ChartCard: ({ title, description, isLoading, isEmpty, children }: any) => (
     <div data-testid="chart-card">
       {isLoading && <div>Loading...</div>}
@@ -35,7 +34,7 @@ jest.mock('../ChartCard', () => ({
 }));
 
 // Mock Recharts
-jest.mock('recharts', () => ({
+mock.module('recharts', () => ({
   ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
   BarChart: ({ children, data }: any) => (
     <div data-testid="bar-chart" data-chart-data={JSON.stringify(data)}>
@@ -53,6 +52,9 @@ jest.mock('recharts', () => ({
   CartesianGrid: () => <div data-testid="cartesian-grid" />,
   Tooltip: () => <div data-testid="tooltip" />,
 }));
+
+import { HourlyHeatmap } from '../HourlyHeatmap';
+import type { HourlyPattern } from '@/types';
 
 describe('HourlyHeatmap', () => {
   const mockData: HourlyPattern[] = [

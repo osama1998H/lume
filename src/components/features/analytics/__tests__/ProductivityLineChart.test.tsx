@@ -1,10 +1,9 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { ProductivityLineChart } from '../ProductivityLineChart';
-import type { ProductivityTrend } from '@/types';
 
 // Mock i18n
-jest.mock('react-i18next', () => ({
+mock.module('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => {
       if (key === 'analytics.hours') return 'Hours';
@@ -19,7 +18,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 // Mock ChartCard
-jest.mock('../ChartCard', () => ({
+mock.module('../ChartCard', () => ({
   ChartCard: ({ title, description, isLoading, isEmpty, children }: any) => (
     <div data-testid="chart-card">
       {isLoading && <div>Loading...</div>}
@@ -36,7 +35,7 @@ jest.mock('../ChartCard', () => ({
 }));
 
 // Mock Recharts
-jest.mock('recharts', () => ({
+mock.module('recharts', () => ({
   ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
   LineChart: ({ children, data }: any) => (
     <div data-testid="line-chart" data-chart-data={JSON.stringify(data)}>
@@ -52,6 +51,9 @@ jest.mock('recharts', () => ({
   Tooltip: () => <div data-testid="tooltip" />,
   Legend: () => <div data-testid="legend" />,
 }));
+
+import { ProductivityLineChart } from '../ProductivityLineChart';
+import type { ProductivityTrend } from '@/types';
 
 describe('ProductivityLineChart', () => {
   const mockData: ProductivityTrend[] = [

@@ -1,97 +1,93 @@
-import { DatabaseManager } from '../DatabaseManager';
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { PomodoroSession } from '@/types';
 
-// Mock the DatabaseManager to avoid native module issues in Jest
-jest.mock('../DatabaseManager', () => {
-  let sessions: Map<number, any>;
-  let nextId: number;
+// Create mock state
+let sessions: Map<number, any>;
+let nextId: number;
 
-  const resetState = () => {
-    sessions = new Map();
-    nextId = 1;
-  };
+const resetState = () => {
+  sessions = new Map();
+  nextId = 1;
+};
 
+resetState();
+
+// Mock DatabaseManager implementation
+const createMockDatabaseManager = () => {
   resetState();
-
-  const MockDatabaseManager = jest.fn().mockImplementation(() => {
-    resetState(); // Reset state for each new instance
-    return {
-      addPomodoroSession: jest.fn((session: PomodoroSession) => {
-        const id = nextId++;
-        sessions.set(id, { ...session, id });
-        return id;
-      }),
-      updatePomodoroSession: jest.fn((id: number, updates: Partial<PomodoroSession>) => {
-        const session = sessions.get(id);
-        if (!session) return false;
-        if (Object.keys(updates).length === 0) return false;
-        Object.assign(session, updates);
-        return true;
-      }),
-      getPomodoroSessions: jest.fn((limit = 100) => {
-        return Array.from(sessions.values())
-          .sort((a, b) => (b.id || 0) - (a.id || 0))
-          .slice(0, limit);
-      }),
-      getPomodoroSessionsByDateRange: jest.fn((startDate: string, endDate: string) => {
-        return Array.from(sessions.values())
-          .filter((s) => {
-            const sessionDate = s.startTime.split('T')[0];
-            return sessionDate >= startDate && sessionDate <= endDate;
-          })
-          .sort((a, b) => b.startTime.localeCompare(a.startTime));
-      }),
-      getPomodoroStats: jest.fn((startDate?: string, endDate?: string) => {
-        let filteredSessions = Array.from(sessions.values());
-
-        if (startDate && endDate) {
-          filteredSessions = filteredSessions.filter((s) => {
-            const sessionDate = s.startTime.split('T')[0];
-            return sessionDate >= startDate && sessionDate <= endDate;
-          });
-        }
-
-        const totalSessions = filteredSessions.length;
-        const completedSessions = filteredSessions.filter((s) => s.completed).length;
-        const totalFocusTime = filteredSessions
-          .filter((s) => s.sessionType === 'focus' && s.completed)
-          .reduce((sum, s) => sum + s.duration, 0);
-        const totalBreakTime = filteredSessions
-          .filter(
-            (s) => (s.sessionType === 'shortBreak' || s.sessionType === 'longBreak') && s.completed
-          )
-          .reduce((sum, s) => sum + s.duration, 0);
-        const completionRate =
-          totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0;
-
-        return {
-          totalSessions,
-          completedSessions,
-          totalFocusTime,
-          totalBreakTime,
-          completionRate,
-          currentStreak: 0,
-        };
-      }),
-      initialize: jest.fn(),
-      };
-    });
-
   return {
-    DatabaseManager: MockDatabaseManager,
-    default: new MockDatabaseManager(),
+    addPomodoroSession: mock((session: PomodoroSession) => {
+      const id = nextId++;
+      sessions.set(id, { ...session, id });
+      return id;
+    }),
+    updatePomodoroSession: mock((id: number, updates: Partial<PomodoroSession>) => {
+      const session = sessions.get(id);
+      if (!session) return false;
+      if (Object.keys(updates).length === 0) return false;
+      Object.assign(session, updates);
+      return true;
+    }),
+    getPomodoroSessions: mock((limit = 100) => {
+      return Array.from(sessions.values())
+        .sort((a, b) => (b.id || 0) - (a.id || 0))
+        .slice(0, limit);
+    }),
+    getPomodoroSessionsByDateRange: mock((startDate: string, endDate: string) => {
+      return Array.from(sessions.values())
+        .filter((s) => {
+          const sessionDate = s.startTime.split('T')[0];
+          return sessionDate >= startDate && sessionDate <= endDate;
+        })
+        .sort((a, b) => b.startTime.localeCompare(a.startTime));
+    }),
+    getPomodoroStats: mock((startDate?: string, endDate?: string) => {
+      let filteredSessions = Array.from(sessions.values());
+
+      if (startDate && endDate) {
+        filteredSessions = filteredSessions.filter((s) => {
+          const sessionDate = s.startTime.split('T')[0];
+          return sessionDate >= startDate && sessionDate <= endDate;
+        });
+      }
+
+      const totalSessions = filteredSessions.length;
+      const completedSessions = filteredSessions.filter((s) => s.completed).length;
+      const totalFocusTime = filteredSessions
+        .filter((s) => s.sessionType === 'focus' && s.completed)
+        .reduce((sum, s) => sum + s.duration, 0);
+      const totalBreakTime = filteredSessions
+        .filter(
+          (s) => (s.sessionType === 'shortBreak' || s.sessionType === 'longBreak') && s.completed
+        )
+        .reduce((sum, s) => sum + s.duration, 0);
+      const completionRate =
+        totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0;
+
+      return {
+        totalSessions,
+        completedSessions,
+        totalFocusTime,
+        totalBreakTime,
+        completionRate,
+        currentStreak: 0,
+      };
+    }),
+    initialize: mock(() => {}),
   };
-});
+};
+
+// Type alias for mock
+type MockDatabaseManager = ReturnType<typeof createMockDatabaseManager>;
 
 describe('DatabaseManager - Pomodoro Methods', () => {
-  let dbManager: DatabaseManager;
-  let consoleLog: jest.SpyInstance;
+  let dbManager: MockDatabaseManager;
+  let consoleLog: ReturnType<typeof spyOn>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    consoleLog = jest.spyOn(console, 'log').mockImplementation();
+    consoleLog = spyOn(console, 'log').mockImplementation(() => {});
 
-    dbManager = new DatabaseManager();
+    dbManager = createMockDatabaseManager();
     dbManager.initialize();
   });
 

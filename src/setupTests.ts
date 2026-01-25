@@ -1,92 +1,97 @@
+import { mock } from 'bun:test';
+import { GlobalRegistrator } from '@happy-dom/global-registrator';
 import '@testing-library/jest-dom';
+
+// Register happy-dom globals (window, document, etc.)
+GlobalRegistrator.register();
 
 // Mock window.matchMedia (required for components that use media queries)
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: mock((query: string) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
+    addListener: mock(() => {}),
+    removeListener: mock(() => {}),
+    addEventListener: mock(() => {}),
+    removeEventListener: mock(() => {}),
+    dispatchEvent: mock(() => false),
   })),
 });
 
 // Mock window.electron API (Electron IPC)
 const mockElectronAPI = {
   // Time entries
-  getTimeEntries: jest.fn().mockResolvedValue([]),
-  createTimeEntry: jest.fn().mockResolvedValue({ id: 1 }),
-  updateTimeEntry: jest.fn().mockResolvedValue(true),
-  deleteTimeEntry: jest.fn().mockResolvedValue(true),
+  getTimeEntries: mock(() => Promise.resolve([])),
+  createTimeEntry: mock(() => Promise.resolve({ id: 1 })),
+  updateTimeEntry: mock(() => Promise.resolve(true)),
+  deleteTimeEntry: mock(() => Promise.resolve(true)),
 
   // App usage
-  getAppUsage: jest.fn().mockResolvedValue([]),
+  getAppUsage: mock(() => Promise.resolve([])),
 
   // Stats
-  getStats: jest.fn().mockResolvedValue({
+  getStats: mock(() => Promise.resolve({
     totalTime: 0,
     tasksCompleted: 0,
     activeTask: null,
-  }),
+  })),
 
   // Activity tracking
-  startTracking: jest.fn().mockResolvedValue(true),
-  stopTracking: jest.fn().mockResolvedValue(true),
-  getCurrentActivity: jest.fn().mockResolvedValue(null),
+  startTracking: mock(() => Promise.resolve(true)),
+  stopTracking: mock(() => Promise.resolve(true)),
+  getCurrentActivity: mock(() => Promise.resolve(null)),
 
   // Categories
-  getCategories: jest.fn().mockResolvedValue([]),
-  createCategory: jest.fn().mockResolvedValue({ id: 1 }),
-  updateCategory: jest.fn().mockResolvedValue(true),
-  deleteCategory: jest.fn().mockResolvedValue(true),
+  getCategories: mock(() => Promise.resolve([])),
+  createCategory: mock(() => Promise.resolve({ id: 1 })),
+  updateCategory: mock(() => Promise.resolve(true)),
+  deleteCategory: mock(() => Promise.resolve(true)),
 
   // Tags
-  getTags: jest.fn().mockResolvedValue([]),
-  createTag: jest.fn().mockResolvedValue({ id: 1 }),
-  updateTag: jest.fn().mockResolvedValue(true),
-  deleteTag: jest.fn().mockResolvedValue(true),
+  getTags: mock(() => Promise.resolve([])),
+  createTag: mock(() => Promise.resolve({ id: 1 })),
+  updateTag: mock(() => Promise.resolve(true)),
+  deleteTag: mock(() => Promise.resolve(true)),
 
   // Pomodoro
-  getPomodoroSessions: jest.fn().mockResolvedValue([]),
-  createPomodoroSession: jest.fn().mockResolvedValue({ id: 1 }),
+  getPomodoroSessions: mock(() => Promise.resolve([])),
+  createPomodoroSession: mock(() => Promise.resolve({ id: 1 })),
 
   // Goals
-  getGoals: jest.fn().mockResolvedValue([]),
-  createGoal: jest.fn().mockResolvedValue({ id: 1 }),
-  updateGoal: jest.fn().mockResolvedValue(true),
-  deleteGoal: jest.fn().mockResolvedValue(true),
+  getGoals: mock(() => Promise.resolve([])),
+  createGoal: mock(() => Promise.resolve({ id: 1 })),
+  updateGoal: mock(() => Promise.resolve(true)),
+  deleteGoal: mock(() => Promise.resolve(true)),
 
   // Todos
   todos: {
-    getAll: jest.fn().mockResolvedValue([]),
-    getById: jest.fn().mockResolvedValue(null),
-    add: jest.fn().mockResolvedValue(1),
-    update: jest.fn().mockResolvedValue(true),
-    delete: jest.fn().mockResolvedValue(true),
-    getStats: jest.fn().mockResolvedValue({
+    getAll: mock(() => Promise.resolve([])),
+    getById: mock(() => Promise.resolve(null)),
+    add: mock(() => Promise.resolve(1)),
+    update: mock(() => Promise.resolve(true)),
+    delete: mock(() => Promise.resolve(true)),
+    getStats: mock(() => Promise.resolve({
       totalTodos: 0,
       completedTodos: 0,
       inProgressTodos: 0,
       overdueTodos: 0,
       completionRate: 0,
       avgCompletionTime: 0,
-    }),
-    getWithCategory: jest.fn().mockResolvedValue([]),
-    linkToTimeEntry: jest.fn().mockResolvedValue(true),
-    incrementPomodoro: jest.fn().mockResolvedValue(true),
+    })),
+    getWithCategory: mock(() => Promise.resolve([])),
+    linkToTimeEntry: mock(() => Promise.resolve(true)),
+    incrementPomodoro: mock(() => Promise.resolve(true)),
   },
 
   // App info
-  getAppVersion: jest.fn().mockResolvedValue('2.5.4'),
+  getAppVersion: mock(() => Promise.resolve('2.5.4')),
 
   // IPC listeners
-  onTimeEntryUpdate: jest.fn(),
-  onActivityUpdate: jest.fn(),
-  removeAllListeners: jest.fn(),
+  onTimeEntryUpdate: mock(() => {}),
+  onActivityUpdate: mock(() => {}),
+  removeAllListeners: mock(() => {}),
 };
 
 (window as any).electron = mockElectronAPI;

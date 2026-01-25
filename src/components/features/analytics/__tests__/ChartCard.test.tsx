@@ -1,13 +1,15 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { ChartCard } from '../ChartCard';
 
 // Mock i18n
-jest.mock('react-i18next', () => ({
+mock.module('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
 }));
+
+import { ChartCard } from '../ChartCard';
 
 describe('ChartCard', () => {
   describe('Rendering', () => {

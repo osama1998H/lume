@@ -6,7 +6,7 @@ on:
     paths:
       - 'src/**'
       - 'package.json'
-      - 'package-lock.json'
+      - 'bun.lockb'
       - 'vite.config.ts'
       - 'electron/**'
 
@@ -23,17 +23,16 @@ jobs:
       - name: Checkout PR branch
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: '20'
-          cache: 'npm'
+          bun-version: latest
 
       - name: Install dependencies (PR)
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Build application (PR)
-        run: npm run build
+        run: bun run build
 
       - name: Get PR bundle size
         id: pr-size
@@ -69,10 +68,10 @@ jobs:
       - name: Install dependencies (Base)
         run: |
           rm -rf node_modules
-          npm ci
+          bun install --frozen-lockfile
 
       - name: Build application (Base)
-        run: npm run build
+        run: bun run build
 
       - name: Get base bundle size
         id: base-size
@@ -117,17 +116,17 @@ jobs:
       - name: Format size changes
         id: format
         run: |
-          # Function to format size difference with emoji
+          # Function to format size difference
           format_diff() {
             local diff=$1
             local pct=$2
 
             if [ $diff -gt 0 ]; then
-              echo "📈 +$(numfmt --to=iec-i --suffix=B $((diff * 1024))) (+${pct}%)"
+              echo "+$(numfmt --to=iec-i --suffix=B $((diff * 1024))) (+${pct}%)"
             elif [ $diff -lt 0 ]; then
-              echo "📉 $(numfmt --to=iec-i --suffix=B $((diff * 1024))) (${pct}%)"
+              echo "$(numfmt --to=iec-i --suffix=B $((diff * 1024))) (${pct}%)"
             else
-              echo "➡️ No change"
+              echo "No change"
             fi
           }
 
@@ -157,15 +156,15 @@ jobs:
 
             const warnings = [];
             if (totalDiff > 51200) {
-              warnings.push('⚠️ **Warning**: Total bundle size increased by more than 50MB!');
+              warnings.push('**Warning**: Total bundle size increased by more than 50MB!');
             }
             if (totalPct > 5) {
-              warnings.push('⚠️ **Warning**: Bundle size changed by more than 5%!');
+              warnings.push('**Warning**: Bundle size changed by more than 5%!');
             }
 
             const warningText = warnings.length > 0 ? '\n' + warnings.join('\n') : '';
 
-            const comment = `## 📦 Bundle Size Report
+            const comment = `## Bundle Size Report
 
             | Component | Base | PR | Change |
             |-----------|------|-----|--------|
@@ -174,7 +173,7 @@ jobs:
             | **Total** | ${{ steps.totals.outputs.base }} | ${{ steps.totals.outputs.pr }} | ${{ steps.format.outputs.total }} |
             ${warningText}
 
-            <sub>🤖 This comment will be automatically updated on new commits</sub>`;
+            <sub>This comment will be automatically updated on new commits</sub>`;
 
             // Find existing comment
             const { data: comments } = await github.rest.issues.listComments({

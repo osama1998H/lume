@@ -1,6 +1,6 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+import { describe, it, expect } from 'bun:test';
+
 const enLocale = require('../locales/en.json');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const arLocale = require('../locales/ar.json');
 
 describe('Theme Locale Keys', () => {

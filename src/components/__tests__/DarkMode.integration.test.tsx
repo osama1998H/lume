@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Dashboard from '../pages/Dashboard';
@@ -9,41 +10,41 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: mock((query: string) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
+    addListener: mock(() => {}),
+    removeListener: mock(() => {}),
+    addEventListener: mock(() => {}),
+    removeEventListener: mock(() => {}),
+    dispatchEvent: mock(() => true),
   })),
 });
 
 // Mock i18next
-jest.mock('react-i18next', () => ({
+mock.module('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
 }));
 
 // Mock useLanguage hook
-jest.mock('../../hooks/useLanguage', () => ({
+mock.module('../../hooks/useLanguage', () => ({
   useLanguage: () => ({
     language: 'en',
-    changeLanguage: jest.fn(),
+    changeLanguage: mock(() => {}),
   }),
 }));
 
 // Mock electronAPI
 const mockElectronAPI = {
-  getTodayStats: jest.fn(),
-  getRecentTimeEntries: jest.fn(),
-  getRecentAppUsage: jest.fn(),
-  getStats: jest.fn(),
-  getAllTimeEntries: jest.fn(),
-  getAllAppUsage: jest.fn(),
+  getTodayStats: mock(() => Promise.resolve({})),
+  getRecentTimeEntries: mock(() => Promise.resolve([])),
+  getRecentAppUsage: mock(() => Promise.resolve([])),
+  getStats: mock(() => Promise.resolve({})),
+  getAllTimeEntries: mock(() => Promise.resolve([])),
+  getAllAppUsage: mock(() => Promise.resolve([])),
 };
 
 // Helper function to render with ThemeProvider
@@ -56,29 +57,28 @@ describe('Dark Mode Integration Tests', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).electronAPI = mockElectronAPI;
 
-    // Setup default mocks
-    mockElectronAPI.getTodayStats.mockResolvedValue({
+    // Setup default mocks - reassign mock implementations
+    mockElectronAPI.getTodayStats = mock(() => Promise.resolve({
       totalTime: 3600000,
       tasksCompleted: 5,
       activeTask: 'Test Task'
-    });
+    }));
 
-    mockElectronAPI.getRecentTimeEntries.mockResolvedValue([]);
-    mockElectronAPI.getRecentAppUsage.mockResolvedValue([]);
-    mockElectronAPI.getStats.mockResolvedValue({
+    mockElectronAPI.getRecentTimeEntries = mock(() => Promise.resolve([]));
+    mockElectronAPI.getRecentAppUsage = mock(() => Promise.resolve([]));
+    mockElectronAPI.getStats = mock(() => Promise.resolve({
       totalTrackedTime: 7200000,
       completedTasks: 10,
       averageTaskTime: 1800000,
       totalAppTime: 5400000
-    });
-    mockElectronAPI.getAllTimeEntries.mockResolvedValue([]);
-    mockElectronAPI.getAllAppUsage.mockResolvedValue([]);
+    }));
+    mockElectronAPI.getAllTimeEntries = mock(() => Promise.resolve([]));
+    mockElectronAPI.getAllAppUsage = mock(() => Promise.resolve([]));
   });
 
   afterEach(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window as any).electronAPI;
-    jest.clearAllMocks();
   });
 
   describe('Dashboard Dark Mode Classes', () => {
@@ -164,35 +164,35 @@ describe('Dark Mode Integration Tests', () => {
 
   describe('Sidebar Dark Mode Classes', () => {
     it('should have dark mode background', () => {
-      const { container } = renderWithTheme(<Sidebar currentView="dashboard" onViewChange={jest.fn()} />);
+      const { container } = renderWithTheme(<Sidebar currentView="dashboard" onViewChange={mock(() => {})} />);
       
       const darkBgElement = container.querySelector('.dark\\:bg-gray-800');
       expect(darkBgElement).toBeInTheDocument();
     });
 
     it('should have dark mode border', () => {
-      const { container } = renderWithTheme(<Sidebar currentView="dashboard" onViewChange={jest.fn()} />);
+      const { container } = renderWithTheme(<Sidebar currentView="dashboard" onViewChange={mock(() => {})} />);
       
       const darkBorderElement = container.querySelector('.dark\\:border-gray-700');
       expect(darkBorderElement).toBeInTheDocument();
     });
 
     it('should have dark mode text for app name', () => {
-      const { container } = renderWithTheme(<Sidebar currentView="dashboard" onViewChange={jest.fn()} />);
+      const { container } = renderWithTheme(<Sidebar currentView="dashboard" onViewChange={mock(() => {})} />);
       
       const darkTextElement = container.querySelector('.dark\\:text-primary-400');
       expect(darkTextElement).toBeInTheDocument();
     });
 
     it('should have dark mode hover states for menu items', () => {
-      const { container } = renderWithTheme(<Sidebar currentView="dashboard" onViewChange={jest.fn()} />);
+      const { container } = renderWithTheme(<Sidebar currentView="dashboard" onViewChange={mock(() => {})} />);
       
       const darkHoverElements = container.querySelectorAll('.dark\\:hover\\:bg-gray-700');
       expect(darkHoverElements.length).toBeGreaterThan(0);
     });
 
     it('should have dark mode active menu item styling', () => {
-      const { container } = renderWithTheme(<Sidebar currentView="dashboard" onViewChange={jest.fn()} />);
+      const { container } = renderWithTheme(<Sidebar currentView="dashboard" onViewChange={mock(() => {})} />);
       
       const darkActiveElements = container.querySelectorAll('.dark\\:bg-primary-900\\/30');
       expect(darkActiveElements.length).toBeGreaterThan(0);
@@ -242,19 +242,19 @@ describe('Dark Mode Integration Tests', () => {
 
   describe('Loading States Dark Mode', () => {
     it('should have dark mode loading text in Dashboard', async () => {
-      mockElectronAPI.getTodayStats.mockImplementation(() => new Promise(() => {}));
-      
+      mockElectronAPI.getTodayStats = mock(() => new Promise(() => {}));
+
       const { container } = renderWithTheme(<Dashboard />);
-      
+
       const loadingElement = container.querySelector('.dark\\:text-gray-400');
       expect(loadingElement).toBeInTheDocument();
     });
 
     it('should have dark mode loading spinner in Reports', async () => {
-      mockElectronAPI.getStats.mockImplementation(() => new Promise(() => {}));
-      
+      mockElectronAPI.getStats = mock(() => new Promise(() => {}));
+
       const { container } = renderWithTheme(<Reports />);
-      
+
       const loadingElement = container.querySelector('.dark\\:text-gray-400');
       expect(loadingElement).toBeInTheDocument();
     });

@@ -1,40 +1,46 @@
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, mock, spyOn } from 'bun:test';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import FocusMode from '../pages/FocusMode';
-import * as PomodoroContext from '@/contexts/PomodoroContext';
-import { PomodoroTimerStatus, SessionType, TimerState } from '@/contexts/PomodoroContext';
-import { PomodoroSettings } from '@/types';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: mock((query: string) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
+    addListener: mock(() => {}),
+    removeListener: mock(() => {}),
+    addEventListener: mock(() => {}),
+    removeEventListener: mock(() => {}),
+    dispatchEvent: mock(() => {}),
   })),
 });
 
-// Mock i18next
-jest.mock('react-i18next', () => ({
+// Mock i18next - must come before component import
+mock.module('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
 }));
 
-// Mock useLanguage hook
-jest.mock('../../hooks/useLanguage', () => ({
+// Create mock function for changeLanguage
+const mockChangeLanguage = mock(() => {});
+
+// Mock useLanguage hook - must come before component import
+mock.module('../../hooks/useLanguage', () => ({
   useLanguage: () => ({
     language: 'en',
-    changeLanguage: jest.fn(),
+    changeLanguage: mockChangeLanguage,
   }),
 }));
+
+// Import after mocks
+import FocusMode from '../pages/FocusMode';
+import * as PomodoroContext from '@/contexts/PomodoroContext';
+import { PomodoroTimerStatus, SessionType, TimerState } from '@/contexts/PomodoroContext';
+import { PomodoroSettings } from '@/types';
 
 // Mock PomodoroContext
 const mockPomodoroContext = {
@@ -57,20 +63,27 @@ const mockPomodoroContext = {
     notificationsEnabled: true,
     dailyGoal: 8,
   } as PomodoroSettings,
-  startSession: jest.fn(),
-  pauseSession: jest.fn(),
-  resumeSession: jest.fn(),
-  stopSession: jest.fn(),
-  skipSession: jest.fn(),
-  loadSettings: jest.fn(),
-  saveSettings: jest.fn(),
-  refreshStatus: jest.fn(),
+  startSession: mock(() => {}),
+  pauseSession: mock(() => {}),
+  resumeSession: mock(() => {}),
+  stopSession: mock(() => {}),
+  skipSession: mock(() => {}),
+  loadSettings: mock(() => {}),
+  saveSettings: mock(() => {}),
+  refreshStatus: mock(() => {}),
 };
 
 const mockElectronAPI = {
   pomodoro: {
     sessions: {
-      getStats: jest.fn(),
+      getStats: mock(() => Promise.resolve({
+        totalSessions: 5,
+        completedSessions: 4,
+        totalFocusTime: 6000,
+        totalBreakTime: 1200,
+        completionRate: 80,
+        currentStreak: 2,
+      })),
     },
   },
 };
@@ -82,18 +95,26 @@ const renderWithTheme = (component: React.ReactElement) => {
 
 describe('FocusMode Component', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Reset mock functions
+    mockPomodoroContext.startSession = mock(() => {});
+    mockPomodoroContext.pauseSession = mock(() => {});
+    mockPomodoroContext.resumeSession = mock(() => {});
+    mockPomodoroContext.stopSession = mock(() => {});
+    mockPomodoroContext.skipSession = mock(() => {});
+    mockPomodoroContext.loadSettings = mock(() => {});
+    mockPomodoroContext.saveSettings = mock(() => {});
+    mockPomodoroContext.refreshStatus = mock(() => {});
 
-    jest.spyOn(PomodoroContext, 'usePomodoro').mockReturnValue(mockPomodoroContext);
+    spyOn(PomodoroContext, 'usePomodoro').mockReturnValue(mockPomodoroContext);
 
-    mockElectronAPI.pomodoro.sessions.getStats.mockResolvedValue({
+    mockElectronAPI.pomodoro.sessions.getStats = mock(() => Promise.resolve({
       totalSessions: 5,
       completedSessions: 4,
       totalFocusTime: 6000,
       totalBreakTime: 1200,
       completionRate: 80,
       currentStreak: 2,
-    });
+    }));
 
     (window as any).electronAPI = mockElectronAPI;
 
@@ -114,7 +135,7 @@ describe('FocusMode Component', () => {
 
   describe('Component Rendering', () => {
     it('should render loading state when settings is null', () => {
-      jest.spyOn(PomodoroContext, 'usePomodoro').mockReturnValue({
+      spyOn(PomodoroContext, 'usePomodoro').mockReturnValue({
         ...mockPomodoroContext,
         settings: null,
       });
@@ -429,27 +450,27 @@ describe('FocusMode Component', () => {
     });
 
     it('should display zero stats when no data', async () => {
-      mockElectronAPI.pomodoro.sessions.getStats.mockResolvedValue({
+      mockElectronAPI.pomodoro.sessions.getStats = mock(() => Promise.resolve({
         totalSessions: 0,
         completedSessions: 0,
         totalFocusTime: 0,
         totalBreakTime: 0,
         completionRate: 0,
         currentStreak: 0,
-      });
+      }));
 
       renderWithTheme(<FocusMode />);
     });
 
     it('should display extremely large stats correctly', async () => {
-      mockElectronAPI.pomodoro.sessions.getStats.mockResolvedValue({
+      mockElectronAPI.pomodoro.sessions.getStats = mock(() => Promise.resolve({
         totalSessions: 999999999,
         completedSessions: 888888888,
         totalFocusTime: 999999999, // in minutes
         totalBreakTime: 888888888, // in minutes
         completionRate: 99.9999,
         currentStreak: 123456789,
-      });
+      }));
 
       renderWithTheme(<FocusMode />);
 
@@ -535,31 +556,31 @@ describe('FocusMode Component', () => {
   describe('Error Handling', () => {
     it('should handle missing electronAPI gracefully', async () => {
       delete (window as any).electronAPI;
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+      const consoleErrorSpy = spyOn(console, 'error').mockImplementation(() => {});
 
       renderWithTheme(<FocusMode />);
 
       await waitFor(() => {
-        expect(consoleError).toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalled();
       });
 
-      consoleError.mockRestore();
+      consoleErrorSpy.mockRestore();
     });
 
     it('should handle getPomodoroStats error', async () => {
-      mockElectronAPI.pomodoro.sessions.getStats.mockRejectedValue(new Error('Stats failed'));
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+      mockElectronAPI.pomodoro.sessions.getStats = mock(() => Promise.reject(new Error('Stats failed')));
+      const consoleErrorSpy = spyOn(console, 'error').mockImplementation(() => {});
 
       renderWithTheme(<FocusMode />);
 
       await waitFor(() => {
-        expect(consoleError).toHaveBeenCalledWith(
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
           'Failed to load pomodoro stats:',
           expect.any(Error)
         );
       });
 
-      consoleError.mockRestore();
+      consoleErrorSpy.mockRestore();
     });
   });
 

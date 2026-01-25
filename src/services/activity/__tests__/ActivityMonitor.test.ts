@@ -1,31 +1,28 @@
-import { ActivityMonitor } from '../ActivityMonitor';
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { exec } from 'child_process';
 
 // Mock child_process with proper callback-style exec
-jest.mock('child_process', () => ({
-  exec: jest.fn(),
+const mockExec = mock(() => {});
+mock.module('child_process', () => ({
+  exec: mockExec,
 }));
+
+import { ActivityMonitor } from '../ActivityMonitor';
 
 describe('ActivityMonitor', () => {
   let monitor: ActivityMonitor;
-  let consoleLog: jest.SpyInstance;
-  let consoleError: jest.SpyInstance;
-  let mockExec: jest.Mock;
+  let consoleLog: ReturnType<typeof spyOn>;
+  let consoleError: ReturnType<typeof spyOn>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
-    consoleLog = jest.spyOn(console, 'log').mockImplementation();
-    consoleError = jest.spyOn(console, 'error').mockImplementation();
-
-    mockExec = exec as unknown as jest.Mock;
+    consoleLog = spyOn(console, 'log').mockImplementation(() => {});
+    consoleError = spyOn(console, 'error').mockImplementation(() => {});
 
     monitor = new ActivityMonitor(5000);
   });
 
   afterEach(() => {
     monitor.stop();
-    jest.useRealTimers();
     consoleLog.mockRestore();
     consoleError.mockRestore();
   });
@@ -165,14 +162,14 @@ describe('ActivityMonitor', () => {
 
     // Helper function to mock exec with callback style
     const mockExecSuccess = (stdout: string) => {
-      mockExec.mockImplementation((_cmd: string, callback: any) => {
+      (mockExec as any) = mock((_cmd: string, callback: any) => {
         // Call callback synchronously for test simplicity
         callback(null, { stdout, stderr: '' });
       });
     };
 
     const mockExecError = (error: Error) => {
-      mockExec.mockImplementation((_cmd: string, callback: any) => {
+      (mockExec as any) = mock((_cmd: string, callback: any) => {
         // Call callback synchronously for test simplicity
         callback(error, { stdout: '', stderr: '' });
       });
@@ -210,7 +207,7 @@ describe('ActivityMonitor', () => {
 
     it('should detect browser and attempt URL extraction', async () => {
       let callCount = 0;
-      mockExec.mockImplementation((_cmd: string, callback: any) => {
+      (mockExec as any) = mock((_cmd: string, callback: any) => {
         callCount++;
         if (callCount === 1) {
           callback(null, { stdout: 'Google Chrome|||Example Page', stderr: '' });
@@ -248,7 +245,7 @@ describe('ActivityMonitor', () => {
 
     it('should skip internal browser pages', async () => {
       let callCount = 0;
-      mockExec.mockImplementation((_cmd: string, callback: any) => {
+      (mockExec as any) = mock((_cmd: string, callback: any) => {
         callCount++;
         if (callCount === 1) {
           callback(null, { stdout: 'Google Chrome|||New Tab', stderr: '' });
@@ -272,7 +269,7 @@ describe('ActivityMonitor', () => {
 
     it('should handle Chrome browser URL extraction', async () => {
       let callCount = 0;
-      mockExec.mockImplementation((_cmd: string, callback: any) => {
+      (mockExec as any) = mock((_cmd: string, callback: any) => {
         callCount++;
         if (callCount === 1) {
           callback(null, { stdout: 'Google Chrome|||Example', stderr: '' });
@@ -299,7 +296,7 @@ describe('ActivityMonitor', () => {
 
     it('should handle Safari browser', async () => {
       let callCount = 0;
-      mockExec.mockImplementation((_cmd: string, callback: any) => {
+      (mockExec as any) = mock((_cmd: string, callback: any) => {
         callCount++;
         if (callCount === 1) {
           callback(null, { stdout: 'Safari|||Test Page', stderr: '' });
@@ -351,7 +348,7 @@ describe('ActivityMonitor', () => {
 
   describe('Error Handling', () => {
     const mockExecError = (error: Error) => {
-      mockExec.mockImplementation((_cmd: string, callback: any) => {
+      (mockExec as any) = mock((_cmd: string, callback: any) => {
         callback(error, { stdout: '', stderr: '' });
       });
     };
@@ -390,7 +387,7 @@ describe('ActivityMonitor', () => {
 
     it('should cleanup and stop tracking when stop() is called during capture', async () => {
       // Simulate a long-running capture by not calling the callback
-      mockExec.mockImplementation((_cmd: string, _callback: any) => {
+      (mockExec as any) = mock((_cmd: string, _callback: any) => {
         // Never call callback
       });
 

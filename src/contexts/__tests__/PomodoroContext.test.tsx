@@ -1,22 +1,23 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { waitFor, act, renderHook } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { PomodoroProvider, usePomodoro, PomodoroTimerStatus } from '../PomodoroContext';
 import { PomodoroSettings } from '@/types';
 
 // Mock window.electronAPI
-const mockElectronAPI = {
+let mockElectronAPI = {
   pomodoro: {
     settings: {
-      get: jest.fn(),
-      save: jest.fn(),
+      get: mock(() => {}),
+      save: mock(() => {}),
     },
     timer: {
-      start: jest.fn(),
-      pause: jest.fn(),
-      resume: jest.fn(),
-      stop: jest.fn(),
-      skip: jest.fn(),
-      getStatus: jest.fn(),
+      start: mock(() => {}),
+      pause: mock(() => {}),
+      resume: mock(() => {}),
+      stop: mock(() => {}),
+      skip: mock(() => {}),
+      getStatus: mock(() => {}),
     },
   },
 };
@@ -44,23 +45,27 @@ const defaultStatus: PomodoroTimerStatus = {
 
 describe('PomodoroContext', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
-
-    mockElectronAPI.pomodoro.settings.get.mockResolvedValue(defaultSettings);
-    mockElectronAPI.pomodoro.timer.getStatus.mockResolvedValue(defaultStatus);
-    mockElectronAPI.pomodoro.settings.save.mockResolvedValue(true);
-    mockElectronAPI.pomodoro.timer.start.mockResolvedValue(undefined);
-    mockElectronAPI.pomodoro.timer.pause.mockResolvedValue(undefined);
-    mockElectronAPI.pomodoro.timer.resume.mockResolvedValue(undefined);
-    mockElectronAPI.pomodoro.timer.stop.mockResolvedValue(undefined);
-    mockElectronAPI.pomodoro.timer.skip.mockResolvedValue(undefined);
+    mockElectronAPI = {
+      pomodoro: {
+        settings: {
+          get: mock(() => Promise.resolve(defaultSettings)),
+          save: mock(() => Promise.resolve(true)),
+        },
+        timer: {
+          start: mock(() => Promise.resolve(undefined)),
+          pause: mock(() => Promise.resolve(undefined)),
+          resume: mock(() => Promise.resolve(undefined)),
+          stop: mock(() => Promise.resolve(undefined)),
+          skip: mock(() => Promise.resolve(undefined)),
+          getStatus: mock(() => Promise.resolve(defaultStatus)),
+        },
+      },
+    };
 
     (window as any).electronAPI = mockElectronAPI;
   });
 
   afterEach(() => {
-    jest.useRealTimers();
     delete (window as any).electronAPI;
   });
 
@@ -140,8 +145,8 @@ describe('PomodoroContext', () => {
     });
 
     it('should handle save settings error', async () => {
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      mockElectronAPI.pomodoro.settings.save.mockRejectedValue(new Error('Save failed'));
+      const consoleError = spyOn(console, 'error').mockImplementation(() => {});
+      mockElectronAPI.pomodoro.settings.save = mock(() => Promise.reject(new Error('Save failed')));
 
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
@@ -160,10 +165,10 @@ describe('PomodoroContext', () => {
     it('should reload settings', async () => {
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
-      mockElectronAPI.pomodoro.settings.get.mockResolvedValueOnce({
+      mockElectronAPI.pomodoro.settings.get = mock(() => Promise.resolve({
         ...defaultSettings,
         focusDuration: 35,
-      });
+      }));
 
       await act(async () => {
         await result.current.loadSettings();
@@ -183,7 +188,7 @@ describe('PomodoroContext', () => {
         timeRemaining: 1500,
       };
 
-      mockElectronAPI.pomodoro.timer.getStatus.mockResolvedValueOnce(newStatus);
+      mockElectronAPI.pomodoro.timer.getStatus = mock(() => Promise.resolve(newStatus));
 
       await act(async () => {
         await result.current.refreshStatus();
@@ -194,8 +199,8 @@ describe('PomodoroContext', () => {
     });
 
     it('should handle refresh status error', async () => {
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      mockElectronAPI.pomodoro.timer.getStatus.mockRejectedValue(new Error('Refresh failed'));
+      const consoleError = spyOn(console, 'error').mockImplementation(() => {});
+      mockElectronAPI.pomodoro.timer.getStatus = mock(() => Promise.reject(new Error('Refresh failed')));
 
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
@@ -254,8 +259,8 @@ describe('PomodoroContext', () => {
     });
 
     it('should handle start session error', async () => {
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      mockElectronAPI.pomodoro.timer.start.mockRejectedValue(new Error('Start failed'));
+      const consoleError = spyOn(console, 'error').mockImplementation(() => {});
+      mockElectronAPI.pomodoro.timer.start = mock(() => Promise.reject(new Error('Start failed')));
 
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
@@ -294,8 +299,8 @@ describe('PomodoroContext', () => {
     });
 
     it('should handle pause error', async () => {
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      mockElectronAPI.pomodoro.timer.pause.mockRejectedValue(new Error('Pause failed'));
+      const consoleError = spyOn(console, 'error').mockImplementation(() => {});
+      mockElectronAPI.pomodoro.timer.pause = mock(() => Promise.reject(new Error('Pause failed')));
 
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
@@ -334,8 +339,8 @@ describe('PomodoroContext', () => {
     });
 
     it('should handle resume error', async () => {
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      mockElectronAPI.pomodoro.timer.resume.mockRejectedValue(new Error('Resume failed'));
+      const consoleError = spyOn(console, 'error').mockImplementation(() => {});
+      mockElectronAPI.pomodoro.timer.resume = mock(() => Promise.reject(new Error('Resume failed')));
 
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
@@ -374,8 +379,8 @@ describe('PomodoroContext', () => {
     });
 
     it('should handle stop error', async () => {
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      mockElectronAPI.pomodoro.timer.stop.mockRejectedValue(new Error('Stop failed'));
+      const consoleError = spyOn(console, 'error').mockImplementation(() => {});
+      mockElectronAPI.pomodoro.timer.stop = mock(() => Promise.reject(new Error('Stop failed')));
 
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
@@ -414,8 +419,8 @@ describe('PomodoroContext', () => {
     });
 
     it('should handle skip error', async () => {
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      mockElectronAPI.pomodoro.timer.skip.mockRejectedValue(new Error('Skip failed'));
+      const consoleError = spyOn(console, 'error').mockImplementation(() => {});
+      mockElectronAPI.pomodoro.timer.skip = mock(() => Promise.reject(new Error('Skip failed')));
 
       const { result } = renderHook(() => usePomodoro(), { wrapper: PomodoroProvider });
 
@@ -442,22 +447,24 @@ describe('PomodoroContext', () => {
         timeRemaining: 1500,
       };
 
-      mockElectronAPI.pomodoro.timer.getStatus.mockResolvedValue(runningStatus);
+      mockElectronAPI.pomodoro.timer.getStatus = mock(() => Promise.resolve(runningStatus));
 
       await act(async () => {
         await result.current.refreshStatus();
       });
 
-      // Clear previous calls
-      mockElectronAPI.pomodoro.timer.getStatus.mockClear();
-
-      // Advance timers to trigger polling
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
+      // Reset mock for tracking new calls
+      let callCount = 0;
+      mockElectronAPI.pomodoro.timer.getStatus = mock(() => {
+        callCount++;
+        return Promise.resolve(runningStatus);
       });
 
+      // Advance timers to trigger polling (using setTimeout instead of jest fake timers)
+      await new Promise(resolve => setTimeout(resolve, 1100));
+
       await waitFor(() => {
-        expect(mockElectronAPI.pomodoro.timer.getStatus).toHaveBeenCalled();
+        expect(callCount).toBeGreaterThan(0);
       });
     });
 
@@ -470,20 +477,24 @@ describe('PomodoroContext', () => {
         timeRemaining: 1200,
       };
 
-      mockElectronAPI.pomodoro.timer.getStatus.mockResolvedValue(pausedStatus);
+      mockElectronAPI.pomodoro.timer.getStatus = mock(() => Promise.resolve(pausedStatus));
 
       await act(async () => {
         await result.current.refreshStatus();
       });
 
-      mockElectronAPI.pomodoro.timer.getStatus.mockClear();
-
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
+      // Reset mock for tracking new calls
+      let callCount = 0;
+      mockElectronAPI.pomodoro.timer.getStatus = mock(() => {
+        callCount++;
+        return Promise.resolve(pausedStatus);
       });
 
+      // Advance timers to trigger polling
+      await new Promise(resolve => setTimeout(resolve, 1100));
+
       await waitFor(() => {
-        expect(mockElectronAPI.pomodoro.timer.getStatus).toHaveBeenCalled();
+        expect(callCount).toBeGreaterThan(0);
       });
     });
 
@@ -494,20 +505,23 @@ describe('PomodoroContext', () => {
         await result.current.refreshStatus();
       });
 
-      mockElectronAPI.pomodoro.timer.getStatus.mockClear();
-
-      await act(async () => {
-        jest.advanceTimersByTime(2000);
+      // Reset mock for tracking new calls
+      let callCount = 0;
+      mockElectronAPI.pomodoro.timer.getStatus = mock(() => {
+        callCount++;
+        return Promise.resolve(defaultStatus);
       });
 
+      await new Promise(resolve => setTimeout(resolve, 2100));
+
       // Should not poll when idle
-      expect(mockElectronAPI.pomodoro.timer.getStatus).not.toHaveBeenCalled();
+      expect(callCount).toBe(0);
     });
   });
 
   describe('usePomodoro Hook', () => {
     it('should throw error when used outside provider', () => {
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+      const consoleError = spyOn(console, 'error').mockImplementation(() => {});
 
       expect(() => {
         renderHook(() => usePomodoro());

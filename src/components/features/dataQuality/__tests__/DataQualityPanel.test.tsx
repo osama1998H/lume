@@ -1,9 +1,9 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import DataQualityPanel from '../DataQualityPanel';
 
 // Mock i18n
-jest.mock('react-i18next', () => ({
+mock.module('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => {
       const translations: Record<string, string> = {
@@ -22,7 +22,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 // Mock child components
-jest.mock('../GapDetection', () => ({
+mock.module('../GapDetection', () => ({
   __esModule: true,
   default: ({ startDate, endDate, onCreateActivity }: any) => (
     <div data-testid="gap-detection">
@@ -36,7 +36,7 @@ jest.mock('../GapDetection', () => ({
   ),
 }));
 
-jest.mock('../DuplicateDetection', () => ({
+mock.module('../DuplicateDetection', () => ({
   __esModule: true,
   default: ({ startDate, endDate, onMergeActivities }: any) => (
     <div data-testid="duplicate-detection">
@@ -50,7 +50,7 @@ jest.mock('../DuplicateDetection', () => ({
   ),
 }));
 
-jest.mock('../DataCleanup', () => ({
+mock.module('../DataCleanup', () => ({
   __esModule: true,
   default: ({ startDate, endDate, onRefresh }: any) => (
     <div data-testid="data-cleanup">
@@ -63,18 +63,21 @@ jest.mock('../DataCleanup', () => ({
 }));
 
 // Mock lucide-react icons
-jest.mock('lucide-react', () => ({
+mock.module('lucide-react', () => ({
   AlertTriangle: () => <div data-testid="alert-triangle-icon" />,
   Copy: () => <div data-testid="copy-icon" />,
   Database: () => <div data-testid="database-icon" />,
   X: () => <div data-testid="x-icon" />,
 }));
 
+import DataQualityPanel from '../DataQualityPanel';
+
 // Mock window.electronAPI
+let mockBulkUpdate = mock(() => Promise.resolve({ success: true }));
 const mockElectronAPI = {
   activities: {
     bulk: {
-      update: jest.fn(),
+      update: mockBulkUpdate,
     },
   },
 };
@@ -85,13 +88,16 @@ const mockElectronAPI = {
 describe('DataQualityPanel', () => {
   const mockStartDate = '2025-01-01T00:00:00Z';
   const mockEndDate = '2025-01-31T23:59:59Z';
-  const mockOnClose = jest.fn();
-  const mockOnCreateActivity = jest.fn();
-  const mockOnRefreshActivities = jest.fn();
+  let mockOnClose = mock(() => {});
+  let mockOnCreateActivity = mock(() => {});
+  let mockOnRefreshActivities = mock(() => {});
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockElectronAPI.activities.bulk.update.mockResolvedValue({ success: true });
+    mockBulkUpdate = mock(() => Promise.resolve({ success: true }));
+    mockElectronAPI.activities.bulk.update = mockBulkUpdate;
+    mockOnClose = mock(() => {});
+    mockOnCreateActivity = mock(() => {});
+    mockOnRefreshActivities = mock(() => {});
   });
 
   describe('Rendering', () => {
@@ -374,9 +380,11 @@ describe('DataQualityPanel', () => {
     });
 
     it('handles merge failure gracefully', async () => {
-      mockElectronAPI.activities.bulk.update.mockResolvedValueOnce({ success: false });
+      mockElectronAPI.activities.bulk.update = mock(() => Promise.resolve({ success: false }));
 
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const originalConsoleError = console.error;
+      console.error = mock(() => {});
+      const consoleErrorSpy = console.error;
 
       render(
         <DataQualityPanel
@@ -393,7 +401,7 @@ describe('DataQualityPanel', () => {
         expect(consoleErrorSpy).toHaveBeenCalled();
       });
 
-      consoleErrorSpy.mockRestore();
+      console.error = originalConsoleError;
     });
   });
 

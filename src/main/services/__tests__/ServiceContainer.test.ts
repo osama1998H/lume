@@ -1,16 +1,39 @@
-import { ServiceContainer } from '../ServiceContainer';
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Settings } from '@/types';
 
 // Mock all service dependencies
-jest.mock('../../../database/DatabaseManager');
-jest.mock('../../../services/activity/ActivityTrackingService');
-jest.mock('../../../services/pomodoro/PomodoroService');
-jest.mock('../../../services/notifications/NotificationService');
-jest.mock('../../../services/goals/GoalsService');
-jest.mock('../../../services/categories/CategoriesService');
-jest.mock('../../../services/activity/ActivityValidationService');
-jest.mock('../../../services/activity/ActivityMergeService');
+mock.module('../../../database/DatabaseManager', () => ({
+  DatabaseManager: mock(() => ({ initialize: mock(() => {}) })),
+}));
+mock.module('../../../services/activity/ActivityTrackingService', () => ({
+  ActivityTrackingService: mock(() => ({
+    updateSettings: mock(() => {}),
+    isTracking: mock(() => false),
+    stop: mock(() => Promise.resolve()),
+  })),
+}));
+mock.module('../../../services/pomodoro/PomodoroService', () => ({
+  PomodoroService: mock(() => ({ destroy: mock(() => {}) })),
+}));
+mock.module('../../../services/notifications/NotificationService', () => ({
+  NotificationService: mock(() => ({ updateSettings: mock(() => {}) })),
+}));
+mock.module('../../../services/goals/GoalsService', () => ({
+  GoalsService: mock(() => ({ setNotificationService: mock(() => {}) })),
+}));
+mock.module('../../../services/categories/CategoriesService', () => ({
+  CategoriesService: mock(() => ({
+    initializeDefaultCategories: mock(() => Promise.resolve()),
+  })),
+}));
+mock.module('../../../services/activity/ActivityValidationService', () => ({
+  ActivityValidationService: mock(() => ({})),
+}));
+mock.module('../../../services/activity/ActivityMergeService', () => ({
+  ActivityMergeService: mock(() => ({})),
+}));
 
+import { ServiceContainer } from '../ServiceContainer';
 import { DatabaseManager } from '@/database/DatabaseManager';
 import { ActivityTrackingService } from '@/services/activity/ActivityTrackingService';
 import { PomodoroService } from '@/services/pomodoro/PomodoroService';
@@ -22,9 +45,9 @@ import { ActivityMergeService } from '@/services/activity/ActivityMergeService';
 
 describe('ServiceContainer', () => {
   let container: ServiceContainer;
-  let consoleLog: jest.SpyInstance;
-  let consoleError: jest.SpyInstance;
-  let consoleWarn: jest.SpyInstance;
+  let consoleLog: ReturnType<typeof spyOn>;
+  let consoleError: ReturnType<typeof spyOn>;
+  let consoleWarn: ReturnType<typeof spyOn>;
 
   const mockSettings: Settings = {
     pomodoro: {
@@ -53,52 +76,49 @@ describe('ServiceContainer', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
     container = new ServiceContainer();
 
-    consoleLog = jest.spyOn(console, 'log').mockImplementation();
-    consoleError = jest.spyOn(console, 'error').mockImplementation();
-    consoleWarn = jest.spyOn(console, 'warn').mockImplementation();
+    consoleLog = spyOn(console, 'log').mockImplementation(() => {});
+    consoleError = spyOn(console, 'error').mockImplementation(() => {});
+    consoleWarn = spyOn(console, 'warn').mockImplementation(() => {});
 
     // Mock DatabaseManager
-    (DatabaseManager as jest.MockedClass<typeof DatabaseManager>).mockImplementation(() => ({
-      initialize: jest.fn(),
-    } as any));
+    (DatabaseManager as any) = mock(() => ({
+      initialize: mock(() => {}),
+    }));
 
     // Mock NotificationService
-    (NotificationService as jest.MockedClass<typeof NotificationService>).mockImplementation(() => ({
-      updateSettings: jest.fn(),
-    } as any));
+    (NotificationService as any) = mock(() => ({
+      updateSettings: mock(() => {}),
+    }));
 
     // Mock GoalsService
-    (GoalsService as jest.MockedClass<typeof GoalsService>).mockImplementation(() => ({
-      setNotificationService: jest.fn(),
-    } as any));
+    (GoalsService as any) = mock(() => ({
+      setNotificationService: mock(() => {}),
+    }));
 
     // Mock CategoriesService with async method
-    (CategoriesService as jest.MockedClass<typeof CategoriesService>).mockImplementation(() => ({
-      initializeDefaultCategories: jest.fn().mockResolvedValue(undefined),
-    } as any));
+    (CategoriesService as any) = mock(() => ({
+      initializeDefaultCategories: mock(() => Promise.resolve()),
+    }));
 
     // Mock ActivityValidationService
-    (ActivityValidationService as jest.MockedClass<typeof ActivityValidationService>).mockImplementation(() => ({
-    } as any));
+    (ActivityValidationService as any) = mock(() => ({}));
 
     // Mock ActivityMergeService
-    (ActivityMergeService as jest.MockedClass<typeof ActivityMergeService>).mockImplementation(() => ({
-    } as any));
+    (ActivityMergeService as any) = mock(() => ({}));
 
     // Mock ActivityTrackingService
-    (ActivityTrackingService as jest.MockedClass<typeof ActivityTrackingService>).mockImplementation(() => ({
-      updateSettings: jest.fn(),
-      isTracking: jest.fn().mockReturnValue(false),
-      stop: jest.fn().mockResolvedValue(undefined),
-    } as any));
+    (ActivityTrackingService as any) = mock(() => ({
+      updateSettings: mock(() => {}),
+      isTracking: mock(() => false),
+      stop: mock(() => Promise.resolve()),
+    }));
 
     // Mock PomodoroService
-    (PomodoroService as jest.MockedClass<typeof PomodoroService>).mockImplementation(() => ({
-      destroy: jest.fn(),
-    } as any));
+    (PomodoroService as any) = mock(() => ({
+      destroy: mock(() => {}),
+    }));
   });
 
   afterEach(() => {
@@ -233,7 +253,7 @@ describe('ServiceContainer', () => {
 
   describe('Error Handling', () => {
     it('should handle database initialization failure', async () => {
-      (DatabaseManager as jest.MockedClass<typeof DatabaseManager>).mockImplementation(() => {
+      (DatabaseManager as any) = mock(() => {
         throw new Error('Database connection failed');
       });
 
@@ -245,7 +265,7 @@ describe('ServiceContainer', () => {
     });
 
     it('should handle notification service initialization failure', async () => {
-      (NotificationService as jest.MockedClass<typeof NotificationService>).mockImplementation(() => {
+      (NotificationService as any) = mock(() => {
         throw new Error('Notification service error');
       });
 
@@ -254,7 +274,7 @@ describe('ServiceContainer', () => {
     });
 
     it('should handle categories service initialization failure', async () => {
-      (CategoriesService as jest.MockedClass<typeof CategoriesService>).mockImplementation(() => {
+      (CategoriesService as any) = mock(() => {
         throw new Error('Categories service error');
       });
 
@@ -285,8 +305,8 @@ describe('ServiceContainer', () => {
     it('should stop activity tracking if running during cleanup', async () => {
       await container.initialize('/test/path', mockSettings);
 
-      const activityTracker = container.getActivityTrackingService() as jest.Mocked<ActivityTrackingService>;
-      activityTracker.isTracking = jest.fn().mockReturnValue(true);
+      const activityTracker = container.getActivityTrackingService() as any;
+      activityTracker.isTracking = mock(() => true);
 
       await container.cleanup();
 
@@ -296,7 +316,7 @@ describe('ServiceContainer', () => {
     it('should destroy pomodoro service during cleanup', async () => {
       await container.initialize('/test/path', mockSettings);
 
-      const pomodoroService = container.getPomodoroService() as jest.Mocked<PomodoroService>;
+      const pomodoroService = container.getPomodoroService() as any;
 
       await container.cleanup();
 
@@ -317,9 +337,9 @@ describe('ServiceContainer', () => {
     it('should handle cleanup errors gracefully', async () => {
       await container.initialize('/test/path', mockSettings);
 
-      const activityTracker = container.getActivityTrackingService() as jest.Mocked<ActivityTrackingService>;
-      activityTracker.isTracking = jest.fn().mockReturnValue(true); // Make it return true
-      activityTracker.stop = jest.fn().mockRejectedValue(new Error('Stop failed'));
+      const activityTracker = container.getActivityTrackingService() as any;
+      activityTracker.isTracking = mock(() => true); // Make it return true
+      activityTracker.stop = mock(() => Promise.reject(new Error('Stop failed')));
 
       await expect(container.cleanup()).rejects.toThrow('Stop failed');
       expect(consoleError).toHaveBeenCalledWith(
@@ -428,7 +448,7 @@ describe('ServiceContainer', () => {
     it('should call initializeDefaultCategories asynchronously', async () => {
       await container.initialize('/test/path', mockSettings);
 
-      const categoriesService = container.getCategoriesService() as jest.Mocked<CategoriesService>;
+      const categoriesService = container.getCategoriesService() as any;
 
       // Give async operation time to complete
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -437,9 +457,9 @@ describe('ServiceContainer', () => {
     });
 
     it('should handle default categories initialization failure gracefully', async () => {
-      (CategoriesService as jest.MockedClass<typeof CategoriesService>).mockImplementation(() => ({
-        initializeDefaultCategories: jest.fn().mockRejectedValue(new Error('Init failed')),
-      } as any));
+      (CategoriesService as any) = mock(() => ({
+        initializeDefaultCategories: mock(() => Promise.reject(new Error('Init failed'))),
+      }));
 
       await container.initialize('/test/path', mockSettings);
 

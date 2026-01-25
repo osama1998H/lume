@@ -1,17 +1,14 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { PomodoroService } from '../PomodoroService';
 import { DatabaseManager } from '../../../database/DatabaseManager';
 import { NotificationService } from '../../notifications/NotificationService';
 import { PomodoroSettings } from '../../../types';
 
-// Mock dependencies
-jest.mock('../../../database/DatabaseManager');
-jest.mock('../../notifications/NotificationService');
-
 describe('PomodoroService', () => {
   let service: PomodoroService;
-  let mockDbManager: jest.Mocked<DatabaseManager>;
-  let mockNotificationService: jest.Mocked<NotificationService>;
-  let consoleLog: jest.SpyInstance;
+  let mockDbManager: any;
+  let mockNotificationService: any;
+  let consoleLog: ReturnType<typeof spyOn>;
 
   const defaultSettings: PomodoroSettings = {
     focusDuration: 25,
@@ -26,28 +23,24 @@ describe('PomodoroService', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
-
-    consoleLog = jest.spyOn(console, 'log').mockImplementation();
+    consoleLog = spyOn(console, 'log').mockImplementation(() => {});
 
     let sessionIdCounter = 0;
     mockDbManager = {
-      addPomodoroSession: jest.fn().mockImplementation(() => ++sessionIdCounter),
-      updatePomodoroSession: jest.fn().mockReturnValue(true),
-    } as any;
+      addPomodoroSession: mock(() => ++sessionIdCounter),
+      updatePomodoroSession: mock(() => true),
+    };
 
     mockNotificationService = {
-      notifyFocusComplete: jest.fn(),
-      notifyBreakComplete: jest.fn(),
-      updateSettings: jest.fn(),
-    } as any;
+      notifyFocusComplete: mock(() => {}),
+      notifyBreakComplete: mock(() => {}),
+      updateSettings: mock(() => {}),
+    };
 
     service = new PomodoroService(mockDbManager, mockNotificationService, defaultSettings);
   });
 
   afterEach(() => {
-    jest.useRealTimers();
     consoleLog.mockRestore();
     service.destroy();
   });
@@ -168,22 +161,28 @@ describe('PomodoroService', () => {
       );
     });
 
-    it('should emit start event', (done) => {
-      service.on('start', (status) => {
-        expect(status.state).toBe('running');
-        done();
+    it('should emit start event', async () => {
+      const eventPromise = new Promise<void>((resolve) => {
+        service.on('start', (status) => {
+          expect(status.state).toBe('running');
+          resolve();
+        });
       });
 
       service.start('Test Task', 'focus');
+      await eventPromise;
     });
 
-    it('should emit stateChange event', (done) => {
-      service.on('stateChange', (status) => {
-        expect(status.state).toBe('running');
-        done();
+    it('should emit stateChange event', async () => {
+      const eventPromise = new Promise<void>((resolve) => {
+        service.on('stateChange', (status) => {
+          expect(status.state).toBe('running');
+          resolve();
+        });
       });
 
       service.start('Test Task', 'focus');
+      await eventPromise;
     });
 
     it('should log session start', () => {
@@ -209,15 +208,18 @@ describe('PomodoroService', () => {
       expect(service.getStatus().state).toBe('idle');
     });
 
-    it('should emit pause event', (done) => {
+    it('should emit pause event', async () => {
       service.start('Test Task', 'focus');
 
-      service.on('pause', (status) => {
-        expect(status.state).toBe('paused');
-        done();
+      const eventPromise = new Promise<void>((resolve) => {
+        service.on('pause', (status) => {
+          expect(status.state).toBe('paused');
+          resolve();
+        });
       });
 
       service.pause();
+      await eventPromise;
     });
   });
 
@@ -236,16 +238,19 @@ describe('PomodoroService', () => {
       expect(service.getStatus().state).toBe('idle');
     });
 
-    it('should emit resume event', (done) => {
+    it('should emit resume event', async () => {
       service.start('Test Task', 'focus');
       service.pause();
 
-      service.on('resume', (status) => {
-        expect(status.state).toBe('running');
-        done();
+      const eventPromise = new Promise<void>((resolve) => {
+        service.on('resume', (status) => {
+          expect(status.state).toBe('running');
+          resolve();
+        });
       });
 
       service.resume();
+      await eventPromise;
     });
   });
 
@@ -270,15 +275,18 @@ describe('PomodoroService', () => {
       );
     });
 
-    it('should emit stop event', (done) => {
+    it('should emit stop event', async () => {
       service.start('Test Task', 'focus');
 
-      service.on('stop', (status) => {
-        expect(status.state).toBe('idle');
-        done();
+      const eventPromise = new Promise<void>((resolve) => {
+        service.on('stop', (status) => {
+          expect(status.state).toBe('idle');
+          resolve();
+        });
       });
 
       service.stop();
+      await eventPromise;
     });
 
     it('should not stop if idle', () => {
@@ -347,14 +355,18 @@ describe('PomodoroService', () => {
       expect(service.getStatus().timeRemaining).toBe(initialTime - 1);
     });
 
-    it('should emit tick event', (done) => {
+    it('should emit tick event', async () => {
       service.start('Test Task', 'focus');
 
-      service.on('tick', () => {
-        done();
+      const eventPromise = new Promise<void>((resolve) => {
+        service.on('tick', () => {
+          resolve();
+        });
       });
 
-      jest.advanceTimersByTime(1000);
+      // Wait a bit for the tick event
+      await new Promise(resolve => setTimeout(resolve, 1100));
+      await eventPromise;
     });
 
     it('should complete session when time reaches zero', () => {
@@ -478,25 +490,25 @@ describe('PomodoroService', () => {
   });
 
   describe('destroy', () => {
-    it('should stop interval', () => {
+    it('should stop interval', async () => {
       service.start('Test Task', 'focus');
       service.destroy();
 
       const timeBefore = service.getStatus().timeRemaining;
-      jest.advanceTimersByTime(1000);
+      await new Promise(resolve => setTimeout(resolve, 1100));
       const timeAfter = service.getStatus().timeRemaining;
 
       // Time should not change after destroy
       expect(timeAfter).toBe(timeBefore);
     });
 
-    it('should remove all listeners', () => {
-      const listener = jest.fn();
+    it('should remove all listeners', async () => {
+      const listener = mock(() => {});
       service.on('tick', listener);
 
       service.destroy();
       service.start('Test Task', 'focus');
-      jest.advanceTimersByTime(1000);
+      await new Promise(resolve => setTimeout(resolve, 1100));
 
       expect(listener).not.toHaveBeenCalled();
     });

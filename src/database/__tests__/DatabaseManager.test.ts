@@ -1,87 +1,100 @@
-import { DatabaseManager } from '../DatabaseManager';
-import Database from 'better-sqlite3';
-import { app } from 'electron';
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { ActivitySession } from '@/types/activity';
 
+// Create mock functions
+const mockRunMigrations = mock(() => {});
+const mockAppUsageInsert = mock(() => 123);
+
 // Mock better-sqlite3
-jest.mock('better-sqlite3');
+mock.module('better-sqlite3', () => ({
+  default: mock(() => ({
+    prepare: mock(() => ({})),
+    exec: mock(() => {}),
+    close: mock(() => {}),
+    pragma: mock(() => {}),
+  })),
+}));
 
 // Mock electron app
-jest.mock('electron', () => ({
+mock.module('electron', () => ({
   app: {
-    getPath: jest.fn(),
+    getPath: mock(() => '/test/path'),
   },
 }));
 
 // Mock MigrationRunner
-jest.mock('../migrations/MigrationRunner', () => ({
-  MigrationRunner: jest.fn().mockImplementation(() => ({
-    runMigrations: jest.fn(),
+mock.module('../migrations/MigrationRunner', () => ({
+  MigrationRunner: mock(() => ({
+    runMigrations: mockRunMigrations,
   })),
 }));
 
 // Mock Repositories
-jest.mock('../repositories/TimeEntryRepository', () => ({
-  TimeEntryRepository: jest.fn().mockImplementation(() => ({})),
+mock.module('../repositories/TimeEntryRepository', () => ({
+  TimeEntryRepository: mock(() => ({})),
 }));
 
-jest.mock('../repositories/AppUsageRepository', () => ({
-  AppUsageRepository: jest.fn().mockImplementation(() => ({
-    insert: jest.fn().mockReturnValue(123),
+mock.module('../repositories/AppUsageRepository', () => ({
+  AppUsageRepository: mock(() => ({
+    insert: mockAppUsageInsert,
   })),
 }));
 
-jest.mock('../repositories/CategoryRepository', () => ({
-  CategoryRepository: jest.fn().mockImplementation(() => ({})),
+mock.module('../repositories/CategoryRepository', () => ({
+  CategoryRepository: mock(() => ({})),
 }));
 
-jest.mock('../repositories/TagRepository', () => ({
-  TagRepository: jest.fn().mockImplementation(() => ({})),
+mock.module('../repositories/TagRepository', () => ({
+  TagRepository: mock(() => ({})),
 }));
 
-jest.mock('../repositories/PomodoroRepository', () => ({
-  PomodoroRepository: jest.fn().mockImplementation(() => ({})),
+mock.module('../repositories/PomodoroRepository', () => ({
+  PomodoroRepository: mock(() => ({})),
 }));
 
-jest.mock('../repositories/GoalRepository', () => ({
-  GoalRepository: jest.fn().mockImplementation(() => ({})),
+mock.module('../repositories/GoalRepository', () => ({
+  GoalRepository: mock(() => ({})),
 }));
 
-jest.mock('../repositories/MappingRepository', () => ({
-  MappingRepository: jest.fn().mockImplementation(() => ({})),
+mock.module('../repositories/MappingRepository', () => ({
+  MappingRepository: mock(() => ({})),
 }));
 
 // Mock AnalyticsService
-jest.mock('../analytics/AnalyticsService', () => ({
-  AnalyticsService: jest.fn().mockImplementation(() => ({})),
+mock.module('../analytics/AnalyticsService', () => ({
+  AnalyticsService: mock(() => ({})),
 }));
+
+import { DatabaseManager } from '../DatabaseManager';
+import Database from 'better-sqlite3';
+import { app } from 'electron';
 
 describe('DatabaseManager', () => {
   let dbManager: DatabaseManager;
   let mockDb: any;
-  let mockPrepare: jest.Mock;
-  let mockExec: jest.Mock;
-  let consoleLog: jest.SpyInstance;
-  let consoleError: jest.SpyInstance;
+  let mockPrepare: ReturnType<typeof mock>;
+  let mockExec: ReturnType<typeof mock>;
+  let consoleLog: ReturnType<typeof spyOn>;
+  let consoleError: ReturnType<typeof spyOn>;
 
   beforeEach(() => {
     // Setup console spies
-    consoleLog = jest.spyOn(console, 'log').mockImplementation();
-    consoleError = jest.spyOn(console, 'error').mockImplementation();
+    consoleLog = spyOn(console, 'log').mockImplementation(() => {});
+    consoleError = spyOn(console, 'error').mockImplementation(() => {});
 
     // Mock database operations
-    mockPrepare = jest.fn();
-    mockExec = jest.fn();
+    mockPrepare = mock(() => ({}));
+    mockExec = mock(() => {});
 
     mockDb = {
       prepare: mockPrepare,
       exec: mockExec,
-      close: jest.fn(),
-      pragma: jest.fn(),
+      close: mock(() => {}),
+      pragma: mock(() => {}),
     };
 
-    (Database as unknown as jest.Mock).mockReturnValue(mockDb);
-    (app.getPath as jest.Mock).mockReturnValue('/test/path');
+    (Database as any) = mock(() => mockDb);
+    (app.getPath as any) = mock(() => '/test/path');
 
     dbManager = new DatabaseManager();
     // Initialize the database with test path
@@ -89,7 +102,6 @@ describe('DatabaseManager', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
     consoleLog.mockRestore();
     consoleError.mockRestore();
   });

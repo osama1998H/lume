@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'bun:test';
 import en from '../locales/en.json';
 import ar from '../locales/ar.json';
 

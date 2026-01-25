@@ -1,0 +1,5 @@
+[install]
+trustedDependencies = ["better-sqlite3"]
+
+[test]
+preload = ["./src/setupTests.ts"]

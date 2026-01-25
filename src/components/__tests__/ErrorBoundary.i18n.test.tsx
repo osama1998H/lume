@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, mock, spyOn } from 'bun:test';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
@@ -8,15 +9,15 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: mock((query: string) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
+    addListener: mock(() => {}),
+    removeListener: mock(() => {}),
+    addEventListener: mock(() => {}),
+    removeEventListener: mock(() => {}),
+    dispatchEvent: mock(() => {}),
   })),
 });
 
@@ -40,7 +41,7 @@ describe('ErrorBoundary i18n Integration', () => {
   // Suppress console.error for these tests
   const originalError = console.error;
   beforeAll(() => {
-    console.error = jest.fn();
+    console.error = mock(() => {});
   });
 
   afterAll(() => {
@@ -48,7 +49,7 @@ describe('ErrorBoundary i18n Integration', () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Bun handles mock cleanup differently
   });
 
   describe('English translations', () => {
@@ -168,7 +169,7 @@ describe('ErrorBoundary i18n Integration', () => {
   describe('Custom fallback', () => {
     it('should render custom fallback instead of default error UI', () => {
       const customFallback = <div>Custom Error Page</div>;
-      
+
       renderWithI18n(
         <ErrorBoundary fallback={customFallback}>
           <ThrowError shouldThrow={true} />
@@ -233,10 +234,10 @@ describe('ErrorBoundary i18n Integration', () => {
 
   describe('Edge cases', () => {
     it('should handle refresh page button click', () => {
-      const reloadSpy = jest.fn();
+      const reloadFn = mock(() => {});
       Object.defineProperty(window, 'location', {
         writable: true,
-        value: { reload: reloadSpy },
+        value: { reload: reloadFn },
       });
 
       renderWithI18n(
@@ -248,12 +249,12 @@ describe('ErrorBoundary i18n Integration', () => {
       const refreshButton = screen.getByText('Refresh Page');
       fireEvent.click(refreshButton);
 
-      expect(reloadSpy).toHaveBeenCalled();
+      expect(reloadFn).toHaveBeenCalled();
     });
 
     it('should handle errors during translation rendering', () => {
       // This tests robustness even if i18n fails
-      
+
       renderWithI18n(
         <ErrorBoundary>
           <ThrowError shouldThrow={true} />

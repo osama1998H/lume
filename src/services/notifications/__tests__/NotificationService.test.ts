@@ -1,24 +1,31 @@
-import { NotificationService } from '../NotificationService';
-import { Notification } from 'electron';
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+
+// Track mock instances for testing
+let mockNotificationInstances: any[] = [];
+const mockShow = mock(() => {});
 
 // Mock Electron's Notification
-jest.mock('electron', () => ({
-  Notification: jest.fn().mockImplementation(function(this: any, options: any) {
+mock.module('electron', () => ({
+  Notification: function(this: any, options: any) {
     this.title = options.title;
     this.body = options.body;
     this.silent = options.silent;
-    this.show = jest.fn();
+    this.show = mockShow;
+    mockNotificationInstances.push(this);
     return this;
-  }),
+  },
 }));
+
+import { NotificationService } from '../NotificationService';
+import { Notification } from 'electron';
 
 describe('NotificationService', () => {
   let service: NotificationService;
-  let consoleLog: jest.SpyInstance;
+  let consoleLog: ReturnType<typeof spyOn>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    consoleLog = jest.spyOn(console, 'log').mockImplementation();
+    mockNotificationInstances = [];
+    consoleLog = spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -127,7 +134,7 @@ describe('NotificationService', () => {
       service = new NotificationService(true, true);
       service.notifyFocusComplete('Test Task');
 
-      const mockNotification = (Notification as jest.MockedClass<typeof Notification>).mock.instances[0]!;
+      const mockNotification = mockNotificationInstances[0]!;
       expect(mockNotification.show).toHaveBeenCalled();
     });
   });
@@ -218,10 +225,12 @@ describe('NotificationService', () => {
 
   describe('Error handling', () => {
     it('should handle notification errors gracefully', () => {
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      (Notification as jest.MockedClass<typeof Notification>).mockImplementationOnce(() => {
+      const consoleError = spyOn(console, 'error').mockImplementation(() => {});
+      // Override the mock to throw an error
+      const originalNotification = Notification;
+      (Notification as any) = function() {
         throw new Error('Notification failed');
-      });
+      };
 
       service = new NotificationService(true, true);
       service.notifyFocusComplete('Test Task');

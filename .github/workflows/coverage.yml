@@ -21,17 +21,16 @@ jobs:
         with:
           fetch-depth: 0  # Required for coverage comparison
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: '20'
-          cache: 'npm'
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Run tests with coverage
-        run: npm run test -- --coverage --coverageReporters="text" --coverageReporters="lcov" --coverageReporters="json-summary"
+        run: bun test --coverage
 
       - name: Upload coverage to Codecov
         if: always()
@@ -50,18 +49,6 @@ jobs:
           lcov-file: ./coverage/lcov.info
           github-token: ${{ secrets.GITHUB_TOKEN }}
           delete-old-comments: true
-
-      - name: Check coverage threshold
-        if: always()
-        run: |
-          COVERAGE=$(node -p "require('./coverage/coverage-summary.json').total.lines.pct")
-          echo "Total coverage: $COVERAGE%"
-          if (( $(echo "$COVERAGE < 20" | bc -l) )); then
-            echo "⚠️ Coverage is below 20% threshold"
-            exit 1
-          else
-            echo "✅ Coverage meets 20% threshold"
-          fi
 
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4

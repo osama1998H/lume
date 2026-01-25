@@ -1,66 +1,54 @@
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import App from '../../App';
 
 // Mock lazy-loaded components
-jest.mock('../pages/Dashboard', () => ({
-  __esModule: true,
+mock.module('../pages/Dashboard', () => ({
   default: () => <div>Dashboard View</div>,
 }));
 
-jest.mock('../pages/TimeTracker', () => ({
-  __esModule: true,
+mock.module('../pages/TimeTracker', () => ({
   default: () => <div>TimeTracker View</div>,
 }));
 
-jest.mock('../pages/Reports', () => ({
-  __esModule: true,
+mock.module('../pages/Reports', () => ({
   default: () => <div>Reports View</div>,
 }));
 
-jest.mock('../pages/Analytics', () => ({
-  __esModule: true,
+mock.module('../pages/Analytics', () => ({
   default: () => <div>Analytics View</div>,
 }));
 
-jest.mock('../pages/Goals', () => ({
-  __esModule: true,
+mock.module('../pages/Goals', () => ({
   default: () => <div>Goals View</div>,
 }));
 
-jest.mock('../pages/FocusMode', () => ({
-  __esModule: true,
+mock.module('../pages/FocusMode', () => ({
   default: () => <div>FocusMode View</div>,
 }));
 
-jest.mock('../pages/Settings', () => ({
-  __esModule: true,
+mock.module('../pages/Settings', () => ({
   default: () => <div>Settings View</div>,
 }));
 
-jest.mock('../pages/Categories', () => ({
-  __esModule: true,
+mock.module('../pages/Categories', () => ({
   default: () => <div>Categories View</div>,
 }));
 
-jest.mock('../pages/ActivityLog', () => ({
-  __esModule: true,
+mock.module('../pages/ActivityLog', () => ({
   default: () => <div>ActivityLog View</div>,
 }));
 
 // Mock layout components
-jest.mock('../layout/ErrorBoundary', () => ({
-  __esModule: true,
+mock.module('../layout/ErrorBoundary', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-jest.mock('../layout/TitleBar', () => ({
-  __esModule: true,
+mock.module('../layout/TitleBar', () => ({
   default: () => <div data-testid="title-bar">Title Bar</div>,
 }));
 
-jest.mock('../layout/Sidebar', () => ({
-  __esModule: true,
+mock.module('../layout/Sidebar', () => ({
   default: ({ onViewChange }: { currentView: string; onViewChange: (view: string) => void }) => (
     <div data-testid="sidebar">
       <button onClick={() => onViewChange('dashboard')}>Dashboard</button>
@@ -76,23 +64,22 @@ jest.mock('../layout/Sidebar', () => ({
   ),
 }));
 
-jest.mock('../ui/Toast', () => ({
-  __esModule: true,
+mock.module('../ui/Toast', () => ({
   default: () => <div data-testid="toast-container">Toast Container</div>,
 }));
 
 // Mock contexts
-jest.mock('../../contexts/ThemeContext', () => ({
+mock.module('../../contexts/ThemeContext', () => ({
   ThemeProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   useTheme: () => ({
     theme: 'light',
     effectiveTheme: 'light',
-    changeTheme: jest.fn(),
+    changeTheme: mock(() => {}),
     isDark: false,
   }),
 }));
 
-jest.mock('../../contexts/PomodoroContext', () => ({
+mock.module('../../contexts/PomodoroContext', () => ({
   PomodoroProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   usePomodoro: () => ({
     isRunning: false,
@@ -101,17 +88,19 @@ jest.mock('../../contexts/PomodoroContext', () => ({
     timeLeft: 1500,
     currentInterval: 1,
     totalIntervals: 4,
-    start: jest.fn(),
-    pause: jest.fn(),
-    resume: jest.fn(),
-    stop: jest.fn(),
-    skip: jest.fn(),
+    start: mock(() => {}),
+    pause: mock(() => {}),
+    resume: mock(() => {}),
+    stop: mock(() => {}),
+    skip: mock(() => {}),
   }),
 }));
 
+import App from '../../App';
+
 describe('App', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Clear mocks before each test
   });
 
   describe('Initial Rendering', () => {

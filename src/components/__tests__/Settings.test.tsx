@@ -1,46 +1,69 @@
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, mock, spyOn } from 'bun:test';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import Settings from '../pages/Settings';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import * as ThemeContext from '@/contexts/ThemeContext';
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: mock((query: string) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
+    addListener: mock(() => {}),
+    removeListener: mock(() => {}),
+    addEventListener: mock(() => {}),
+    removeEventListener: mock(() => {}),
+    dispatchEvent: mock(() => {}),
   })),
 });
 
-// Mock i18next
-jest.mock('react-i18next', () => ({
+// Mock i18next - must come before component import
+mock.module('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
 }));
 
-// Mock useLanguage hook
-jest.mock('../../hooks/useLanguage', () => ({
+// Create mock function for changeLanguage
+const mockChangeLanguage = mock(() => {});
+
+// Mock useLanguage hook - must come before component import
+mock.module('../../hooks/useLanguage', () => ({
   useLanguage: () => ({
     language: 'en',
-    changeLanguage: jest.fn(),
+    changeLanguage: mockChangeLanguage,
   }),
 }));
 
+// Import after mocks
+import Settings from '../pages/Settings';
+
 // Mock window.electronAPI
 const mockElectronAPI = {
-  getSettings: jest.fn(),
-  saveSettings: jest.fn(),
-  getActivityTrackingStatus: jest.fn(),
-  startActivityTracking: jest.fn(),
-  stopActivityTracking: jest.fn(),
+  getSettings: mock(() => Promise.resolve({
+    autoTrackApps: true,
+    showNotifications: true,
+    minimizeToTray: false,
+    autoStartTracking: false,
+    defaultCategory: '',
+    trackingInterval: 30,
+    activityTracking: {
+      enabled: false,
+      trackingInterval: 30,
+      idleThreshold: 300,
+      trackBrowsers: true,
+      trackApplications: true,
+      blacklistedApps: [],
+      blacklistedDomains: [],
+      dataRetentionDays: 90
+    }
+  })),
+  saveSettings: mock(() => Promise.resolve(true)),
+  getActivityTrackingStatus: mock(() => Promise.resolve(false)),
+  startActivityTracking: mock(() => Promise.resolve()),
+  stopActivityTracking: mock(() => Promise.resolve()),
 };
 
 // Helper function to render with ThemeProvider
@@ -50,11 +73,8 @@ const renderWithTheme = (component: React.ReactElement) => {
 
 describe('Settings Component', () => {
   beforeEach(() => {
-    // Reset mocks
-    jest.clearAllMocks();
-    
-    // Setup default mock implementations
-    mockElectronAPI.getSettings.mockResolvedValue({
+    // Reset mock functions
+    mockElectronAPI.getSettings = mock(() => Promise.resolve({
       autoTrackApps: true,
       showNotifications: true,
       minimizeToTray: false,
@@ -71,11 +91,13 @@ describe('Settings Component', () => {
         blacklistedDomains: [],
         dataRetentionDays: 90
       }
-    });
-    
-    mockElectronAPI.getActivityTrackingStatus.mockResolvedValue(false);
-    mockElectronAPI.saveSettings.mockResolvedValue(true);
-    
+    }));
+
+    mockElectronAPI.getActivityTrackingStatus = mock(() => Promise.resolve(false));
+    mockElectronAPI.saveSettings = mock(() => Promise.resolve(true));
+    mockElectronAPI.startActivityTracking = mock(() => Promise.resolve());
+    mockElectronAPI.stopActivityTracking = mock(() => Promise.resolve());
+
     (window as any).electronAPI = mockElectronAPI;
   });
 
@@ -119,7 +141,7 @@ describe('Settings Component', () => {
 
   describe('Activity Tracking Toggle', () => {
     it('should start tracking when toggle is clicked from stopped state', async () => {
-      mockElectronAPI.getActivityTrackingStatus.mockResolvedValue(false);
+      mockElectronAPI.getActivityTrackingStatus = mock(() => Promise.resolve(false));
 
       renderWithTheme(<Settings />);
 
@@ -137,7 +159,7 @@ describe('Settings Component', () => {
     });
 
     it('should stop tracking when toggle is clicked from active state', async () => {
-      mockElectronAPI.getActivityTrackingStatus.mockResolvedValue(true);
+      mockElectronAPI.getActivityTrackingStatus = mock(() => Promise.resolve(true));
 
       renderWithTheme(<Settings />);
 
@@ -155,7 +177,7 @@ describe('Settings Component', () => {
     });
 
     it('should save settings with correct enabled state when starting tracking', async () => {
-      mockElectronAPI.getActivityTrackingStatus.mockResolvedValue(false);
+      mockElectronAPI.getActivityTrackingStatus = mock(() => Promise.resolve(false));
 
       renderWithTheme(<Settings />);
 
@@ -178,7 +200,7 @@ describe('Settings Component', () => {
     });
 
     it('should save settings with correct enabled state when stopping tracking', async () => {
-      mockElectronAPI.getActivityTrackingStatus.mockResolvedValue(true);
+      mockElectronAPI.getActivityTrackingStatus = mock(() => Promise.resolve(true));
 
       renderWithTheme(<Settings />);
 
@@ -202,7 +224,7 @@ describe('Settings Component', () => {
 
     it('should handle error when electronAPI is not available', async () => {
       delete (window as any).electronAPI;
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+      const consoleErrorSpy = spyOn(console, 'error').mockImplementation(() => {});
 
       renderWithTheme(<Settings />);
 
@@ -215,19 +237,19 @@ describe('Settings Component', () => {
       fireEvent.click(startButton);
 
       await waitFor(() => {
-        expect(consoleError).toHaveBeenCalledWith(
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
           expect.stringContaining('Failed to toggle activity tracking'),
           expect.any(Error)
         );
       });
 
-      consoleError.mockRestore();
+      consoleErrorSpy.mockRestore();
     });
 
     it('should log error when save settings fails', async () => {
-      mockElectronAPI.saveSettings.mockResolvedValue(false);
-      mockElectronAPI.getActivityTrackingStatus.mockResolvedValue(false);
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+      mockElectronAPI.saveSettings = mock(() => Promise.resolve(false));
+      mockElectronAPI.getActivityTrackingStatus = mock(() => Promise.resolve(false));
+      const consoleErrorSpy = spyOn(console, 'error').mockImplementation(() => {});
 
       renderWithTheme(<Settings />);
 
@@ -239,16 +261,16 @@ describe('Settings Component', () => {
       fireEvent.click(startButton);
 
       await waitFor(() => {
-        expect(consoleError).toHaveBeenCalledWith('❌ Failed to save tracking state to settings');
+        expect(consoleErrorSpy).toHaveBeenCalledWith('❌ Failed to save tracking state to settings');
       });
 
-      consoleError.mockRestore();
+      consoleErrorSpy.mockRestore();
     });
 
     it('should log success message when tracking is enabled and saved', async () => {
-      mockElectronAPI.getActivityTrackingStatus.mockResolvedValue(false);
-      mockElectronAPI.saveSettings.mockResolvedValue(true);
-      const consoleLog = jest.spyOn(console, 'log').mockImplementation();
+      mockElectronAPI.getActivityTrackingStatus = mock(() => Promise.resolve(false));
+      mockElectronAPI.saveSettings = mock(() => Promise.resolve(true));
+      const consoleLogSpy = spyOn(console, 'log').mockImplementation(() => {});
 
       renderWithTheme(<Settings />);
 
@@ -260,10 +282,10 @@ describe('Settings Component', () => {
       fireEvent.click(startButton);
 
       await waitFor(() => {
-        expect(consoleLog).toHaveBeenCalledWith('✅ Activity tracking enabled and saved to settings');
+        expect(consoleLogSpy).toHaveBeenCalledWith('✅ Activity tracking enabled and saved to settings');
       });
 
-      consoleLog.mockRestore();
+      consoleLogSpy.mockRestore();
     });
   });
 
@@ -284,7 +306,7 @@ describe('Settings Component', () => {
     });
 
     it('should show success message after saving settings', async () => {
-      mockElectronAPI.saveSettings.mockResolvedValue(true);
+      mockElectronAPI.saveSettings = mock(() => Promise.resolve(true));
 
       renderWithTheme(<Settings />);
 
@@ -301,8 +323,9 @@ describe('Settings Component', () => {
     });
 
     it('should clear success message after 3 seconds', async () => {
-      jest.useFakeTimers();
-      mockElectronAPI.saveSettings.mockResolvedValue(true);
+      // Note: Bun doesn't have full timer mocking like Jest
+      // This test may need adjustment or manual verification
+      mockElectronAPI.saveSettings = mock(() => Promise.resolve(true));
 
       renderWithTheme(<Settings />);
 
@@ -317,17 +340,16 @@ describe('Settings Component', () => {
         expect(screen.getByText('settings.settingsSavedSuccess')).toBeInTheDocument();
       });
 
-      jest.advanceTimersByTime(3000);
+      // Wait for the timeout (3 seconds) - this is a real wait in Bun
+      await new Promise(resolve => setTimeout(resolve, 3100));
 
       await waitFor(() => {
         expect(screen.queryByText('settings.settingsSavedSuccess')).not.toBeInTheDocument();
       });
-
-      jest.useRealTimers();
     });
 
     it('should show error message when save fails', async () => {
-      mockElectronAPI.saveSettings.mockResolvedValue(false);
+      mockElectronAPI.saveSettings = mock(() => Promise.resolve(false));
 
       renderWithTheme(<Settings />);
 
@@ -344,7 +366,7 @@ describe('Settings Component', () => {
     });
 
     it('should disable save button while saving', async () => {
-      mockElectronAPI.saveSettings.mockImplementation(() =>
+      mockElectronAPI.saveSettings = mock(() =>
         new Promise(resolve => setTimeout(() => resolve(true), 100))
       );
 
@@ -363,7 +385,7 @@ describe('Settings Component', () => {
     });
 
     it('should only trigger saveSettings once on rapid consecutive clicks', async () => {
-      mockElectronAPI.saveSettings.mockImplementation(() =>
+      mockElectronAPI.saveSettings = mock(() =>
         new Promise(resolve => setTimeout(() => resolve(true), 100))
       );
 
@@ -392,7 +414,7 @@ describe('Settings Component', () => {
 
   describe('Activity Tracking Status Display', () => {
     it('should display "Active" status when tracking is enabled', async () => {
-      mockElectronAPI.getActivityTrackingStatus.mockResolvedValue(true);
+      mockElectronAPI.getActivityTrackingStatus = mock(() => Promise.resolve(true));
 
       renderWithTheme(<Settings />);
 
@@ -402,7 +424,7 @@ describe('Settings Component', () => {
     });
 
     it('should display "Stopped" status when tracking is disabled', async () => {
-      mockElectronAPI.getActivityTrackingStatus.mockResolvedValue(false);
+      mockElectronAPI.getActivityTrackingStatus = mock(() => Promise.resolve(false));
 
       renderWithTheme(<Settings />);
 
@@ -412,7 +434,7 @@ describe('Settings Component', () => {
     });
 
     it('should show correct button text based on tracking state', async () => {
-      mockElectronAPI.getActivityTrackingStatus.mockResolvedValue(false);
+      mockElectronAPI.getActivityTrackingStatus = mock(() => Promise.resolve(false));
 
       renderWithTheme(<Settings />);
 
@@ -424,35 +446,35 @@ describe('Settings Component', () => {
 
   describe('Error Handling', () => {
     it('should handle error when loading settings fails', async () => {
-      mockElectronAPI.getSettings.mockRejectedValue(new Error('Failed to load'));
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+      mockElectronAPI.getSettings = mock(() => Promise.reject(new Error('Failed to load')));
+      const consoleErrorSpy = spyOn(console, 'error').mockImplementation(() => {});
 
       renderWithTheme(<Settings />);
 
       await waitFor(() => {
-        expect(consoleError).toHaveBeenCalledWith(
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
           'Failed to load settings:',
           expect.any(Error)
         );
       });
 
-      consoleError.mockRestore();
+      consoleErrorSpy.mockRestore();
     });
 
     it('should handle error when loading tracking status fails', async () => {
-      mockElectronAPI.getActivityTrackingStatus.mockRejectedValue(new Error('Failed to load status'));
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+      mockElectronAPI.getActivityTrackingStatus = mock(() => Promise.reject(new Error('Failed to load status')));
+      const consoleErrorSpy = spyOn(console, 'error').mockImplementation(() => {});
 
       renderWithTheme(<Settings />);
 
       await waitFor(() => {
-        expect(consoleError).toHaveBeenCalledWith(
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
           'Failed to load tracking status:',
           expect.any(Error)
         );
       });
 
-      consoleError.mockRestore();
+      consoleErrorSpy.mockRestore();
     });
 
     it('should handle missing electronAPI gracefully', async () => {
@@ -472,11 +494,8 @@ describe('Settings Component', () => {
 // Additional tests for theme functionality
 describe('Theme Selection', () => {
   beforeEach(() => {
-    // Reset mocks
-    jest.clearAllMocks();
-    
-    // Setup default mock implementations
-    mockElectronAPI.getSettings.mockResolvedValue({
+    // Reset mock functions
+    mockElectronAPI.getSettings = mock(() => Promise.resolve({
       autoTrackApps: true,
       showNotifications: true,
       minimizeToTray: false,
@@ -493,17 +512,16 @@ describe('Theme Selection', () => {
         blacklistedDomains: [],
         dataRetentionDays: 90
       }
-    });
-    
-    mockElectronAPI.getActivityTrackingStatus.mockResolvedValue(false);
-    mockElectronAPI.saveSettings.mockResolvedValue(true);
-    
+    }));
+
+    mockElectronAPI.getActivityTrackingStatus = mock(() => Promise.resolve(false));
+    mockElectronAPI.saveSettings = mock(() => Promise.resolve(true));
+
     (window as any).electronAPI = mockElectronAPI;
   });
 
   afterEach(() => {
     delete (window as any).electronAPI;
-    jest.restoreAllMocks();
   });
 
   it('should render theme dropdown with all options', async () => {
@@ -549,8 +567,8 @@ describe('Theme Selection', () => {
   });
 
   it('should call useTheme hook on mount', async () => {
-    const mockChangeTheme = jest.fn();
-    jest.spyOn(ThemeContext, 'useTheme').mockReturnValue({
+    const mockChangeTheme = mock(() => {});
+    spyOn(ThemeContext, 'useTheme').mockReturnValue({
       theme: 'system',
       effectiveTheme: 'light',
       changeTheme: mockChangeTheme,
@@ -568,8 +586,8 @@ describe('Theme Selection', () => {
   });
 
   it('should change theme when user selects a different option', async () => {
-    const mockChangeTheme = jest.fn();
-    jest.spyOn(ThemeContext, 'useTheme').mockReturnValue({
+    const mockChangeTheme = mock(() => {});
+    spyOn(ThemeContext, 'useTheme').mockReturnValue({
       theme: 'light',
       effectiveTheme: 'light',
       changeTheme: mockChangeTheme,
@@ -597,8 +615,8 @@ describe('Theme Selection', () => {
   });
 
   it('should handle theme change from light to dark', async () => {
-    const mockChangeTheme = jest.fn();
-    jest.spyOn(ThemeContext, 'useTheme').mockReturnValue({
+    const mockChangeTheme = mock(() => {});
+    spyOn(ThemeContext, 'useTheme').mockReturnValue({
       theme: 'light',
       effectiveTheme: 'light',
       changeTheme: mockChangeTheme,
@@ -623,8 +641,8 @@ describe('Theme Selection', () => {
   });
 
   it('should handle theme change to system mode', async () => {
-    const mockChangeTheme = jest.fn();
-    jest.spyOn(ThemeContext, 'useTheme').mockReturnValue({
+    const mockChangeTheme = mock(() => {});
+    spyOn(ThemeContext, 'useTheme').mockReturnValue({
       theme: 'light',
       effectiveTheme: 'light',
       changeTheme: mockChangeTheme,
@@ -649,10 +667,10 @@ describe('Theme Selection', () => {
   });
 
   it('should display current theme value in select', async () => {
-    jest.spyOn(ThemeContext, 'useTheme').mockReturnValue({
+    spyOn(ThemeContext, 'useTheme').mockReturnValue({
       theme: 'dark',
       effectiveTheme: 'dark',
-      changeTheme: jest.fn(),
+      changeTheme: mock(() => {}),
       isDark: true,
     });
 
@@ -671,8 +689,8 @@ describe('Theme Selection', () => {
   });
 
   it('should integrate theme selection with other settings', async () => {
-    const mockChangeTheme = jest.fn();
-    jest.spyOn(ThemeContext, 'useTheme').mockReturnValue({
+    const mockChangeTheme = mock(() => {});
+    spyOn(ThemeContext, 'useTheme').mockReturnValue({
       theme: 'light',
       effectiveTheme: 'light',
       changeTheme: mockChangeTheme,

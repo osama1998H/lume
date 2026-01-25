@@ -1,10 +1,9 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { InsightCard } from '../InsightCard';
-import type { BehavioralInsight } from '@/types';
 
 // Mock i18n
-jest.mock('react-i18next', () => ({
+mock.module('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, params?: any) => {
       // Handle translation with params
@@ -19,6 +18,9 @@ jest.mock('react-i18next', () => ({
     },
   }),
 }));
+
+import { InsightCard } from '../InsightCard';
+import type { BehavioralInsight } from '@/types';
 
 describe('InsightCard', () => {
   describe('Rendering - Peak Hour Insight', () => {
