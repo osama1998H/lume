@@ -133,7 +133,7 @@ jobs:
 
       - name: Upload nightly artifacts (macOS)
         if: matrix.platform == 'mac'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nightly-macos-${{ steps.sha.outputs.short }}
           path: |
@@ -144,7 +144,7 @@ jobs:
 
       - name: Upload nightly artifacts (Linux)
         if: matrix.platform == 'linux'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nightly-linux-${{ steps.sha.outputs.short }}
           path: |
@@ -155,7 +155,7 @@ jobs:
 
       - name: Upload nightly artifacts (Windows)
         if: matrix.platform == 'windows'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nightly-windows-${{ steps.sha.outputs.short }}
           path: release/nightly-*.exe

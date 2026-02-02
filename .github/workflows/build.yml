@@ -59,7 +59,7 @@ jobs:
 
       - name: Upload artifacts (macOS)
         if: matrix.platform == 'mac'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: lume-macos
           path: |
@@ -69,7 +69,7 @@ jobs:
 
       - name: Upload artifacts (Linux)
         if: matrix.platform == 'linux'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: lume-linux
           path: |
@@ -79,7 +79,7 @@ jobs:
 
       - name: Upload artifacts (Windows)
         if: matrix.platform == 'windows'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: lume-windows
           path: release/*.exe
