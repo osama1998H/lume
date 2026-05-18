@@ -113,7 +113,7 @@
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.45.0",
     "@vitejs/plugin-react": "^5.0.4",
-    "autoprefixer": "^10.4.21",
+    "autoprefixer": "^10.5.0",
     "concurrently": "^9.2.1",
     "electron": "^38.2.1",
     "electron-builder": "^26.0.12",
